@@ -33,7 +33,7 @@ A207 자율 프로젝트
   - 2025.05.21: 최종 점검 및 배포
 
 # 3. 기술 스택
-- **프론트엔드**: React
+- **프론트엔드**: React, NextJs
 - **백엔드**: Java Spring Boot
 - **데이터베이스**: MySQL, Redis
 - **배포**: AWS EC2
