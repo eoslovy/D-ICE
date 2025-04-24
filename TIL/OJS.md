@@ -47,7 +47,7 @@
 4. 다른 곳에 뭔가 문제가 있다고 판단하고 wifi 관련 설정들을 쭉 보다가 네트워크 설정에서 네트워크 프로필 유형을 발견했다.
 5. ![[Pasted image 20250421152213.png]] 이 부분이 공용으로 되어있는 것을 보고 이것 때문일 수 있겠다고 생각했고 개인으로 바꾸니 해결됐다.
 
-## 20250423 WebSocket 표준 관련
+## 20250423 WebSocket heartbeat
 
 ### 문제 상황
 
@@ -61,4 +61,4 @@
 2. 대신 PingMessage와 PongMessage는 구현되어 있었다. [참고](https://datatracker.ietf.org/doc/html/rfc6455#section-5.5.2)
 3. 그리고 PingMessage에는 127바이트까지 데이터를 담아서 보낼 수 있다.,
 4. 다만 PingMessage는 프로토콜 레벨에서 처리되기 때문에 클라이언트쪽에서 해당 데이터에 접근할 수 없다.
-5. 따라서 Ping을 저런 용도로 사용하기 위해서는 커스텀 ping message를 만들어서 써야한다.
+5. 따라서 Ping을 저런 용도로 사용하기 위해서는 커스텀 heartbeat 를 만들어서 써야할 것 같다.
