@@ -1,5 +1,6 @@
 package com.party.backbone.room;
 
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
@@ -16,6 +17,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @Repository
 public class RoomRedisRepository {
+	private final Duration PLAYER_BASE_TTL = Duration.ofHours(2);
 
 	private final RedisTemplate<String, String> redisTemplate;
 	private final ObjectMapper objectMapper;
@@ -50,8 +52,10 @@ public class RoomRedisRepository {
 
 	public void deleteRoom(String roomCode) {
 		// 해당 key 없어도 예외 발생하지 않음
-		redisTemplate.delete(getRoomKey(roomCode));
-		redisTemplate.delete(getRoomKey(roomCode) + ":players");
+		String roomKey = getRoomKey(roomCode);
+		redisTemplate.delete(roomKey);
+		redisTemplate.delete(roomKey + ":players");
+		redisTemplate.expire(roomKey, PLAYER_BASE_TTL);
 	}
 
 	public boolean exists(String roomCode) {
