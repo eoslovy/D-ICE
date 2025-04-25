@@ -62,3 +62,91 @@
 3. 그리고 PingMessage에는 127바이트까지 데이터를 담아서 보낼 수 있다.,
 4. 다만 PingMessage는 프로토콜 레벨에서 처리되기 때문에 클라이언트쪽에서 해당 데이터에 접근할 수 없다.
 5. 따라서 Ping을 저런 용도로 사용하기 위해서는 커스텀 heartbeat 를 만들어서 써야할 것 같다.
+
+## 20250424 메시지 처리
+
+### 문제 상황
+
+- 메시지 타입별로 다른 방식으로 처리해야하는데 어떻게 하면 유연하고 확장성 있는 구조를 가져갈 수 있을까?
+
+### 해결 순서
+
+1. message 타입에 따른 switch
+
+   ```### 목표
+
+   ```
+
+- 메시지 타입에 따라 유연하고 확장성 높은 핸들러 구조를 만들기
+
+### 해결 방법
+
+1. switch
+   ```java
+   switch (message.getType()) {
+       case CREATE -> roomManager.handleCreate(...);
+       case JOIN -> roomManager.handleJoin(...);
+   }
+   ```
+   - 메시지 타입 수가 늘어날 수록 switch가 비대해진다
+   - 메시지 dto와 타입이 명확히 연결되지 않는다(type이랑 dto가 다를 수 있음)
+2. pattern matching
+   ```java
+       if (message instanceof CreateMessage m) {
+           roomManager.handleCreate(m);
+       } else if (message instanceof JoinMessage j) {
+           roomManager.handleJoin(j);
+       }
+   ```
+   - 메시지 dto 타입별 분기가 가능
+3. pattern matching for switch
+
+   ```java
+       switch(message) {
+           case CreateMessage createMessage -> roomManager.handleCreate(createMessage)
+           case JoinMessage joinMessage -> roomManager.handlejoin(joinMessage)
+       }
+   ```
+
+   - if - else if 구조에 비해 깔끔
+   - java 17에서 preview로만 사용 가능
+
+4. GameMessageHandler<T> 도입
+
+   ```java
+   public interface GameMessageHandler<T extends GameMessage> {
+       void handle(T message, WebSocketSession session);
+   }
+   ```
+
+   ```java
+   for (GameMessageHandler<?> handler : beans) {
+       Type genericInterface = handler.getClass().getGenericInterfaces()[0];
+       Class<?> messageClass = ((ParameterizedType) genericInterface).getActualTypeArguments()[0];
+       handlerMap.put(messageClass, handler);
+   }
+   ```
+
+   - 핸들러 자동 등록 시 어떤 메시지 타입을 처리하는지 연결정보가 없다
+   - reflection을 통해 runtime에서 확인
+
+5. enum 기반 핸들러 매핑
+
+   ```java
+   public void setApplicationContext(ApplicationContext applicationContext) {
+   	var beans = applicationContext.getBeansOfType(AdminMessageHandler.class);
+   	for (AdminMessageHandler<?> handler : beans.values()) {
+   		AdminMessageType type = handler.getMessageType();
+   		if (type != null) {
+   			handlerMap.put(type, handler);
+   		}
+   	}
+   }
+
+   ```
+
+   - compile 단계에서 messageType을 보고 handler 등록
+
+### 정리
+
+- 자동화된 리플렉션보다 명시적 선언이 유지보수에 유리할 수 있다.
