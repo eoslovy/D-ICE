@@ -1,3 +1,14 @@
+# D-Ice
+
+레크리에이션 파티 게임
+
+
+### Acknowledgements
+
+아래 템플릿으로부터 제작
+
+---
+
 # Phaser React TypeScript Template
 
 This is a Phaser 3 project template that uses the React framework and Vite for bundling. It includes a bridge for React to Phaser game communication, hot-reloading for quick development workflow and scripts to generate production-ready builds.
@@ -12,8 +23,6 @@ This template has been updated for:
 - [React 19.0.0](https://github.com/facebook/react)
 - [Vite 6.3.1](https://github.com/vitejs/vite)
 - [TypeScript 5.7.2](https://github.com/microsoft/TypeScript)
-
-![screenshot](screenshot.png)
 
 ## Requirements
 
