@@ -48,6 +48,12 @@ public class RoomRedisRepository {
 		throw new IllegalStateException("Unable to generate unique room code after " + maxAttempts + " attempts");
 	}
 
+	public void deleteRoom(String roomCode) {
+		// 해당 key 없어도 예외 발생하지 않음
+		redisTemplate.delete(getRoomKey(roomCode));
+		redisTemplate.delete(getRoomKey(roomCode) + ":players");
+	}
+
 	public boolean exists(String roomCode) {
 		return redisTemplate.hasKey("room:" + roomCode);
 	}
