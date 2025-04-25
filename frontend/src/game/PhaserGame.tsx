@@ -10,7 +10,7 @@ export default function PhaserGame() {
       if (gameContainerRef.current) {
         // Dynamically import Phaser and your game configuration
         const Phaser = (await import('phaser')).default;
-        const { default: config } = await import('./main.ts');
+        const { default: config } = await import('./Config.ts');
         
         // Use fixed dimensions that work well across devices
         // Instead of using full window height, use a reasonable base size
