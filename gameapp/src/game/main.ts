@@ -16,8 +16,7 @@ const config: Phaser.Types.Core.GameConfig = {
   input: {
     activePointers: 2,
     touch: {
-      capture: true,
-      preventDefault: true
+      capture: true
     }
   },
   disableContextMenu: true,
@@ -29,7 +28,7 @@ const config: Phaser.Types.Core.GameConfig = {
   physics: {
     default: 'arcade',
     arcade: {
-      gravity: { y: 300 },
+      gravity: { x: 0, y: 300 },
       debug: false
     }
   },

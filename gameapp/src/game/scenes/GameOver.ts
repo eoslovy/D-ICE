@@ -1,5 +1,10 @@
 import Phaser from 'phaser';
 
+// Add interface for scene data
+interface GameOverSceneData {
+  score?: number;
+}
+
 export class GameOver extends Phaser.Scene {
   private finalScore: number = 0;
   
@@ -7,7 +12,7 @@ export class GameOver extends Phaser.Scene {
     super({ key: 'GameOver' });
   }
   
-  init(data) {
+  init(data: GameOverSceneData) {
     this.finalScore = data.score || 0;
   }
   

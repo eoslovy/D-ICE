@@ -243,7 +243,7 @@ export class Game extends Scene {
         this.targets.add(target);
     }
     
-    clickTarget(target) {
+    clickTarget(target: Phaser.GameObjects.Arc) {
         if (!target.active) return;
         
         // Get points from target
@@ -276,7 +276,7 @@ export class Game extends Scene {
         });
     }
     
-    createScorePopup(x, y, points) {
+    createScorePopup(x: number, y: number, points: number) {
         // Create floating score text
         const pointsText = this.add.text(x, y, '+' + points, {
             fontFamily: 'Arial',
@@ -299,7 +299,7 @@ export class Game extends Scene {
         });
     }
     
-    createParticleEffect(x, y, color) {
+    createParticleEffect(x: number, y: number, color: number) {
         // Create particle explosion
         
         const emitter = this.add.particles(x, y, 'star', {

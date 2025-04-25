@@ -22,7 +22,7 @@ export class Preloader extends Phaser.Scene {
     }).setOrigin(0.5);
     
     // Update progress bar
-    this.load.on('progress', (value) => {
+    this.load.on('progress', (value: number) => {
       progressBar.clear();
       progressBar.fillStyle(0xffffff, 1);
       progressBar.fillRect(width / 2 - 150, height / 2 - 15, 300 * value, 30);
@@ -39,9 +39,6 @@ export class Preloader extends Phaser.Scene {
     this.load.image('bg', 'assets/bg.png');
     this.load.image('logo', 'assets/logo.png');
     this.load.image('star', 'assets/star.png');
-    this.load.image('player', 'https://examples.phaser.io/assets/sprites/phaser-dude.png');
-    this.load.image('enemy', 'https://examples.phaser.io/assets/sprites/phaser-ship.png');
-    this.load.image('laser', 'https://examples.phaser.io/assets/sprites/bullets.png');
   }
 
   create() {

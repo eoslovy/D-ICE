@@ -1,8 +1,10 @@
 "use client";
 import { useEffect, useRef } from 'react';
+import Phaser from 'phaser';
 
 export default function PhaserGame() {
   const gameContainerRef = useRef<HTMLDivElement>(null);
+  const gameInstanceRef = useRef<Phaser.Game | null>(null);
 
   useEffect(() => {
     async function initPhaser() {
@@ -36,15 +38,21 @@ export default function PhaserGame() {
             }
           }
         });
-
-        // Cleanup function
-        return () => {
-          game.destroy(true);
-        };
+        
+        // Store game instance for cleanup
+        gameInstanceRef.current = game;
       }
     }
 
     initPhaser();
+    
+    // Cleanup function
+    return () => {
+      if (gameInstanceRef.current) {
+        gameInstanceRef.current.destroy(true);
+        gameInstanceRef.current = null;
+      }
+    };
   }, []);
 
   return <div ref={gameContainerRef} style={{ width: '100%', height: '100%' }} />;
