@@ -1,4 +1,3 @@
-"use client";
 import { useEffect, useRef } from 'react';
 import Phaser from 'phaser';
 
@@ -11,35 +10,38 @@ export default function PhaserGame() {
       if (gameContainerRef.current) {
         // Dynamically import Phaser and your game configuration
         const Phaser = (await import('phaser')).default;
-        const { default: config } = await import('./game/main');
+        const { default: config } = await import('./main.ts');
         
-        // Calculate dimensions based on current window height
-        const currentHeight = window.innerHeight;
-        // Maintain aspect ratio (720:1280 = 9:16 approximately)
-        const aspectRatio = 9/16;
-        const calculatedWidth = Math.min(currentHeight * aspectRatio, window.innerWidth);
+        // Use fixed dimensions that work well across devices
+        // Instead of using full window height, use a reasonable base size
+        const baseWidth = 720;
+        const baseHeight = 1280;
         
-        // Create a new game instance with height matched to window
+        // Get container dimensions to calculate appropriate scaling
+        // const containerWidth = gameContainerRef.current.clientWidth; 
+        // const containerHeight = gameContainerRef.current.clientHeight;
+        
+        // Create a new game instance with fixed base dimensions
         const game = new Phaser.Game({
           ...config,
           parent: gameContainerRef.current,
           scale: {
             mode: Phaser.Scale.FIT,
             autoCenter: Phaser.Scale.CENTER_BOTH,
-            width: calculatedWidth, // Width based on aspect ratio
-            height: currentHeight,  // Match current window height
+            width: baseWidth,
+            height: baseHeight,
             min: {
               width: 320,
               height: 480
             },
             max: {
-              width: 1080,
-              height: 1920
+              width: 1080,  // Limit max width to avoid overly large game
+              height: 1920 // Limit max height
             }
           }
         });
         
-        // Store game instance for cleanup
+        // Store for cleanup
         gameInstanceRef.current = game;
       }
     }
@@ -55,5 +57,15 @@ export default function PhaserGame() {
     };
   }, []);
 
-  return <div ref={gameContainerRef} style={{ width: '100%', height: '100%' }} />;
+  return (
+    <div 
+      ref={gameContainerRef} 
+      style={{ 
+        width: '100%', 
+        height: '100%',
+        maxHeight: '100vh',
+        overflow: 'hidden' // Prevent scrolling
+      }} 
+    />
+  );
 }
