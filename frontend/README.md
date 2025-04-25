@@ -1,16 +1,28 @@
-# Phaser Next.js Template
+# D-Ice
 
-This is a Phaser 3 project template that uses the Next.js framework. It includes a bridge for React to Phaser game communication, hot-reloading for quick development workflow and scripts to generate production-ready builds.
+레크리에이션 파티 게임
+
+
+### Acknowledgements
+
+아래 템플릿으로부터 제작
+
+---
+
+# Phaser React TypeScript Template
+
+This is a Phaser 3 project template that uses the React framework and Vite for bundling. It includes a bridge for React to Phaser game communication, hot-reloading for quick development workflow and scripts to generate production-ready builds.
+
+**[This Template is also available as a JavaScript version.](https://github.com/phaserjs/template-react)**
 
 ### Versions
 
 This template has been updated for:
 
 - [Phaser 3.88.2](https://github.com/phaserjs/phaser)
-- [Next.js 15.3.1](https://github.com/vercel/next.js)
-- [TypeScript 5](https://github.com/microsoft/TypeScript)
-
-![screenshot](screenshot.png)
+- [React 19.0.0](https://github.com/facebook/react)
+- [Vite 6.3.1](https://github.com/vitejs/vite)
+- [TypeScript 5.7.2](https://github.com/microsoft/TypeScript)
 
 ## Requirements
 
@@ -30,9 +42,9 @@ This template has been updated for:
 
 After cloning the repo, run `npm install` from your project directory. Then, you can start the local development server by running `npm run dev`.
 
-The local development server runs on `http://localhost:8080` by default. Please see the Next.js documentation if you wish to change this, or add SSL support.
+The local development server runs on `http://localhost:8080` by default. Please see the Vite documentation if you wish to change this, or add SSL support.
 
-Once the server is running you can edit any of the files in the `src` folder. Next.js will automatically recompile your code and then reload the browser.
+Once the server is running you can edit any of the files in the `src` folder. Vite will automatically recompile your code and then reload the browser.
 
 ## Template Project Structure
 
@@ -40,19 +52,18 @@ We have provided a default project structure to get you started. This is as foll
 
 | Path                          | Description                                                                 |
 |-------------------------------|-----------------------------------------------------------------------------|
-| `src/pages/_document.tsx`     | A basic Next.js component entry point. It is used to define the `<html>` and `<body>` tags and other globally shared UI. |
-| `src`                         | Contains the Next.js client source code.                                   |
-| `src/styles/globals.css`      | Some simple global CSS rules to help with page layout. You can enable Tailwind CSS here. |
-| `src/page/_app.tsx`           | The main Next.js component.                                                |
-| `src/App.tsx`                 | Middleware component used to run Phaser in client mode.                    |
-| `src/PhaserGame.tsx`          | The React component that initializes the Phaser Game and serves as a bridge between React and Phaser. |
+| `index.html`                  | A basic HTML page to contain the game.                                     |
+| `src`                         | Contains the React client source code.                                     |
+| `src/main.tsx`                | The main **React** entry point. This bootstraps the React application.      |
+| `src/PhaserGame.tsx`          | The React component that initializes the Phaser Game and acts as a bridge between React and Phaser. |
+| `src/vite-env.d.ts`           | Global TypeScript declarations, providing type information.                |
+| `src/App.tsx`                 | The main React component.                                                  |
 | `src/game/EventBus.ts`        | A simple event bus to communicate between React and Phaser.                |
 | `src/game`                    | Contains the game source code.                                             |
 | `src/game/main.tsx`           | The main **game** entry point. This contains the game configuration and starts the game. |
-| `src/game/scenes/`            | The Phaser Scenes are in this folder.                                      |
-| `public/favicon.png`          | The default favicon for the project.                                       |
+| `src/game/scenes/`            | The folder where Phaser Scenes are located.                                |
+| `public/style.css`            | Some simple CSS rules to help with page layout.                            |
 | `public/assets`               | Contains the static assets used by the game.                               |
-
 
 ## React Bridge
 
@@ -143,11 +154,23 @@ The `onCurrentActiveScene` callback will also be invoked whenever the the Phaser
 
 ## Handling Assets
 
-To load your static games files such as audio files, images, videos, etc place them into the `public/assets` folder. Then you can use this path in the Loader calls within Phaser:
+Vite supports loading assets via JavaScript module `import` statements.
+
+This template provides support for both embedding assets and also loading them from a static folder. To embed an asset, you can import it at the top of the JavaScript file you are using it in:
+
+```js
+import logoImg from './assets/logo.png'
+```
+
+To load static files such as audio files, videos, etc place them into the `public/assets` folder. Then you can use this path in the Loader calls within Phaser:
 
 ```js
 preload ()
 {
+    //  This is an example of an imported bundled image.
+    //  Remember to import it at the top of this file
+    this.load.image('logo', logoImg);
+
     //  This is an example of loading a static image
     //  from the public/assets folder:
     this.load.image('background', 'assets/bg.png');
@@ -164,9 +187,9 @@ In order to deploy your game, you will need to upload *all* of the contents of t
 
 ## Customizing the Template
 
-### Next.js
+### Vite
 
-If you want to customize your build, such as adding plugin (i.e. for loading CSS or fonts), you can modify the `next.config.mjs` file for cross-project changes, or you can modify and/or create new configuration files and target them in specific npm tasks inside of `package.json`. Please see the [Next.js documentation](https://nextjs.org/docs) for more information.
+If you want to customize your build, such as adding plugin (i.e. for loading CSS or fonts), you can modify the `vite/config.*.mjs` file for cross-project changes, or you can modify and/or create new configuration files and target them in specific npm tasks inside of `package.json`. Please see the [Vite documentation](https://vitejs.dev/) for more information.
 
 ## About log.js
 

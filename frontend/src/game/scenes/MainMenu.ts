@@ -1,76 +1,94 @@
-import { GameObjects, Scene } from 'phaser';
+import Phaser from 'phaser';
 
-import { EventBus } from '../EventBus';
+export class MainMenu extends Phaser.Scene {
+  private logo: Phaser.GameObjects.Image;
+  private startButton: Phaser.GameObjects.Container;
 
-export class MainMenu extends Scene
-{
-    background: GameObjects.Image;
-    logo: GameObjects.Image;
-    title: GameObjects.Text;
-    logoTween: Phaser.Tweens.Tween | null;
+  constructor() {
+    super({ key: 'MainMenu' });
+  }
 
-    constructor ()
-    {
-        super('MainMenu');
-    }
+  create() {
+    const width = this.cameras.main.width;
+    const height = this.cameras.main.height;
 
-    create ()
-    {
-        this.background = this.add.image(512, 384, 'background');
+    // Add background
+    this.add.tileSprite(0, 0, width, height, 'bg')
+      .setOrigin(0)
+      .setScrollFactor(0);
 
-        this.logo = this.add.image(512, 300, 'logo').setDepth(100);
+    // Add logo
+    this.logo = this.add.image(width / 2, height * 0.3, 'logo')
+      .setOrigin(0.5);
 
-        this.title = this.add.text(512, 460, 'Main Menu', {
-            fontFamily: 'Arial Black', fontSize: 38, color: '#ffffff',
-            stroke: '#000000', strokeThickness: 8,
-            align: 'center'
-        }).setOrigin(0.5).setDepth(100);
+    // Scale logo based on screen size
+    const logoScale = Math.min(width / this.logo.width * 0.7, height / this.logo.height * 0.2);
+    this.logo.setScale(logoScale);
 
-        EventBus.emit('current-scene-ready', this);
-    }
-    
-    changeScene ()
-    {
-        if (this.logoTween)
-        {
-            this.logoTween.stop();
-            this.logoTween = null;
-        }
+    // Create start button
+    this.startButton = this.createButton(width / 2, height * 0.6, 'START GAME', () => {
+      this.scene.start('Game');
+    });
 
-        this.scene.start('Game');
-    }
+    // Add title text
+    this.add.text(width / 2, height * 0.2, 'TOUCH TOUCH', {
+      fontFamily: 'Arial',
+      fontSize: '48px',
+      color: '#ffffff'
+    }).setOrigin(0.5);
 
-    moveLogo (reactCallback: ({ x, y }: { x: number, y: number }) => void)
-    {
-        if (this.logoTween)
-        {
-            if (this.logoTween.isPlaying())
-            {
-                this.logoTween.pause();
-            }
-            else
-            {
-                this.logoTween.play();
-            }
-        } 
-        else
-        {
-            this.logoTween = this.tweens.add({
-                targets: this.logo,
-                x: { value: 750, duration: 3000, ease: 'Back.easeInOut' },
-                y: { value: 80, duration: 1500, ease: 'Sine.easeOut' },
-                yoyo: true,
-                repeat: -1,
-                onUpdate: () => {
-                    if (reactCallback)
-                    {
-                        reactCallback({
-                            x: Math.floor(this.logo.x),
-                            y: Math.floor(this.logo.y)
-                        });
-                    }
-                }
-            });
-        }
-    }
+    // Add tap instruction
+    this.add.text(width / 2, height * 0.8, 'Tap to Get Scores!', {
+      fontFamily: 'Arial',
+      fontSize: '24px',
+      color: '#ffffff',
+      align: 'center'
+    }).setOrigin(0.5);
+  }
+
+  createButton(x: number, y: number, text: string, callback: Function): Phaser.GameObjects.Container {
+    const width = this.cameras.main.width;
+    const buttonWidth = width * 0.6;
+    const buttonHeight = 80;
+
+    const container = this.add.container(x, y);
+
+    // Button background
+    const background = this.add.graphics();
+    background.fillStyle(0x4a4a4a, 1);
+    background.fillRoundedRect(-buttonWidth / 2, -buttonHeight / 2, buttonWidth, buttonHeight, 16);
+
+    // Button border
+    const border = this.add.graphics();
+    border.lineStyle(2, 0xffffff, 0.8);
+    border.strokeRoundedRect(-buttonWidth / 2, -buttonHeight / 2, buttonWidth, buttonHeight, 16);
+
+    // Button text
+    const buttonText = this.add.text(0, 0, text, {
+      fontFamily: 'Arial',
+      fontSize: '32px',
+      color: '#ffffff'
+    }).setOrigin(0.5);
+
+    container.add([background, border, buttonText]);
+
+    // Make interactive
+    container.setSize(buttonWidth, buttonHeight);
+    container.setInteractive();
+
+    container.on('pointerdown', () => {
+      background.clear();
+      background.fillStyle(0x3a3a3a, 1);
+      background.fillRoundedRect(-buttonWidth / 2, -buttonHeight / 2, buttonWidth, buttonHeight, 16);
+    });
+
+    container.on('pointerup', () => {
+      callback();
+      background.clear();
+      background.fillStyle(0x4a4a4a, 1);
+      background.fillRoundedRect(-buttonWidth / 2, -buttonHeight / 2, buttonWidth, buttonHeight, 16);
+    });
+
+    return container;
+  }
 }
