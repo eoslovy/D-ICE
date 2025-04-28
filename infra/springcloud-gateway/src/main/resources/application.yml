@@ -1,0 +1,160 @@
+spring:
+  application:
+    name: springcloud-gateway
+  profiles:
+    active: docker
+
+
+
+logging:
+  level:
+    org.springframework.cloud.gateway: TRACE
+    org.springframework.cloud.gateway.handler.RoutePredicateHandlerMapping: DEBUG
+    org.springframework.cloud.gateway.filter.RouteToRequestUrlFilter: DEBUG
+    org.springframework.web: DEBUG
+    reactor.netty.http.server: DEBUG
+    reactor.netty.http.client: DEBUG
+    org.springframework.security: DEBUG
+---
+spring:
+  config:
+    activate:
+      on-profile: docker
+
+  cloud:
+    gateway:
+      default-filters:
+        - AddResponseHeader=X-GATEWAY, docker
+      routes:
+        - id: test-public-service
+          uri: http://member-service:8080
+          predicates:
+            - Path=/api/member/test/public/**
+          filters:
+            - StripPrefix=2
+
+        - id: test-service
+          uri: http://member-service:8080
+          predicates:
+            - Path=/api/member/test/**
+          filters:
+            - StripPrefix=2
+            - name: JwtAuthentication
+
+
+        - id: member-service-auth
+          uri: http://member-service:8080
+          predicates:
+            - Path=/api/member/auth/**
+          filters:
+            - PreserveHostHeader
+            - StripPrefix=2
+
+        - id: member-service-need-auth
+          uri: http://member-service:8080
+          predicates:
+            - Path=/api/member/**
+          filters:
+            - PreserveHostHeader
+            - StripPrefix=2
+            - name: JwtAuthentication
+
+        - id: account-service
+          uri: http://account-service:8080
+          predicates:
+            - Path=/api/account/**
+          filters:
+            - StripPrefix=2
+            - name: JwtAuthentication
+
+        - id: contract-service
+          uri: http://contract-service:8080
+          predicates:
+            - Path=/api/contract/**
+          filters:
+            - StripPrefix=2
+            - name: JwtAuthentication
+
+        - id: mydata-service
+          uri: http://mydata-service:8080
+          predicates:
+            - Path=/api/mydata/**
+          filters:
+            - StripPrefix=2
+            - name: JwtAuthentication
+
+        - id: credit-service
+          uri: http://credit-service:8080
+          predicates:
+            - Path=/api/credit/**
+          filters:
+            - StripPrefix=2
+            - name: JwtAuthentication
+#verify-url: http://member-service:8080/auth/internal/verify-token
+
+
+server:
+  port: 8080
+
+---
+spring:
+  config:
+    activate:
+      on-profile: k8s
+
+  cloud:
+    gateway:
+      default-filters:
+        - AddResponseHeader=X-GATEWAY, k8s
+      routes:
+        - id: member-service-auth
+          uri: http://member-service:8080
+          predicates:
+            - Path=/api/member/auth/**
+          filters:
+            - PreserveHostHeader
+            - StripPrefix=2
+
+        - id: member-service
+          uri: http://member-service:8080
+          predicates:
+            - Path=/api/member/**
+          filters:
+            - StripPrefix=2
+            - name: JwtAuthentication
+
+        - id: account-service
+          uri: http://account-service:8080
+          predicates:
+            - Path=/api/account/**
+          filters:
+            - StripPrefix=2
+            - name: JwtAuthentication
+
+        - id: contract-service
+          uri: http://contract-service:8080
+          predicates:
+            - Path=/api/contract/**
+          filters:
+            - StripPrefix=2
+            - name: JwtAuthentication
+
+        - id: mydata-service
+          uri: http://mydata-service:8080
+          predicates:
+            - Path=/api/mydata/**
+          filters:
+            - StripPrefix=2
+            - name: JwtAuthentication
+
+        - id: credit-service
+          uri: http://credit-service:8080
+          predicates:
+            - Path=/api/credit/**
+          filters:
+            - StripPrefix=2
+            - name: JwtAuthentication
+#verify-url: http://member-service:8080/auth/internal/verify-token
+
+server:
+  port: 8080

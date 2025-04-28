@@ -1,0 +1,40 @@
+include:
+  # 템플릿
+  - local: .gitlab-ci/.gitlab-ci.backend-templates.yml
+  # 백엔드
+  - local: .gitlab-ci/.gitlab-ci.backend-backbone.yml
+  - local: .gitlab-ci/.gitlab-ci.backend-engine.yml
+
+  # 인프라 서비스
+  - local: .gitlab-ci/.gitlab-ci.frontend-nginx.yml
+  - local: .gitlab-ci/.gitlab-ci.redis.yml
+  - local: .gitlab-ci/.gitlab-ci.springcloud-gateway.yml
+  # 모델링 서비스
+  - local: .gitlab-ci/.gitlab-ci.model-credit.yml
+  - local: .gitlab-ci/.gitlab-ci.model-news.yml
+stages:
+  - build
+  - test
+  - push
+  - deploy
+
+variables:
+  NAMESPACE_PATH: infra/k8s/namespace.yml
+  REGISTRY_PATH: mosaic
+  IMAGE_TAG: $CI_COMMIT_SHORT_SHA
+  KUBE_NAMESPACE: mosaic
+  DOCKER_HOST: unix:///var/run/docker.sock
+  DOCKER_TLS_CERTDIR: "" # 이 값도 DinD 설정이므로 무력화
+
+# test_pipeline_trigger:
+#   tags:
+#     - $GITLAB_USER_EMAIL
+#   stage: build
+#   script:
+#     - env | grep DOCKER
+#     - ls
+#     - echo "🔍 변경된 파일 목록:"
+#     - git diff --name-only $CI_COMMIT_BEFORE_SHA $CI_COMMIT_SHA
+#     - docker info
+#     - docker images
+#     - echo "CI 정상 작동 여부 확인"
