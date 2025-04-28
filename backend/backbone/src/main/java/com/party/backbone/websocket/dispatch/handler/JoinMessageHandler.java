@@ -9,6 +9,7 @@ import org.springframework.web.socket.WebSocketSession;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.uuid.Generators;
 import com.party.backbone.room.RoomRedisRepository;
+import com.party.backbone.websocket.dispatch.repository.IdempotencyRedisRepository;
 import com.party.backbone.websocket.handler.SessionRegistry;
 import com.party.backbone.websocket.message.server.ErrorMessage;
 import com.party.backbone.websocket.message.server.JoinedAdminMessage;
@@ -16,17 +17,26 @@ import com.party.backbone.websocket.message.server.JoinedClientMessage;
 import com.party.backbone.websocket.message.user.ClientJoinMessage;
 import com.party.backbone.websocket.model.UserMessageType;
 
-import lombok.RequiredArgsConstructor;
-
 @Component
-@RequiredArgsConstructor
-public class JoinMessageHandler implements UserMessageHandler<ClientJoinMessage> {
+public class JoinMessageHandler extends GameMessageHandler<ClientJoinMessage>
+	implements UserMessageHandler {
 	private final RoomRedisRepository roomRepository;
 	private final ObjectMapper objectMapper;
 	private final SessionRegistry sessionRegistry;
 
+	JoinMessageHandler(
+		RoomRedisRepository roomRepository,
+		ObjectMapper objectMapper,
+		SessionRegistry sessionRegistry,
+		IdempotencyRedisRepository idempotencyRedisRepository) {
+		super(idempotencyRedisRepository);
+		this.roomRepository = roomRepository;
+		this.objectMapper = objectMapper;
+		this.sessionRegistry = sessionRegistry;
+	}
+
 	@Override
-	public void handle(ClientJoinMessage message, String roomCode, WebSocketSession session) throws IOException {
+	public void doHandle(ClientJoinMessage message, String roomCode, WebSocketSession session) throws IOException {
 		String userId = Generators.timeBasedEpochRandomGenerator().generate().toString();
 		roomRepository.addPlayer(roomCode, userId, message.getNickname());
 		sessionRegistry.register(userId, session);
