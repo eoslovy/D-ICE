@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class JoinMessage implements GameMessage {
+public class ClientJoinMessage implements GameMessage {
 	private String requestId;
 	private String nickname;
 }

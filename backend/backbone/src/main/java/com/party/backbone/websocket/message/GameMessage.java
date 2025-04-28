@@ -16,7 +16,7 @@ import com.party.backbone.websocket.message.server.HeartbeatMessage;
 import com.party.backbone.websocket.message.server.JoinedAdminMessage;
 import com.party.backbone.websocket.message.server.JoinedClientMessage;
 import com.party.backbone.websocket.message.server.WaitMessage;
-import com.party.backbone.websocket.message.user.JoinMessage;
+import com.party.backbone.websocket.message.user.ClientJoinMessage;
 import com.party.backbone.websocket.message.user.SubmitMessage;
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
@@ -25,9 +25,9 @@ import com.party.backbone.websocket.message.user.SubmitMessage;
 	@JsonSubTypes.Type(value = AdminJoinedMessage.class, name = "ADMIN_JOINED"),
 	@JsonSubTypes.Type(value = HeartbeatMessage.class, name = "HEARTBEAT"),
 	@JsonSubTypes.Type(value = HeartbeatAckMessage.class, name = "HEARTBEAT_ACK"),
-	@JsonSubTypes.Type(value = JoinMessage.class, name = "JOIN"),
-	@JsonSubTypes.Type(value = JoinedClientMessage.class, name = "JOINED_CLIENT"),
-	@JsonSubTypes.Type(value = JoinedAdminMessage.class, name = "JOINED_ADMIN"),
+	@JsonSubTypes.Type(value = ClientJoinMessage.class, name = "CLIENT_JOIN"),
+	@JsonSubTypes.Type(value = JoinedClientMessage.class, name = "CLIENT_JOINED"),
+	@JsonSubTypes.Type(value = JoinedAdminMessage.class, name = "CLIENT_JOINED_ADMIN"),
 	@JsonSubTypes.Type(value = InitMessage.class, name = "INIT"),
 	@JsonSubTypes.Type(value = WaitMessage.class, name = "WAIT"),
 	@JsonSubTypes.Type(value = SubmitMessage.class, name = "SUBMIT"),

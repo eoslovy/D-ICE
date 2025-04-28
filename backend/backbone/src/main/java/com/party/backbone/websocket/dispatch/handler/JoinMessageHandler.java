@@ -13,20 +13,20 @@ import com.party.backbone.websocket.handler.SessionRegistry;
 import com.party.backbone.websocket.message.server.ErrorMessage;
 import com.party.backbone.websocket.message.server.JoinedAdminMessage;
 import com.party.backbone.websocket.message.server.JoinedClientMessage;
-import com.party.backbone.websocket.message.user.JoinMessage;
+import com.party.backbone.websocket.message.user.ClientJoinMessage;
 import com.party.backbone.websocket.model.UserMessageType;
 
 import lombok.RequiredArgsConstructor;
 
 @Component
 @RequiredArgsConstructor
-public class JoinMessageHandler implements UserMessageHandler<JoinMessage> {
+public class JoinMessageHandler implements UserMessageHandler<ClientJoinMessage> {
 	private final RoomRedisRepository roomRepository;
 	private final ObjectMapper objectMapper;
 	private final SessionRegistry sessionRegistry;
 
 	@Override
-	public void handle(JoinMessage message, String roomCode, WebSocketSession session) throws IOException {
+	public void handle(ClientJoinMessage message, String roomCode, WebSocketSession session) throws IOException {
 		String userId = Generators.timeBasedEpochRandomGenerator().generate().toString();
 		roomRepository.addPlayer(roomCode, userId, message.getNickname());
 		sessionRegistry.register(userId, session);
