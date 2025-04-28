@@ -6,9 +6,9 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import com.party.backbone.websocket.message.GameMessage;
+import com.party.backbone.websocket.message.server.AdminJoinedMessage;
 import com.party.backbone.websocket.message.server.AggregatedAdminMessage;
 import com.party.backbone.websocket.message.server.AggregatedClientMessage;
-import com.party.backbone.websocket.message.server.CreatedMessage;
 import com.party.backbone.websocket.message.server.EndAdminMessage;
 import com.party.backbone.websocket.message.server.EndClientMessage;
 import com.party.backbone.websocket.message.server.ErrorMessage;
@@ -21,7 +21,7 @@ import lombok.Getter;
 
 @Getter
 public enum ServerMessageType implements MessageType {
-	CREATED(CreatedMessage.class),
+	CREATED(AdminJoinedMessage.class),
 	HEARTBEAT(HeartbeatMessage.class),
 	WAIT(WaitMessage.class),
 	JOINED_CLIENT(JoinedClientMessage.class),

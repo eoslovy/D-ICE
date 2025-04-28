@@ -11,4 +11,5 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class ErrorMessage implements GameMessage {
 	private String requestId;
+	private String message;
 }

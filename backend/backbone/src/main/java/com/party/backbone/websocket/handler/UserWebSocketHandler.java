@@ -63,9 +63,10 @@ public class UserWebSocketHandler extends TextWebSocketHandler {
 			UserMessageType type = UserMessageType.fromMessage(message);
 			registry.getHandler(type).handle(message, roomCode, session);
 		} catch (Exception e) {
-			log.error("[{}] 예외 발생", this.getClass().getSimpleName(), e);
+			log.error("[USER_WEBSOCKET] 예외 발생", e);
 			session.sendMessage(
-				new TextMessage(objectMapper.writeValueAsString(new ErrorMessage(message.getRequestId()))));
+				new TextMessage(
+					objectMapper.writeValueAsString(new ErrorMessage(message.getRequestId(), e.getMessage()))));
 		}
 	}
 

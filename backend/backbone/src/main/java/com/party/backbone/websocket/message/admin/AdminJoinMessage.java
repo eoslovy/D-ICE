@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class CreateMessage implements GameMessage {
+public class AdminJoinMessage implements GameMessage {
 	private String requestId;
+	private String administratorId;
 }

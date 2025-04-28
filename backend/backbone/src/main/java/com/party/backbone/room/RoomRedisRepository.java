@@ -29,7 +29,8 @@ public class RoomRedisRepository {
 		roomData.put("state", "CREATED");
 		roomData.put("administratorId", administratorId);
 		roomData.put("createdAt", String.valueOf(System.currentTimeMillis()));
-		roomData.put("round", "0");
+		roomData.put("currentRound", "0");
+		roomData.put("totalRound", "0");
 		roomData.put("userCount", "0");
 
 		redisTemplate.opsForHash().putAll(key, roomData);

@@ -6,7 +6,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import com.party.backbone.websocket.message.GameMessage;
-import com.party.backbone.websocket.message.admin.CreateMessage;
+import com.party.backbone.websocket.message.admin.AdminJoinMessage;
 import com.party.backbone.websocket.message.admin.HeartbeatAckMessage;
 import com.party.backbone.websocket.message.admin.InitMessage;
 import com.party.backbone.websocket.message.admin.NextGameMessage;
@@ -15,7 +15,7 @@ import lombok.Getter;
 
 @Getter
 public enum AdminMessageType implements MessageType {
-	CREATE(CreateMessage.class),
+	ADMIN_JOIN(AdminJoinMessage.class),
 	INIT(InitMessage.class),
 	NEXT_GAME(NextGameMessage.class),
 	HEARTBEAT_ACK(HeartbeatAckMessage.class);

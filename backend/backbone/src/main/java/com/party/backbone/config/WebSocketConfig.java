@@ -18,7 +18,7 @@ public class WebSocketConfig implements WebSocketConfigurer {
 	private final UserWebSocketHandler gameHandler;
 
 	public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
-		registry.addHandler(adminHandler, "/ws/game/admin")
+		registry.addHandler(adminHandler, "/ws/game/admin/{roomCode}")
 			.setAllowedOrigins("*");
 		registry.addHandler(gameHandler, "/ws/game/user/{roomCode}")
 			.setAllowedOrigins("*");
