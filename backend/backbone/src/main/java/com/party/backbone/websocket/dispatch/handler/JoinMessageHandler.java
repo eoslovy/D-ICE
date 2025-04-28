@@ -10,6 +10,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.uuid.Generators;
 import com.party.backbone.room.RoomRedisRepository;
 import com.party.backbone.websocket.handler.SessionRegistry;
+import com.party.backbone.websocket.message.server.ErrorMessage;
 import com.party.backbone.websocket.message.server.JoinedAdminMessage;
 import com.party.backbone.websocket.message.server.JoinedClientMessage;
 import com.party.backbone.websocket.message.user.JoinMessage;
@@ -31,6 +32,11 @@ public class JoinMessageHandler implements UserMessageHandler<JoinMessage> {
 		sessionRegistry.register(userId, session);
 		String administratorId = roomRepository.getAdministratorIdOfRoom(roomCode);
 		WebSocketSession administratorSession = sessionRegistry.get(administratorId);
+		if (administratorSession == null) {
+			session.sendMessage(new TextMessage(objectMapper.writeValueAsString(
+				new ErrorMessage(message.getRequestId(), "administrator does not exist"))));
+			return;
+		}
 		int userCount = roomRepository.getUserCount(roomCode);
 		administratorSession.sendMessage(new TextMessage(objectMapper.writeValueAsString(new JoinedAdminMessage(
 			message.getRequestId(), roomCode, userId, message.getNickname(), userCount))));

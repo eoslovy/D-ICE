@@ -2,6 +2,7 @@ package com.party.backbone.room;
 
 import java.time.Duration;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -27,13 +28,14 @@ public class RoomRedisRepository {
 		Map<String, String> roomData = new HashMap<>();
 		roomData.put("roomCode", roomCode);
 		roomData.put("state", "CREATED");
-		roomData.put("administratorId", administratorId);
+		// roomData.put("administratorId", administratorId);
 		roomData.put("createdAt", String.valueOf(System.currentTimeMillis()));
 		roomData.put("currentRound", "0");
 		roomData.put("totalRound", "0");
 		roomData.put("userCount", "0");
 
 		redisTemplate.opsForHash().putAll(key, roomData);
+		redisTemplate.opsForValue().set(key + ":administratorId", administratorId);
 		redisTemplate.expire(key, RoomStateTTL.CREATED.getTtl());
 	}
 
@@ -56,14 +58,14 @@ public class RoomRedisRepository {
 		String roomKey = getRoomKey(roomCode);
 		redisTemplate.delete(roomKey);
 		redisTemplate.delete(roomKey + ":players");
-		redisTemplate.expire(roomKey, PLAYER_BASE_TTL);
+		redisTemplate.delete(roomKey + ":administratorId");
 	}
 
 	public boolean exists(String roomCode) {
 		return redisTemplate.hasKey("room:" + roomCode);
 	}
 
-	public String addPlayer(String roomCode, String userId, String nickname) {
+	public void addPlayer(String roomCode, String userId, String nickname) {
 		String playerKey = "room:" + roomCode + ":players";
 
 		Map<String, String> playerData = Map.of(
@@ -73,21 +75,28 @@ public class RoomRedisRepository {
 		);
 
 		redisTemplate.opsForHash().put(playerKey, userId, toJson(playerData));
-
+		redisTemplate.expire(playerKey, PLAYER_BASE_TTL);
 		redisTemplate.opsForHash().increment(getRoomKey(roomCode), "userCount", 1);
+	}
 
-		return userId;
+	public List<String> getUserIds(String roomCode) {
+		String roomKey = getRoomKey(roomCode);
+		return redisTemplate.opsForHash()
+			.keys(roomKey)
+			.stream()
+			.map(Object::toString)
+			.toList();
 	}
 
 	public String getAdministratorIdOfRoom(String roomCode) {
-		String key = getRoomKey(roomCode);
-		Object result = redisTemplate.opsForHash().get(key, "administratorId");
+		String administratorKey = getRoomKey(roomCode) + ":administratorId";
+		Object result = redisTemplate.opsForValue().get(administratorKey);
 		return result != null ? result.toString() : null;
 	}
 
 	public int getUserCount(String roomCode) {
 		String key = getRoomKey(roomCode);
-		Object result = redisTemplate.opsForHash().get(key, "userCount");
+		Object result = redisTemplate.opsForHash().entries(key).get("userCount");
 		return result != null ? Integer.parseInt(result.toString()) : 0;
 	}
 
