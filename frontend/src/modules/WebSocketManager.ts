@@ -9,8 +9,6 @@ declare var WebSocket: {
     readonly CLOSED: number;
 };
 
-const DEFAULT_SERVER_URL = 'ws://localhost:8080/ws/game/user';
-
 class WebSocketManager extends EventEmitter {
     private ws: WebSocket | null = null;
     private url: string;
@@ -19,8 +17,7 @@ class WebSocketManager extends EventEmitter {
     private maxReconnectAttempts: number = 5;
     private reconnectTimer: number | null = null; // Use number for browser setTimeout
 
-    constructor(url: string = DEFAULT_SERVER_URL) {
-        super();
+    setServerURL(url: string): void {   
         this.url = url;
     }
 
