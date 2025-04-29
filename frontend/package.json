@@ -28,14 +28,15 @@
     },
     "dependencies": {
         "@tailwindcss/vite": "^4.1.4",
-        "eventemitter3": "^5.0.1",
         "axios": "^1.9.0",
+        "eventemitter3": "^5.0.1",
         "phaser": "^3.88.2",
         "qrcode.react": "^4.2.0",
         "react": "^19.0.0",
         "react-dom": "^19.0.0",
         "react-router-dom": "^7.5.2",
         "recordrtc": "^5.6.2",
+        "uuid": "^11.1.0",
         "vite-plugin-next-react-router": "^0.7.1"
     },
     "devDependencies": {
