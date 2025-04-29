@@ -38,3 +38,9 @@
   - lobby: 사용자가 게임 방에 참여하기 위해 코드를 입력하거나 qr코드를 촬영하여 해당 방에 참여
   - room (/${roomcode}): 게임 방
   - set (/roomSettings): 게임 방 생성 세팅
+
+### 2025-04-29
+
+- set 설정 변경
+  - websocket, api 연결
+- room에 qrcode 추가
