@@ -26,8 +26,13 @@ export class MainMenu extends Phaser.Scene {
     this.logo.setScale(logoScale);
 
     // Create start button
-    this.startButton = this.createButton(width / 2, height * 0.6, 'START GAME', () => {
-      this.scene.start('Game');
+    this.startButton = this.createButton(width / 2, height * 0.6, 'Clicker GAME', () => {
+      this.scene.start('Clicker');
+    });
+
+    // Create start button
+    this.startButton = this.createButton(width / 2, height * 0.5, '반응속도 게임', () => {
+      this.scene.start('Reaction');
     });
 
     // Add title text
