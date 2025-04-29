@@ -6,7 +6,6 @@ import org.springframework.web.socket.WebSocketSession;
 
 import com.party.backbone.websocket.dispatch.repository.IdempotencyRedisRepository;
 import com.party.backbone.websocket.message.GameMessage;
-import com.party.backbone.websocket.model.MessageType;
 import com.sun.jdi.request.DuplicateRequestException;
 
 public abstract class GameMessageHandler<T extends GameMessage> {
@@ -28,6 +27,4 @@ public abstract class GameMessageHandler<T extends GameMessage> {
 	}
 
 	protected abstract void doHandle(T message, String roomCode, WebSocketSession session) throws IOException;
-
-	public abstract MessageType getMessageType();
 }
