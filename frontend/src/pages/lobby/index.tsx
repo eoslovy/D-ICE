@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { QrReader } from "react-qr-reader";
 
 // 실제 서비스에서는 Redis/WebSocket 등을 통한 방 체크
 const checkRoomExists = async (code: string): Promise<boolean> => {
@@ -11,8 +10,6 @@ const checkRoomExists = async (code: string): Promise<boolean> => {
 export default function Lobby() {
     const [roomCodeInput, setRoomCodeInput] = useState("");
     const [errorMessage, setErrorMessage] = useState("");
-    const [showQrScanner, setShowQrScanner] = useState(false);
-    const [isProcessingScan, setIsProcessingScan] = useState(false);
     const navigate = useNavigate();
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -27,26 +24,6 @@ export default function Lobby() {
         }
         sessionStorage.setItem("roomcode", roomCodeInput);
         navigate(`/${roomCodeInput}`);
-    };
-
-    const handleScan = async (scannedCode: string | null) => {
-        if (!scannedCode || isProcessingScan) return;
-        setIsProcessingScan(true);
-        setShowQrScanner(false);
-
-        if (!(await checkRoomExists(scannedCode))) {
-            setErrorMessage("해당 방이 존재하지 않습니다.");
-            setIsProcessingScan(false);
-            return;
-        }
-
-        sessionStorage.setItem("roomcode", scannedCode);
-        navigate(`/${scannedCode}`);
-    };
-
-    const handleError = (err: any) => {
-        setErrorMessage("QR 코드 인식 중 오류가 발생했습니다.");
-        setShowQrScanner(false);
     };
 
     return (
@@ -75,45 +52,6 @@ export default function Lobby() {
                     </button>
                 </div>
             </form>
-
-            {/* QR 코드 스캔 버튼 */}
-            <div className="mb-6">
-                <button
-                    className="bg-green-500 hover:bg-green-600 text-white rounded px-4 py-2"
-                    onClick={() => {
-                        setShowQrScanner(true);
-                        setErrorMessage("");
-                    }}
-                >
-                    QR 코드로 입장
-                </button>
-            </div>
-
-            {/* QR 코드 스캐너 */}
-            {showQrScanner && (
-                <div className="mb-6">
-                    <QrReader
-                        scanDelay={300}
-                        onResult={(result, error) => {
-                            if (!!result) {
-                                handleScan(result.getText());
-                            }
-                            if (!!error) {
-                                handleError(error);
-                            }
-                        }}
-                        constraints={{ facingMode: "environment" }}
-                        videoStyle={{ width: "100%" }}
-                    />
-
-                    <button
-                        className="mt-4 bg-gray-500 hover:bg-gray-600 text-white rounded px-4 py-2"
-                        onClick={() => setShowQrScanner(false)}
-                    >
-                        닫기
-                    </button>
-                </div>
-            )}
 
             {/* 에러 메시지 출력 */}
             {errorMessage && (
