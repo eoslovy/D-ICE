@@ -5,6 +5,7 @@ import { MainMenu } from './scenes/MainMenu';
 import { Clicker } from './scenes/Clicker';
 import { GameOver } from './scenes/GameOver';
 import { Reaction } from './scenes/Reaction';
+import { Roulette } from './scenes/common/Roulette';
 
 const config: Phaser.Types.Core.GameConfig = {
   type: Phaser.AUTO,
@@ -33,7 +34,7 @@ const config: Phaser.Types.Core.GameConfig = {
       debug: false
     }
   },
-  scene: [Boot, Preloader, MainMenu, GameOver, Clicker, Reaction]
+  scene: [Boot, Preloader, MainMenu, GameOver, Roulette, Clicker, Reaction]
 };
 
 export default config;

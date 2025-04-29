@@ -14,6 +14,9 @@ export class Reaction extends Phaser.Scene {
 
   create() {
     this.state = 'waiting';
+    this.reactionTimes = []; // 배열 초기화 추가
+    this.startTime = 0;
+    
     this.cameras.main.setBackgroundColor('#2b87d1'); // 파란색 배경색
     this.infoText = this.add.text(this.scale.width / 2, this.scale.height / 2, '클릭해서 시작하세요', {
       fontSize: '48px',
