@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import PhaserGame from './PhaserGame';
 import webSocketManager from '../modules/WebSocketManager';
+import OverlayScreen, { OverlayScreenHandle } from '../modules/OverlayScreen';
 
 // Define props if you need to pass data to control connection
 interface AppProps {
@@ -53,6 +54,26 @@ export default function App({ roomId = "wasted", shouldConnect = true }: AppProp
     // Add shouldConnect to dependency array if connection depends on it
   }, [shouldConnect]);
 
+  // OverlayScreen ref to call methods on the Phaser game instance
+  const overlayRef = useRef<OverlayScreenHandle>(null);
+  const handleTriggerEffect = () => {
+    if (overlayRef.current) {
+      overlayRef.current.triggerParticleEffect(); // Call the method on the Phaser game instance
+    }
+  }
+
+  const handleTriggerSpriteShowcase = () => {
+    if (overlayRef.current) {
+      overlayRef.current.triggerSpriteShowcase(); // Call the method on the Phaser game instance
+    }
+  }
+
+  const handleTriggerMessage = () => {
+    if (overlayRef.current) {
+      overlayRef.current.triggerMessage("Hello"); // Call the method on the Phaser game instance
+    }
+  }
+
   return (
     <div className="game-container">
       {/* Conditionally render PhaserGame based on connection or other logic if needed */}
@@ -76,6 +97,68 @@ export default function App({ roomId = "wasted", shouldConnect = true }: AppProp
       >
         ← Back
       </button>
+      
+      {/* Button to trigger the effect in the Phaser game instance */}
+      <button
+        onClick={handleTriggerEffect}
+        className="trigger-effect-button"
+        style={{
+          position: 'absolute',
+          top: '10px',
+          right: '10px',
+          zIndex: 100,
+          padding: '8px 12px',
+          background: 'rgba(0,0,0,0.5)',
+          color: 'white',
+          border: 'none',
+          borderRadius: '4px',
+          cursor: 'pointer'
+        }}
+        >
+        Trigger Effect
+        </button>
+
+      {/* Button to trigger the sprite showcase in the Phaser game instance */}
+      <button
+        onClick={handleTriggerSpriteShowcase}
+        className="trigger-sprite-showcase-button"
+        style={{
+          position: 'absolute',
+          top: '50px',
+          right: '10px',
+          zIndex: 100,
+          padding: '8px 12px',
+          background: 'rgba(0,0,0,0.5)',
+          color: 'white',
+          border: 'none',
+          borderRadius: '4px',
+          cursor: 'pointer'
+        }}
+        >
+        Trigger Sprite Showcase
+        </button>
+
+      {/* Button to trigger a message in the Phaser game instance */}
+      <button
+        onClick={handleTriggerMessage}
+        className="trigger-message-button"
+        style={{
+          position: 'absolute',
+          top: '90px',
+          right: '10px',
+          zIndex: 100,
+          padding: '8px 12px',
+          background: 'rgba(0,0,0,0.5)',
+          color: 'white',
+          border: 'none',
+          borderRadius: '4px',
+          cursor: 'pointer'
+        }}
+        >
+        Trigger Message
+        </button>
+
+      {/* Warning overlay for orientation */}
 
       {showWarning && (
         <div className="orientation-warning" style={{
@@ -97,6 +180,8 @@ export default function App({ roomId = "wasted", shouldConnect = true }: AppProp
           <p>Please rotate your device to portrait mode</p>
         </div>
       )}
+      {/* OverlayScreen component for Phaser game overlay */}
+      <OverlayScreen ref={overlayRef} />
     </div>
   );
 }
