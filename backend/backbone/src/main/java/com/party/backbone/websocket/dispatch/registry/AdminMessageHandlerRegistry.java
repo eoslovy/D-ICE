@@ -36,7 +36,7 @@ public class AdminMessageHandlerRegistry implements ApplicationContextAware {
 		try {
 			return (GameMessageHandler<T>)handlerMap.get(type);
 		} catch (NullPointerException exception) {
-			log.error("{} Invalid type {} for user", this.getClass().getSimpleName(), type);
+			log.error("{} Invalid type {} for admin", this.getClass().getSimpleName(), type);
 		}
 		throw new IllegalArgumentException("Invalid message type for admin: " + type);
 	}
