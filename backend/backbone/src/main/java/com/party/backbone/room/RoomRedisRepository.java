@@ -80,7 +80,7 @@ public class RoomRedisRepository {
 	}
 
 	public List<String> getUserIds(String roomCode) {
-		String roomKey = getRoomKey(roomCode);
+		String roomKey = getRoomKey(roomCode) + ":players";
 		return redisTemplate.opsForHash()
 			.keys(roomKey)
 			.stream()
