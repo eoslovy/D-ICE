@@ -1,1 +1,5 @@
+.env
+/out
 .idea
+# GitLab Runner config 무시
+gitlab-runner/config/S12P21A608.git/

@@ -3,7 +3,13 @@ include:
   - local: .gitlab-ci/.gitlab-ci.backend-templates.yml
   # 백엔드
   - local: .gitlab-ci/.gitlab-ci.backend-backbone.yml
-  - local: .gitlab-ci/.gitlab-ci.backend-engine.yml
+  - local: .gitlab-ci/.gitlab-ci.backend-gameCJM.yml
+  - local: .gitlab-ci/.gitlab-ci.backend-gameKJH.yml
+  - local: .gitlab-ci/.gitlab-ci.backend-gameKYH.yml
+  - local: .gitlab-ci/.gitlab-ci.backend-gameLSR.yml
+  - local: .gitlab-ci/.gitlab-ci.backend-gameOJS.yml
+  - local: .gitlab-ci/.gitlab-ci.backend-gameYDG.yml
+
 
   # 인프라 서비스
   - local: .gitlab-ci/.gitlab-ci.frontend-nginx.yml

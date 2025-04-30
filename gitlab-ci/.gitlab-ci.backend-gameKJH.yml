@@ -1,0 +1,52 @@
+build_gameKJH_service:
+  variables:
+    SERVICE_NAME: gameKJH-service
+    BUILD_CONTEXT: ./backend/game-KJH
+    K8S_PATH: ./infra/k8s/apis/api-gameKJH.yml
+  extends: .backend-default-build
+  rules:
+    - changes:
+        - backend/game-KJH/**/*
+      when: always
+    - when : never
+
+push_gameKJH_service:
+  variables:
+    SERVICE_NAME: gameKJH-service
+    BUILD_CONTEXT: ./backend/game-KJH
+    K8S_PATH: ./infra/k8s/apis/api-gameKJH.yml
+  extends: .backend-default-push
+  needs: [build_gameKJH_service]
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "master" && $CI_PIPELINE_SOURCE == "push"'
+      changes:
+        - backend/game-KJH/**/*
+      when: always
+    - if: '$CI_COMMIT_BRANCH == "master" && $CI_PIPELINE_SOURCE == "web"' # 수동 실행도 허용하려면
+      changes:
+        - backend/game-KJH/**/*
+      when: manual
+    - when: never
+
+deploy_gameKJH_service:
+  variables:
+    SERVICE_NAME: gameKJH-service
+    BUILD_CONTEXT: ./backend/game-KJH
+    K8S_PATH: ./infra/k8s/apis/api-gameKJH.yml
+  extends: .backend-default-deploy
+  needs: [push_gameKJH_service]
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "master" && $CI_PIPELINE_SOURCE == "push"'
+      changes:
+        - backend/game-KJH/**/*
+      when: always
+    - if: '$CI_COMMIT_BRANCH == "master" && $CI_PIPELINE_SOURCE == "web"' # 수동 실행도 허용하려면
+      changes:
+        - backend/game-KJH/**/*
+      when: manual
+    - when: never
+#test_include_trigger:
+# tags:
+#  - $GITLAB_USER_EMAIL
+#script:
+#  - echo "CI 정상 작동 여부 확인"
