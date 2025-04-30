@@ -1,14 +1,28 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import PhaserGame from './PhaserGame';
+import webSocketManager from '../modules/WebSocketManager';
+import OverlayScreen, { OverlayScreenHandle } from '../modules/OverlayScreen';
+// Test Modules import
+import TestModules from '../modules/TestModules';
 
-export default function App() {
+// Define props if you need to pass data to control connection
+interface AppProps {
+  // Example prop: maybe a room ID is needed to decide if we should connect
+  roomId?: string;
+  // Or a simple flag
+  shouldConnect?: boolean;
+}
+
+// Use the props in the component definition (optional, adjust as needed)
+export default function App({ roomId = "wasted", shouldConnect = true }: AppProps) {
   const [showWarning, setShowWarning] = useState(false);
   const navigate = useNavigate();
 
   // Check orientation on mobile
   useEffect(() => {
     const checkOrientation = () => {
+      // Consider adding a check for mobile devices if this warning is mobile-only
       if (window.innerWidth > window.innerHeight && window.innerHeight < 500) {
         setShowWarning(true);
       } else {
@@ -17,16 +31,57 @@ export default function App() {
     };
 
     window.addEventListener('resize', checkOrientation);
-    checkOrientation();
+    checkOrientation(); // Initial check
 
     return () => window.removeEventListener('resize', checkOrientation);
-  }, []);
+  }, []); // Empty dependency array means this runs once on mount and cleans up on unmount
+
+  // Effect for WebSocket connection management
+  useEffect(() => {
+    // Only connect if the condition is met (e.g., shouldConnect prop is true)
+    if (shouldConnect) {
+      console.log('[App] Connecting WebSocket...');
+      webSocketManager.connect();
+
+      // Return a cleanup function to disconnect when the component unmounts
+      // or when the 'shouldConnect' prop changes to false
+      return () => {
+        console.log('[App] Disconnecting WebSocket...');
+        webSocketManager.disconnect();
+      };
+    } else {
+      // Ensure disconnected if condition is false
+      webSocketManager.disconnect();
+    }
+    // Add shouldConnect to dependency array if connection depends on it
+  }, [shouldConnect]);
+
+  // OverlayScreen ref to call methods on the Phaser game instance
+  const overlayRef = useRef<OverlayScreenHandle>(null);
+  const handleTriggerEffect = () => {
+    if (overlayRef.current) {
+      overlayRef.current.triggerParticleEffect(); // Call the method on the Phaser game instance
+    }
+  }
+
+  const handleTriggerSpriteShowcase = () => {
+    if (overlayRef.current) {
+      overlayRef.current.triggerSpriteShowcase(); // Call the method on the Phaser game instance
+    }
+  }
+
+  const handleTriggerMessage = () => {
+    if (overlayRef.current) {
+      overlayRef.current.triggerMessage("Hello"); // Call the method on the Phaser game instance
+    }
+  }
 
   return (
     <div className="game-container">
+      {/* Conditionally render PhaserGame based on connection or other logic if needed */}
       <PhaserGame />
-      
-      <button 
+
+      <button
         onClick={() => navigate('/')}
         className="back-button"
         style={{
@@ -44,13 +99,14 @@ export default function App() {
       >
         ← Back
       </button>
-      
-      {showWarning && (
-        <div className="orientation-warning">
-          <div style={{ fontSize: '2rem', marginBottom: '1rem' }}>📱 ↻</div>
-          <p>Please rotate your device to portrait mode</p>
-        </div>
-      )}
+      {/* OverlayScreen component for Phaser game overlay */}
+      <OverlayScreen ref={overlayRef} />
+      {/* Test Modules for debugging and development. Disable on production level. */}
+      <TestModules 
+        onTriggerMessage={handleTriggerMessage}
+        onTriggerParticleEffect={handleTriggerEffect}
+        onTriggerSpriteShowcase={handleTriggerSpriteShowcase}
+      />
     </div>
   );
 }
