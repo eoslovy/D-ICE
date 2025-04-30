@@ -229,7 +229,7 @@ const OverlayScreen = forwardRef<OverlayScreenHandle, OverlayScreenProps>(({ sty
             }
         },
         
-        triggerSpriteShowcase: (spriteKey: string) => {
+        triggerSpriteShowcase: (spriteKey?: string) => {
             console.log('[OverlayScreen] handle.triggerSpriteShowcase called');
             const game = gameInstanceRef.current;
             if (game) {
