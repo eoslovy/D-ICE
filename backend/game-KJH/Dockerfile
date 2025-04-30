@@ -23,5 +23,4 @@ WORKDIR /app
 
 COPY --from=build /app/build/libs/*.jar app.jar
 
-# 앱 실행
 ENTRYPOINT ["java", "-jar", "-Xms512m", "-Xmx512m", "app.jar"]

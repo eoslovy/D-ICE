@@ -1,8 +1,8 @@
-build_gameCJM_service:
+build_gamecjm_service:
   variables:
-    SERVICE_NAME: gameCJM-service
+    SERVICE_NAME: gamecjm-service
     BUILD_CONTEXT: ./backend/game-CJM
-    K8S_PATH: ./infra/k8s/apis/api-gameCJM.yml
+    K8S_PATH: ./infra/k8s/apis/api-gamecjm.yml
   extends: .backend-default-build
   rules:
     - changes:
@@ -10,13 +10,13 @@ build_gameCJM_service:
       when: always
     - when : never
 
-push_gameCJM_service:
+push_gamecjm_service:
   variables:
-    SERVICE_NAME: gameCJM-service
+    SERVICE_NAME: gamecjm-service
     BUILD_CONTEXT: ./backend/game-CJM
-    K8S_PATH: ./infra/k8s/apis/api-gameCJM.yml
+    K8S_PATH: ./infra/k8s/apis/api-gamecjm.yml
   extends: .backend-default-push
-  needs: [build_gameCJM_service]
+  needs: [build_gamecjm_service]
   rules:
     - if: '$CI_COMMIT_BRANCH == "master" && $CI_PIPELINE_SOURCE == "push"'
       changes:
@@ -28,13 +28,13 @@ push_gameCJM_service:
       when: manual
     - when: never
 
-deploy_gameCJM_service:
+deploy_gamecjm_service:
   variables:
-    SERVICE_NAME: gameCJM-service
+    SERVICE_NAME: gamecjm-service
     BUILD_CONTEXT: ./backend/game-CJM
-    K8S_PATH: ./infra/k8s/apis/api-gameCJM.yml
+    K8S_PATH: ./infra/k8s/apis/api-gamecjm.yml
   extends: .backend-default-deploy
-  needs: [push_gameCJM_service]
+  needs: [push_gamecjm_service]
   rules:
     - if: '$CI_COMMIT_BRANCH == "master" && $CI_PIPELINE_SOURCE == "push"'
       changes:

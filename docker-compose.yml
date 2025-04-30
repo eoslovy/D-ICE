@@ -10,8 +10,8 @@ services:
       - .env
     ports:
       - "18081:8080"
-  gameKJH-service:
-    container_name: gameKJH-service
+  gamekjh-service:
+    container_name: gamekjh-service
     build:
       context: ./backend/game-KJH
       dockerfile: Dockerfile
@@ -21,8 +21,8 @@ services:
       - .env
     ports:
       - "18082:8080"
-  gameCJM-service:
-    container_name: gameCJM-service
+  gamecjm-service:
+    container_name: gamecjm-service
     build:
       context: ./backend/game-CJM
       dockerfile: Dockerfile
@@ -33,8 +33,8 @@ services:
     ports:
       - "18083:8080"
 
-  gameKYH-service:
-    container_name: gameKYH-service
+  gamekyh-service:
+    container_name: gamekyh-service
     build:
       context: ./backend/game-KYH
       dockerfile: Dockerfile
@@ -45,8 +45,8 @@ services:
     ports:
       - "18084:8080"
 
-  gameLSR-service:
-    container_name: gameLSR-service
+  gamelsr-service:
+    container_name: gamelsr-service
     build:
       context: ./backend/game-LSR
       dockerfile: Dockerfile
@@ -57,8 +57,8 @@ services:
     ports:
       - "18085:8080"
 
-  gameOJS-service:
-    container_name: gameOJS-service
+  gameojs-service:
+    container_name: gameojs-service
     build:
       context: ./backend/game-OJS
       dockerfile: Dockerfile
@@ -69,8 +69,8 @@ services:
     ports:
       - "18086:8080"
 
-  gameYDG-service:
-    container_name: gameYDG-service
+  gameydg-service:
+    container_name: gameydg-service
     build:
       context: ./backend/game-YDG
       dockerfile: Dockerfile

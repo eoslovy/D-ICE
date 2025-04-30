@@ -1,8 +1,8 @@
-build_gameKYH_service:
+build_gamekyh_service:
   variables:
-    SERVICE_NAME: gameKYH-service
+    SERVICE_NAME: gamekyh-service
     BUILD_CONTEXT: ./backend/game-KYH
-    K8S_PATH: ./infra/k8s/apis/api-gameKYH.yml
+    K8S_PATH: ./infra/k8s/apis/api-gamekyh.yml
   extends: .backend-default-build
   rules:
     - changes:
@@ -10,13 +10,13 @@ build_gameKYH_service:
       when: always
     - when : never
 
-push_gameKYH_service:
+push_gamekyh_service:
   variables:
-    SERVICE_NAME: gameKYH-service
+    SERVICE_NAME: gamekyh-service
     BUILD_CONTEXT: ./backend/game-KYH
-    K8S_PATH: ./infra/k8s/apis/api-gameKYH.yml
+    K8S_PATH: ./infra/k8s/apis/api-gamekyh.yml
   extends: .backend-default-push
-  needs: [build_gameKYH_service]
+  needs: [build_gamekyh_service]
   rules:
     - if: '$CI_COMMIT_BRANCH == "master" && $CI_PIPELINE_SOURCE == "push"'
       changes:
@@ -28,13 +28,13 @@ push_gameKYH_service:
       when: manual
     - when: never
 
-deploy_gameKYH_service:
+deploy_gamekyh_service:
   variables:
-    SERVICE_NAME: gameKYH-service
+    SERVICE_NAME: gamekyh-service
     BUILD_CONTEXT: ./backend/game-KYH
-    K8S_PATH: ./infra/k8s/apis/api-gameKYH.yml
+    K8S_PATH: ./infra/k8s/apis/api-gamekyh.yml
   extends: .backend-default-deploy
-  needs: [push_gameKYH_service]
+  needs: [push_gamekyh_service]
   rules:
     - if: '$CI_COMMIT_BRANCH == "master" && $CI_PIPELINE_SOURCE == "push"'
       changes:
