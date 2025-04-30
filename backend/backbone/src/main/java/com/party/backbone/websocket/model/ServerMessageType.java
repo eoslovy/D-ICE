@@ -8,13 +8,12 @@ import java.util.stream.Collectors;
 import com.party.backbone.websocket.message.GameMessage;
 import com.party.backbone.websocket.message.server.AdminJoinedMessage;
 import com.party.backbone.websocket.message.server.AggregatedAdminMessage;
-import com.party.backbone.websocket.message.server.AggregatedClientMessage;
-import com.party.backbone.websocket.message.server.EndAdminMessage;
-import com.party.backbone.websocket.message.server.EndClientMessage;
+import com.party.backbone.websocket.message.server.AggregatedUserMessage;
+import com.party.backbone.websocket.message.server.EndMessage;
 import com.party.backbone.websocket.message.server.ErrorMessage;
 import com.party.backbone.websocket.message.server.HeartbeatMessage;
 import com.party.backbone.websocket.message.server.JoinedAdminMessage;
-import com.party.backbone.websocket.message.server.JoinedClientMessage;
+import com.party.backbone.websocket.message.server.JoinedUserMessage;
 import com.party.backbone.websocket.message.server.WaitMessage;
 
 import lombok.Getter;
@@ -24,12 +23,11 @@ public enum ServerMessageType implements MessageType {
 	CREATED(AdminJoinedMessage.class),
 	HEARTBEAT(HeartbeatMessage.class),
 	WAIT(WaitMessage.class),
-	JOINED_CLIENT(JoinedClientMessage.class),
-	AGGREGATED_CLIENT(AggregatedClientMessage.class),
+	JOINED_CLIENT(JoinedUserMessage.class),
+	AGGREGATED_CLIENT(AggregatedUserMessage.class),
 	JOINED_ADMIN(JoinedAdminMessage.class),
 	AGGREGATED_ADMIN(AggregatedAdminMessage.class),
-	END_CLIENT(EndClientMessage.class),
-	END_ADMIN(EndAdminMessage.class),
+	END_ADMIN(EndMessage.class),
 	ERROR(ErrorMessage.class);
 
 	private final Class<? extends GameMessage> messageClass;

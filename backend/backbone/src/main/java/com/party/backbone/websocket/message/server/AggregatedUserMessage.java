@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class AggregatedClientMessage implements GameMessage {
+public class AggregatedUserMessage implements GameMessage {
 	private String requestId;
 	private int round;
 	private GameType gameType;

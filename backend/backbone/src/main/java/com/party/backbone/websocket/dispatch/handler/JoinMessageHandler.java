@@ -13,12 +13,12 @@ import com.party.backbone.websocket.dispatch.repository.IdempotencyRedisReposito
 import com.party.backbone.websocket.handler.SessionRegistry;
 import com.party.backbone.websocket.message.server.ErrorMessage;
 import com.party.backbone.websocket.message.server.JoinedAdminMessage;
-import com.party.backbone.websocket.message.server.JoinedClientMessage;
-import com.party.backbone.websocket.message.user.ClientJoinMessage;
+import com.party.backbone.websocket.message.server.JoinedUserMessage;
+import com.party.backbone.websocket.message.user.UserJoinMessage;
 import com.party.backbone.websocket.model.UserMessageType;
 
 @Component
-public class JoinMessageHandler extends GameMessageHandler<ClientJoinMessage>
+public class JoinMessageHandler extends GameMessageHandler<UserJoinMessage>
 	implements UserMessageHandler {
 	private final RoomRedisRepository roomRepository;
 	private final ObjectMapper objectMapper;
@@ -36,7 +36,7 @@ public class JoinMessageHandler extends GameMessageHandler<ClientJoinMessage>
 	}
 
 	@Override
-	public void doHandle(ClientJoinMessage message, String roomCode, WebSocketSession session) throws IOException {
+	public void doHandle(UserJoinMessage message, String roomCode, WebSocketSession session) throws IOException {
 		String userId = Generators.timeBasedEpochRandomGenerator().generate().toString();
 		roomRepository.addPlayer(roomCode, userId, message.getNickname());
 		sessionRegistry.register(userId, session);
@@ -51,7 +51,7 @@ public class JoinMessageHandler extends GameMessageHandler<ClientJoinMessage>
 		administratorSession.sendMessage(new TextMessage(objectMapper.writeValueAsString(new JoinedAdminMessage(
 			message.getRequestId(), roomCode, userId, message.getNickname(), userCount))));
 		session.sendMessage(new TextMessage(objectMapper.writeValueAsString(
-			new JoinedClientMessage(message.getRequestId(), roomCode, userId, message.getNickname()))));
+			new JoinedUserMessage(message.getRequestId(), roomCode, userId, message.getNickname()))));
 	}
 
 	@Override
