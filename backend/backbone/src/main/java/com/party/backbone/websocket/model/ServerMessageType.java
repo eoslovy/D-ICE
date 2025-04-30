@@ -14,21 +14,24 @@ import com.party.backbone.websocket.message.server.ErrorMessage;
 import com.party.backbone.websocket.message.server.HeartbeatMessage;
 import com.party.backbone.websocket.message.server.JoinedAdminMessage;
 import com.party.backbone.websocket.message.server.JoinedUserMessage;
+import com.party.backbone.websocket.message.server.NextGameMessage;
 import com.party.backbone.websocket.message.server.WaitMessage;
 
 import lombok.Getter;
 
 @Getter
 public enum ServerMessageType implements MessageType {
-	CREATED(AdminJoinedMessage.class),
+	ADMIN_JOINED(AdminJoinedMessage.class),
 	HEARTBEAT(HeartbeatMessage.class),
+	NEXT_GAME(NextGameMessage.class),
 	WAIT(WaitMessage.class),
-	JOINED_CLIENT(JoinedUserMessage.class),
-	AGGREGATED_CLIENT(AggregatedUserMessage.class),
-	JOINED_ADMIN(JoinedAdminMessage.class),
+	USER_JOINED(JoinedUserMessage.class),
+	USER_JOINED_ADMIN(JoinedAdminMessage.class),
+	AGGREGATED_USER(AggregatedUserMessage.class),
 	AGGREGATED_ADMIN(AggregatedAdminMessage.class),
-	END_ADMIN(EndMessage.class),
-	ERROR(ErrorMessage.class);
+	END(EndMessage.class),
+	ERROR(ErrorMessage.class),
+	;
 
 	private final Class<? extends GameMessage> messageClass;
 

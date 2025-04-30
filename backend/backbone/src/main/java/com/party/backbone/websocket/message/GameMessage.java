@@ -28,14 +28,13 @@ import com.party.backbone.websocket.message.user.UserJoinMessage;
 	@JsonSubTypes.Type(value = JoinedUserMessage.class, name = "USER_JOINED"),
 	@JsonSubTypes.Type(value = JoinedAdminMessage.class, name = "USER_JOINED_ADMIN"),
 	@JsonSubTypes.Type(value = InitMessage.class, name = "INIT"),
+	@JsonSubTypes.Type(value = NextGameMessage.class, name = "NEXT_GAME"),
 	@JsonSubTypes.Type(value = WaitMessage.class, name = "WAIT"),
 	@JsonSubTypes.Type(value = SubmitMessage.class, name = "SUBMIT"),
 	@JsonSubTypes.Type(value = AggregatedUserMessage.class, name = "AGGREGATED_USER"),
 	@JsonSubTypes.Type(value = AggregatedAdminMessage.class, name = "AGGREGATED_ADMIN"),
-	@JsonSubTypes.Type(value = NextGameMessage.class, name = "NEXT_GAME"),
 	@JsonSubTypes.Type(value = EndMessage.class, name = "END"),
 	@JsonSubTypes.Type(value = ErrorMessage.class, name = "ERROR"),
 })
 public interface GameMessage {
-	// String getRequestId();
 }
