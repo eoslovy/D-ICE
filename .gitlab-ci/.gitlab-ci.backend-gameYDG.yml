@@ -1,8 +1,8 @@
-build_gameYDG_service:
+build_gameydg_service:
   variables:
-    SERVICE_NAME: gameYDG-service
+    SERVICE_NAME: gameydg-service
     BUILD_CONTEXT: ./backend/game-YDG
-    K8S_PATH: ./infra/k8s/apis/api-gameYDG.yml
+    K8S_PATH: ./infra/k8s/apis/api-gameydg.yml
   extends: .backend-default-build
   rules:
     - changes:
@@ -10,13 +10,13 @@ build_gameYDG_service:
       when: always
     - when : never
 
-push_gameYDG_service:
+push_gameydg_service:
   variables:
-    SERVICE_NAME: gameYDG-service
+    SERVICE_NAME: gameydg-service
     BUILD_CONTEXT: ./backend/game-YDG
-    K8S_PATH: ./infra/k8s/apis/api-gameYDG.yml
+    K8S_PATH: ./infra/k8s/apis/api-gameydg.yml
   extends: .backend-default-push
-  needs: [build_gameYDG_service]
+  needs: [build_gameydg_service]
   rules:
     - if: '$CI_COMMIT_BRANCH == "master" && $CI_PIPELINE_SOURCE == "push"'
       changes:
@@ -28,13 +28,13 @@ push_gameYDG_service:
       when: manual
     - when: never
 
-deploy_gameYDG_service:
+deploy_gameydg_service:
   variables:
-    SERVICE_NAME: gameYDG-service
+    SERVICE_NAME: gameydg-service
     BUILD_CONTEXT: ./backend/game-YDG
-    K8S_PATH: ./infra/k8s/apis/api-gameYDG.yml
+    K8S_PATH: ./infra/k8s/apis/api-gameydg.yml
   extends: .backend-default-deploy
-  needs: [push_gameYDG_service]
+  needs: [push_gameydg_service]
   rules:
     - if: '$CI_COMMIT_BRANCH == "master" && $CI_PIPELINE_SOURCE == "push"'
       changes:

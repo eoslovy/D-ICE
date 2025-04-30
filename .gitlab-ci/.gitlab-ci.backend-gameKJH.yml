@@ -1,8 +1,8 @@
-build_gameKJH_service:
+build_gamekjh_service:
   variables:
-    SERVICE_NAME: gameKJH-service
+    SERVICE_NAME: gamekjh-service
     BUILD_CONTEXT: ./backend/game-KJH
-    K8S_PATH: ./infra/k8s/apis/api-gameKJH.yml
+    K8S_PATH: ./infra/k8s/apis/api-gamekjh.yml
   extends: .backend-default-build
   rules:
     - changes:
@@ -10,13 +10,13 @@ build_gameKJH_service:
       when: always
     - when : never
 
-push_gameKJH_service:
+push_gamekjh_service:
   variables:
-    SERVICE_NAME: gameKJH-service
+    SERVICE_NAME: gamekjh-service
     BUILD_CONTEXT: ./backend/game-KJH
-    K8S_PATH: ./infra/k8s/apis/api-gameKJH.yml
+    K8S_PATH: ./infra/k8s/apis/api-gamekjh.yml
   extends: .backend-default-push
-  needs: [build_gameKJH_service]
+  needs: [build_gamekjh_service]
   rules:
     - if: '$CI_COMMIT_BRANCH == "master" && $CI_PIPELINE_SOURCE == "push"'
       changes:
@@ -28,13 +28,13 @@ push_gameKJH_service:
       when: manual
     - when: never
 
-deploy_gameKJH_service:
+deploy_gamekjh_service:
   variables:
-    SERVICE_NAME: gameKJH-service
+    SERVICE_NAME: gamekjh-service
     BUILD_CONTEXT: ./backend/game-KJH
-    K8S_PATH: ./infra/k8s/apis/api-gameKJH.yml
+    K8S_PATH: ./infra/k8s/apis/api-gamekjh.yml
   extends: .backend-default-deploy
-  needs: [push_gameKJH_service]
+  needs: [push_gamekjh_service]
   rules:
     - if: '$CI_COMMIT_BRANCH == "master" && $CI_PIPELINE_SOURCE == "push"'
       changes:

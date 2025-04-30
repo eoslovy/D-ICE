@@ -1,8 +1,8 @@
-build_gameOJS_service:
+build_gameojs_service:
   variables:
-    SERVICE_NAME: gameOJS-service
+    SERVICE_NAME: gameojs-service
     BUILD_CONTEXT: ./backend/game-OJS
-    K8S_PATH: ./infra/k8s/apis/api-gameOJS.yml
+    K8S_PATH: ./infra/k8s/apis/api-gameojs.yml
   extends: .backend-default-build
   rules:
     - changes:
@@ -10,13 +10,13 @@ build_gameOJS_service:
       when: always
     - when : never
 
-push_gameOJS_service:
+push_gameojs_service:
   variables:
-    SERVICE_NAME: gameOJS-service
+    SERVICE_NAME: gameojs-service
     BUILD_CONTEXT: ./backend/game-OJS
-    K8S_PATH: ./infra/k8s/apis/api-gameOJS.yml
+    K8S_PATH: ./infra/k8s/apis/api-gameojs.yml
   extends: .backend-default-push
-  needs: [build_gameOJS_service]
+  needs: [build_gameojs_service]
   rules:
     - if: '$CI_COMMIT_BRANCH == "master" && $CI_PIPELINE_SOURCE == "push"'
       changes:
@@ -28,13 +28,13 @@ push_gameOJS_service:
       when: manual
     - when: never
 
-deploy_gameOJS_service:
+deploy_gameojs_service:
   variables:
-    SERVICE_NAME: gameOJS-service
+    SERVICE_NAME: gameojs-service
     BUILD_CONTEXT: ./backend/game-OJS
-    K8S_PATH: ./infra/k8s/apis/api-gameOJS.yml
+    K8S_PATH: ./infra/k8s/apis/api-gameojs.yml
   extends: .backend-default-deploy
-  needs: [push_gameOJS_service]
+  needs: [push_gameojs_service]
   rules:
     - if: '$CI_COMMIT_BRANCH == "master" && $CI_PIPELINE_SOURCE == "push"'
       changes:

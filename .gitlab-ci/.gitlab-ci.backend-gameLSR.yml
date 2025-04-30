@@ -1,8 +1,8 @@
-build_gameLSR_service:
+build_gamelsr_service:
   variables:
-    SERVICE_NAME: gameLSR-service
+    SERVICE_NAME: gamelsr-service
     BUILD_CONTEXT: ./backend/game-LSR
-    K8S_PATH: ./infra/k8s/apis/api-gameLSR.yml
+    K8S_PATH: ./infra/k8s/apis/api-gamelsr.yml
   extends: .backend-default-build
   rules:
     - changes:
@@ -10,13 +10,13 @@ build_gameLSR_service:
       when: always
     - when : never
 
-push_gameLSR_service:
+push_gamelsr_service:
   variables:
-    SERVICE_NAME: gameLSR-service
+    SERVICE_NAME: gamelsr-service
     BUILD_CONTEXT: ./backend/game-LSR
-    K8S_PATH: ./infra/k8s/apis/api-gameLSR.yml
+    K8S_PATH: ./infra/k8s/apis/api-gamelsr.yml
   extends: .backend-default-push
-  needs: [build_gameLSR_service]
+  needs: [build_gamelsr_service]
   rules:
     - if: '$CI_COMMIT_BRANCH == "master" && $CI_PIPELINE_SOURCE == "push"'
       changes:
@@ -28,13 +28,13 @@ push_gameLSR_service:
       when: manual
     - when: never
 
-deploy_gameLSR_service:
+deploy_gamelsr_service:
   variables:
-    SERVICE_NAME: gameLSR-service
+    SERVICE_NAME: gamelsr-service
     BUILD_CONTEXT: ./backend/game-LSR
-    K8S_PATH: ./infra/k8s/apis/api-gameLSR.yml
+    K8S_PATH: ./infra/k8s/apis/api-gamelsr.yml
   extends: .backend-default-deploy
-  needs: [push_gameLSR_service]
+  needs: [push_gamelsr_service]
   rules:
     - if: '$CI_COMMIT_BRANCH == "master" && $CI_PIPELINE_SOURCE == "push"'
       changes:
