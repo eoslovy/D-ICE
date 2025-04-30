@@ -191,6 +191,16 @@ export default function TestModules(props: TestModulesProps) {
       setRawMessageError(`Invalid JSON: ${error.message}`);
     }
   };
+  const testStartGame = () => {
+    const testData = {
+      type: 'WAIT',
+      gameType: 'Clicker',
+    };
+  
+    // WebSocket 이벤트 에뮬레이션
+    webSocketManager.emit('WAIT', testData);
+  };
+  
 
   // --- Styles ---
   const consoleStyle: React.CSSProperties = {
@@ -272,6 +282,16 @@ export default function TestModules(props: TestModulesProps) {
     display: 'block', // Ensure it takes full width
     boxSizing: 'border-box', // Include padding and border in the element's total width and height
   };
+  const sectionStyle: React.CSSProperties = {
+    marginTop: '15px',
+    borderTop: '1px solid #666',
+    paddingTop: '10px',
+    marginBottom: '10px',
+    padding: '8px',
+    border: '1px solid #585',
+    borderRadius: '4px',
+    backgroundColor: 'rgba(0, 30, 0, 0.2)'
+  };
 
   return (
     <>
@@ -333,6 +353,16 @@ export default function TestModules(props: TestModulesProps) {
             <button onClick={handleTriggerEffect} style={buttonStyle}>Particle</button>
             <button onClick={handleTriggerSpriteShowcase} style={buttonStyle}>Sprite</button>
             <button onClick={handleTriggerMessage} style={buttonStyle}>Message</button>
+          </div>
+          {/* 게임 시작 테스트 버튼 추가 */}
+          <div style={sectionStyle}>
+            <h3>Game Start Test</h3>
+            <button 
+              onClick={testStartGame}
+              style={buttonStyle}
+            >
+              Test Game Start
+            </button>
           </div>
 
           {/* --- POTG Recording Section (Updated Button Handler) --- */}

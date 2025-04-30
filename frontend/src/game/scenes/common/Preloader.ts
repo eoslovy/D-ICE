@@ -206,11 +206,8 @@ export class Preloader extends Phaser.Scene {
   
     webSocketManager.on('WAIT', (data) => {
       this.readyToStart = true;
-      if (this.waitingText) {
-        this.waitingText.setText('게임 시작!');
-      }
-      if (data.gameInfo) {
-        this.mockGameInfo = data.gameInfo;
+      if (data) {
+        this.mockGameInfo.nextGame = data.gameType;
       }
       this.moveToRoulette();
     });
