@@ -24,9 +24,9 @@ stages:
 
 variables:
   NAMESPACE_PATH: infra/k8s/namespace.yml
-  REGISTRY_PATH: mosaic
+  REGISTRY_PATH: d-ice
   IMAGE_TAG: $CI_COMMIT_SHORT_SHA
-  KUBE_NAMESPACE: mosaic
+  KUBE_NAMESPACE: d-ice
   DOCKER_HOST: unix:///var/run/docker.sock
   DOCKER_TLS_CERTDIR: "" # 이 값도 DinD 설정이므로 무력화
 
