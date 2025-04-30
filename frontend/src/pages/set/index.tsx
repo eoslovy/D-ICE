@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { API } from "../../assets/api";
-import { WebSocketService } from "../../assets/websocket";
+import { WebSocketAdmin} from "../../assets/websocket";
 
 export default function Set() {
   const navigate = useNavigate();
@@ -15,10 +15,10 @@ export default function Set() {
         const { roomCode, administratorId } = data;
 
         // WebSocket 연결 및 관리자 입장
-        WebSocketService.connectToAdmin(roomCode, administratorId);
+        WebSocketAdmin.connectToAdmin(roomCode, administratorId);
 
         // 방 코드 저장 및 페이지 이동
-        localStorage.setItem("roomcode", roomCode);
+        localStorage.setItem("roomCode", roomCode);
         localStorage.setItem("rounds", String(rounds));
         navigate(`/${roomCode}`);
     } catch (error) {

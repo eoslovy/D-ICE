@@ -73,7 +73,7 @@ export default function Set() {
 
     const handleSubmit = () => {
         alert("방 설정이 완료되었습니다!");
-        sessionStorage.setItem("roomcode", roomCode);
+        sessionStorage.setItem("roomCode", roomCode);
         navigate(`/${roomCode}`);
     };
 
