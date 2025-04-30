@@ -21,7 +21,6 @@ FROM amazoncorretto:17-alpine AS run
 
 WORKDIR /app
 
-# builder에서 빌드된 JAR 파일 복사
 COPY --from=build /app/build/libs/*.jar app.jar
 
 # 앱 실행
