@@ -1,9 +1,6 @@
 services:
   backbone-service:
     container_name: backbone-service
-    build:
-      context: ./backend/backbone
-      dockerfile: Dockerfile
     image: ${DOCKERHUB_USERNAME:-recreatekang}/d-ice-backbone-service:${IMAGE_TAG:-latest}
     restart: always
     env_file:
@@ -12,9 +9,6 @@ services:
       - "18081:8080"
   gamekjh-service:
     container_name: gamekjh-service
-    build:
-      context: ./backend/game-KJH
-      dockerfile: Dockerfile
     image: ${DOCKERHUB_USERNAME:-recreatekang}/d-ice-gamekjh-service:${IMAGE_TAG:-latest}
     restart: always
     env_file:
@@ -23,9 +17,6 @@ services:
       - "18082:8080"
   gamecjm-service:
     container_name: gamecjm-service
-    build:
-      context: ./backend/game-CJM
-      dockerfile: Dockerfile
     image: ${DOCKERHUB_USERNAME:-recreatekang}/d-ice-gamecjm-service:${IMAGE_TAG:-latest}
     restart: always
     env_file:
@@ -35,9 +26,6 @@ services:
 
   gamekyh-service:
     container_name: gamekyh-service
-    build:
-      context: ./backend/game-KYH
-      dockerfile: Dockerfile
     image: ${DOCKERHUB_USERNAME:-recreatekang}/d-ice-gamekyh-service:${IMAGE_TAG:-latest}
     restart: always
     env_file:
@@ -47,9 +35,6 @@ services:
 
   gamelsr-service:
     container_name: gamelsr-service
-    build:
-      context: ./backend/game-LSR
-      dockerfile: Dockerfile
     image: ${DOCKERHUB_USERNAME:-recreatekang}/d-ice-gamelsr-service:${IMAGE_TAG:-latest}
     restart: always
     env_file:
@@ -59,9 +44,6 @@ services:
 
   gameojs-service:
     container_name: gameojs-service
-    build:
-      context: ./backend/game-OJS
-      dockerfile: Dockerfile
     image: ${DOCKERHUB_USERNAME:-recreatekang}/d-ice-gameojs-service:${IMAGE_TAG:-latest}
     restart: always
     env_file:
@@ -71,9 +53,6 @@ services:
 
   gameydg-service:
     container_name: gameydg-service
-    build:
-      context: ./backend/game-YDG
-      dockerfile: Dockerfile
     image: ${DOCKERHUB_USERNAME:-recreatekang}/d-ice-gameydg-service:${IMAGE_TAG:-latest}
     restart: always
     env_file:
@@ -82,13 +61,6 @@ services:
       - "18087:8080"
 
   frontend-react:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-      args:
-        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
-        NEXT_PUBLIC_CREDIT_WEBSOCKET_URL: ${NEXT_PUBLIC_CREDIT_WEBSOCKET_URL}
-
     image: ${DOCKERHUB_USERNAME:-recreatekang}/d-ice-frontend:${IMAGE_TAG:-latest}
     env_file:
       - .env
@@ -99,9 +71,6 @@ services:
 
   springcloud-gateway:
     container_name: springcloud-gateway
-    build:
-      context: ./infra/springcloud-gateway
-      dockerfile: Dockerfile
     image: ${DOCKERHUB_USERNAME:-recreatekang}/d-ice-springcloud-gateway:${IMAGE_TAG:-latest}
     restart: always
     env_file:
@@ -121,12 +90,6 @@ services:
 
   frontend-nginx:
     container_name: nginx
-    build:
-      context: ./infra/nginx
-      dockerfile: Dockerfile
-      args:
-        FRONTEND_IMAGE: ${DOCKERHUB_USERNAME:-recreatekang}/d-ice-frontend:${IMAGE_TAG:-latest}
-        NGINX: local_nginx.conf
     image: ${DOCKERHUB_USERNAME:-recreatekang}/d-ice-nginx:${IMAGE_TAG:-latest}
     restart: always
     env_file:
@@ -141,9 +104,6 @@ services:
 
   redis:
     container_name: redis
-    build:
-      context: ./infra/redis
-      dockerfile: Dockerfile
     env_file:
       - .env
     image: ${DOCKERHUB_USERNAME:-recreatekang}/d-ice-redis:${IMAGE_TAG:-latest}
