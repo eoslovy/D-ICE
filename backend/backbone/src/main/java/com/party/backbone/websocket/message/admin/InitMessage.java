@@ -11,6 +11,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class InitMessage implements GameMessage {
 	private String requestId;
-	private String roomCode;
 	private String administratorId;
+	private int totalRound;
 }

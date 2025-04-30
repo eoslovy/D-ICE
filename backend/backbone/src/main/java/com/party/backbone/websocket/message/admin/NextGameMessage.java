@@ -11,6 +11,5 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class NextGameMessage implements GameMessage {
 	private String requestId;
-	private String roomCode;
 	private String administratorId;
 }
