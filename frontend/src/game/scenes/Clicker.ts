@@ -1,7 +1,7 @@
 import { EventBus } from '../EventBus';
 import { Scene } from 'phaser';
 
-export class Game extends Scene {
+export class Clicker extends Scene {
     // Core game elements
     private camera: Phaser.Cameras.Scene2D.Camera;
     private background: Phaser.GameObjects.Image;
@@ -27,7 +27,7 @@ export class Game extends Scene {
     // private particles: Phaser.GameObjects.Particles.ParticleEmitter;
 
     constructor() {
-        super('Game');
+        super('Clicker');
     }
 
     init() {
