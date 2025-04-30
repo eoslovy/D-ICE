@@ -10,3 +10,7 @@
 - FastAPI로 간단한 서버 띄우기
 
 ### 2025-04-23
+
+- Webhook을 이용한 Mattermost 알림 자동화
+- Phaser 프레임워크 입문
+- Next.js 기초 설정

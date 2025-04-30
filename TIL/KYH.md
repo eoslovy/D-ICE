@@ -18,3 +18,8 @@
     - tailwind 오류 발생
     - 내일 해결 후 global.css 완성 예정
     - 기본 페이지 select의 page.tsx로 변경 예정
+
+### 2025-04-24
+
+- tailwind 오류 해결 실패
+- 템플릿 재다운 및 재설정 예정
