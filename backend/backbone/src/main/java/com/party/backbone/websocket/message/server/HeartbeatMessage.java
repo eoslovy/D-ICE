@@ -10,7 +10,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class HeartbeatMessage implements GameMessage {
-	private String requestId;
 	private String roomCode;
 	private int userCount;
 }

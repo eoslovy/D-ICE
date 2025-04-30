@@ -11,6 +11,5 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class EndMessage implements GameMessage {
-	private String requestId;
 	private RankingInfo[] overallRanking;
 }

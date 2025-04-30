@@ -1,4 +1,4 @@
-package com.party.backbone.websocket.message.user;
+package com.party.backbone.websocket.message.admin;
 
 import com.party.backbone.websocket.message.IdempotentMessage;
 
@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserJoinMessage implements IdempotentMessage {
+public class StartGameMessage implements IdempotentMessage {
 	private String requestId;
-	private String nickname;
+	private String administratorId;
 }

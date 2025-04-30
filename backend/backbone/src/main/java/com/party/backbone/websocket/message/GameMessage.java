@@ -5,7 +5,6 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.party.backbone.websocket.message.admin.AdminJoinMessage;
 import com.party.backbone.websocket.message.admin.HeartbeatAckMessage;
 import com.party.backbone.websocket.message.admin.InitMessage;
-import com.party.backbone.websocket.message.admin.NextGameMessage;
 import com.party.backbone.websocket.message.server.AdminJoinedMessage;
 import com.party.backbone.websocket.message.server.AggregatedAdminMessage;
 import com.party.backbone.websocket.message.server.AggregatedUserMessage;
@@ -14,6 +13,7 @@ import com.party.backbone.websocket.message.server.ErrorMessage;
 import com.party.backbone.websocket.message.server.HeartbeatMessage;
 import com.party.backbone.websocket.message.server.JoinedAdminMessage;
 import com.party.backbone.websocket.message.server.JoinedUserMessage;
+import com.party.backbone.websocket.message.server.NextGameMessage;
 import com.party.backbone.websocket.message.server.WaitMessage;
 import com.party.backbone.websocket.message.user.SubmitMessage;
 import com.party.backbone.websocket.message.user.UserJoinMessage;
@@ -37,5 +37,5 @@ import com.party.backbone.websocket.message.user.UserJoinMessage;
 	@JsonSubTypes.Type(value = ErrorMessage.class, name = "ERROR"),
 })
 public interface GameMessage {
-	String getRequestId();
+	// String getRequestId();
 }

@@ -1,6 +1,7 @@
-package com.party.backbone.websocket.message.admin;
+package com.party.backbone.websocket.message.server;
 
 import com.party.backbone.websocket.message.GameMessage;
+import com.party.backbone.websocket.model.GameType;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -10,6 +11,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class NextGameMessage implements GameMessage {
-	private String requestId;
 	private String administratorId;
+	private GameType gameType;
 }

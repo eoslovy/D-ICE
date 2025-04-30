@@ -6,6 +6,7 @@ import org.springframework.web.socket.WebSocketSession;
 
 import com.party.backbone.websocket.dispatch.repository.IdempotencyRedisRepository;
 import com.party.backbone.websocket.message.GameMessage;
+import com.party.backbone.websocket.message.IdempotentMessage;
 import com.sun.jdi.request.DuplicateRequestException;
 
 public abstract class GameMessageHandler<T extends GameMessage> {
@@ -21,8 +22,11 @@ public abstract class GameMessageHandler<T extends GameMessage> {
 	}
 
 	protected void preHandle(T message, String roomCode) {
-		if (!idempotencyRedisRepository.checkAndSetRequestId(roomCode, message.getRequestId())) {
-			throw new DuplicateRequestException("Request already processed: " + message.getRequestId());
+		if (!(message instanceof IdempotentMessage idempotentMessage)) {
+			return;
+		}
+		if (!idempotencyRedisRepository.checkAndSetRequestId(roomCode, idempotentMessage.getRequestId())) {
+			throw new DuplicateRequestException("Request already processed: " + idempotentMessage.getRequestId());
 		}
 	}
 

@@ -44,7 +44,7 @@ public class JoinMessageHandler extends GameMessageHandler<UserJoinMessage>
 		WebSocketSession administratorSession = sessionRegistry.get(administratorId);
 		if (administratorSession == null) {
 			session.sendMessage(new TextMessage(objectMapper.writeValueAsString(
-				new ErrorMessage(message.getRequestId(), "administrator does not exist"))));
+				new ErrorMessage("administrator does not exist"))));
 			return;
 		}
 		int userCount = roomRepository.getUserCount(roomCode);

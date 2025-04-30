@@ -9,7 +9,7 @@ import com.party.backbone.websocket.message.GameMessage;
 import com.party.backbone.websocket.message.admin.AdminJoinMessage;
 import com.party.backbone.websocket.message.admin.HeartbeatAckMessage;
 import com.party.backbone.websocket.message.admin.InitMessage;
-import com.party.backbone.websocket.message.admin.NextGameMessage;
+import com.party.backbone.websocket.message.server.NextGameMessage;
 
 import lombok.Getter;
 
