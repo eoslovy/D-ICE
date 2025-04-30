@@ -4,18 +4,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.web.socket.WebSocketSession;
 
+import com.party.backbone.websocket.broadcast.AsyncMessageSender;
 import com.party.backbone.websocket.broadcast.Broadcaster;
 import com.party.backbone.websocket.message.GameMessage;
 
-@SpringBootTest
 public class BroadcasterTest {
 
-	@Autowired
-	private Broadcaster broadcaster;
+	private final Broadcaster broadcaster = new Broadcaster(new AsyncMessageSender());
 
 	private final MockRoomRedisRepository roomRepository = new MockRoomRedisRepository();
 
