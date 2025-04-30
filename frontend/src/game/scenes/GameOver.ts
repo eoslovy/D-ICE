@@ -57,7 +57,7 @@ export class GameOver extends Phaser.Scene {
     replayButton.on('pointerup', () => {
       // Clean up current scene before starting new one
       this.tweens.killAll();
-      this.scene.start('Game');
+      this.scene.start('MainMenu'); // MainMenu 씬으로 전환
     });
     
     // Menu button
@@ -84,6 +84,7 @@ export class GameOver extends Phaser.Scene {
     menuButton.on('pointerup', () => {
       // Clean up current scene before starting new one
       this.tweens.killAll();
+      this.scene.stop(); // 현재 게임 씬 정지
       this.scene.start('MainMenu');
     });
   }
