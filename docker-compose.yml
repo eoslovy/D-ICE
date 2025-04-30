@@ -112,12 +112,12 @@ services:
       - SPRING_PROFILES_ACTIVE=docker
     depends_on:
       - backbone-service
-      - gameKJH-service
-      - gameCJM-service
-      - gameKYH-service
-      - gameLSR-service
-      - gameOJS-service
-      - gameYDG-service
+      - gamekjh-service
+      - gamecjm-service
+      - gamekyh-service
+      - gamelsr-service
+      - gameojs-service
+      - gameydg-service
 
   frontend-nginx:
     container_name: nginx
