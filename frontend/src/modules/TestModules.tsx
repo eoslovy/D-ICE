@@ -22,13 +22,19 @@ export default function TestModules(props: TestModulesProps) {
   const [baseUrlInput, setBaseUrlInput] = useState<string>(DEFAULT_BASE_URL);
 
   // --- Construct URLs dynamically ---
-  const getWsUrl = () => `ws://${baseUrlInput}/ws/game/user`;
+  const getUserWsUrl = () => `ws://${baseUrlInput}/ws/game/user`;
+  const getAdminWsUrl = () => `ws://${baseUrlInput}/ws/game/admin`;
   const getHttpUrl = () => `http://${baseUrlInput}`;
 
-  const handleConnect = () => {
-    const id = uuid();
-    // Use the dynamic URL getter
-    const url = `${getWsUrl()}/${roomId}`;
+  // Add new handlers for Admin and User connections
+  const handleAdminConnect = () => {
+    const url = `${getAdminWsUrl()}/${roomId}`;
+    webSocketManager.setServerURL(url);
+    webSocketManager.connect();
+  };
+
+  const handleUserConnect = () => {
+    const url = `${getUserWsUrl()}/${roomId}`;
     webSocketManager.setServerURL(url);
     webSocketManager.connect();
   };
@@ -38,16 +44,23 @@ export default function TestModules(props: TestModulesProps) {
   };
 
   const handleSendMessage = () => {
-    if (!wsMessage.trim()) return;
-    // user wsMessage as JSON if it is a valid JSON string else send it as a string
-    let message;
-    try {
-      message = JSON.parse(wsMessage);
-    } catch (e) {
-      message = { type: "echo", message: wsMessage };
-    }
+    // if (!wsMessage.trim()) return;
+    // // user wsMessage as JSON if it is a valid JSON string else send it as a string
+    // let message;
+    // try {
+    //   message = JSON.parse(wsMessage);
+    // } catch (e) {
+    //   message = { type: "echo", message: wsMessage };
+    // }
+
+    const initMessage = {
+      type: "INIT",
+      requestId: uuid(),  // Generate new UUID for Request ID
+      administratorId: uuid(), // 임시로 UUID 사용
+      totalRound: parseInt(wsMessage) || 5 // Parse input as number, default to 5 if invalid
+    };
  
-    webSocketManager.send(message);
+    webSocketManager.send(initMessage);
   };
 
   const sendhttpRequest = () => {
@@ -172,8 +185,17 @@ export default function TestModules(props: TestModulesProps) {
           <div style={{ marginBottom: '10px', padding: '8px', border: '1px solid #558', borderRadius: '4px', backgroundColor: 'rgba(0, 0, 30, 0.2)' }}>
             <label htmlFor="roomIdInput" style={{ fontWeight: 'bold', marginRight: '10px', display: 'inline-block', minWidth: '70px' }}>Room ID:</label>
             <input id="roomIdInput" type="text" value={roomId} onChange={(e) => setRoomId(e.target.value)} style={inputStyle} />
-            <button onClick={handleConnect} style={!roomId ? disabledButtonStyle : buttonStyle} disabled={!roomId}>Connect</button>
-            <button onClick={handleDisconnect} style={buttonStyle}>Disconnect</button>
+            
+            {/* Admin Connection */}
+            <div style={{ marginTop: '5px' }}>
+              <button onClick={handleAdminConnect} style={!roomId ? disabledButtonStyle : buttonStyle} disabled={!roomId}>
+                Connect Admin
+              </button>
+              <button onClick={handleUserConnect} style={!roomId ? disabledButtonStyle : buttonStyle} disabled={!roomId}>
+                Connect User
+              </button>
+              <button onClick={handleDisconnect} style={buttonStyle}>Disconnect</button>
+            </div>
           </div>
 
           {/* Action Buttons Section */}
