@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import PhaserGame from './PhaserGame';
 import webSocketManager from '../modules/WebSocketManager';
 import OverlayScreen, { OverlayScreenHandle } from '../modules/OverlayScreen';
+// Test Modules import
+import TestModules from '../modules/TestModules';
 
 // Define props if you need to pass data to control connection
 interface AppProps {
@@ -97,91 +99,14 @@ export default function App({ roomId = "wasted", shouldConnect = true }: AppProp
       >
         ← Back
       </button>
-      
-      {/* Button to trigger the effect in the Phaser game instance */}
-      <button
-        onClick={handleTriggerEffect}
-        className="trigger-effect-button"
-        style={{
-          position: 'absolute',
-          top: '10px',
-          right: '10px',
-          zIndex: 100,
-          padding: '8px 12px',
-          background: 'rgba(0,0,0,0.5)',
-          color: 'white',
-          border: 'none',
-          borderRadius: '4px',
-          cursor: 'pointer'
-        }}
-        >
-        Trigger Effect
-        </button>
-
-      {/* Button to trigger the sprite showcase in the Phaser game instance */}
-      <button
-        onClick={handleTriggerSpriteShowcase}
-        className="trigger-sprite-showcase-button"
-        style={{
-          position: 'absolute',
-          top: '50px',
-          right: '10px',
-          zIndex: 100,
-          padding: '8px 12px',
-          background: 'rgba(0,0,0,0.5)',
-          color: 'white',
-          border: 'none',
-          borderRadius: '4px',
-          cursor: 'pointer'
-        }}
-        >
-        Trigger Sprite Showcase
-        </button>
-
-      {/* Button to trigger a message in the Phaser game instance */}
-      <button
-        onClick={handleTriggerMessage}
-        className="trigger-message-button"
-        style={{
-          position: 'absolute',
-          top: '90px',
-          right: '10px',
-          zIndex: 100,
-          padding: '8px 12px',
-          background: 'rgba(0,0,0,0.5)',
-          color: 'white',
-          border: 'none',
-          borderRadius: '4px',
-          cursor: 'pointer'
-        }}
-        >
-        Trigger Message
-        </button>
-
-      {/* Warning overlay for orientation */}
-
-      {showWarning && (
-        <div className="orientation-warning" style={{
-          position: 'fixed', // Use fixed to overlay
-          top: 0,
-          left: 0,
-          width: '100%',
-          height: '100%',
-          backgroundColor: 'rgba(0, 0, 0, 0.8)',
-          color: 'white',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'center',
-          alignItems: 'center',
-          textAlign: 'center',
-          zIndex: 200 // Ensure it's above other elements
-        }}>
-          <div style={{ fontSize: '2rem', marginBottom: '1rem' }}>📱 ↻</div>
-          <p>Please rotate your device to portrait mode</p>
-        </div>
-      )}
       {/* OverlayScreen component for Phaser game overlay */}
       <OverlayScreen ref={overlayRef} />
+      {/* Test Modules for debugging and development. Disable on production level. */}
+      <TestModules 
+        onTriggerMessage={handleTriggerMessage}
+        onTriggerParticleEffect={handleTriggerEffect}
+        onTriggerSpriteShowcase={handleTriggerSpriteShowcase}
+      />
     </div>
   );
 }
