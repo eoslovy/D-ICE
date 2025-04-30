@@ -1,0 +1,114 @@
+
+
+.backend-default-build:
+  stage: build
+  tags:
+    - $GITLAB_USER_EMAIL
+  script:
+    - echo "🔨 Docker 이미지 빌드 및 테스트 중..."
+    - docker build -t ${DOCKERHUB_USERNAME:-default}/$REGISTRY_PATH-${SERVICE_NAME}:$IMAGE_TAG ${BUILD_CONTEXT}
+    #- echo "✅ 빌드 완료: $IMAGE_NAME:$IMAGE_TAG
+
+.backend-default-push:
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "master" && $CI_PIPELINE_SOURCE == "push"'
+      when: always
+    - if: '$CI_COMMIT_BRANCH == "master" && $CI_PIPELINE_SOURCE == "web"' # 수동 실행도 허용하려면
+      when: manual
+    - when: never
+  tags:
+    - $GITLAB_USER_EMAIL
+  stage: push
+  script:
+    - docker images
+    - docker login -u "$DOCKERHUB_USERNAME" -p "$DOCKERHUB_TOKEN"
+    - docker push ${DOCKERHUB_USERNAME:-default}/$REGISTRY_PATH-${SERVICE_NAME}:$IMAGE_TAG
+
+.backend-default-deploy:
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "master" && $CI_PIPELINE_SOURCE == "push"'
+      when: always
+    - if: '$CI_COMMIT_BRANCH == "master" && $CI_PIPELINE_SOURCE == "web"' # 수동 실행도 허용하려면
+      when: manual
+    - when: never
+  tags:
+    - $GITLAB_USER_EMAIL
+  stage: deploy
+  before_script:
+    - apk add --no-cache openssh gettext coreutils
+  script:
+    # 1️⃣ SSH Key 설정
+    #- apt-get update && apt-get install -y openssh-client basez
+    - mkdir -p ~/.ssh
+    - echo "$BASTION_PRIVATE_KEY_B64" | base64 -d > bastion.pem
+    - chmod 600 bastion.pem
+    - echo "$ENV_FILE_CONTENT" > .env
+      # 2️⃣ 배포 서버에 Docker 로그인 정보 전송
+      #- ssh -T -o StrictHostKeyChecking=no -i bastion.pem ubuntu@$BASTION_HOST "echo \"$DOCKER_HUB_TOKEN\" | docker login --username \"$DOCKER_HUB_USERNAME\" --password-stdin"
+    - cat docker-compose.deploy.yml
+      # 3️⃣ 환경변수가 반영된 `docker-compose.yml`을 배포 서버로 전송
+    - envsubst < docker-compose.deploy.yml > docker-compose.processed.yml
+    - cat docker-compose.processed.yml
+    - scp -o StrictHostKeyChecking=no -i bastion.pem .env ubuntu@$BASTION_HOST:/home/ubuntu/.env
+
+    - scp -o StrictHostKeyChecking=no -i bastion.pem docker-compose.processed.yml ubuntu@$BASTION_HOST:/home/ubuntu/docker-compose.yml
+
+    - ssh -T -o StrictHostKeyChecking=no -i bastion.pem ubuntu@$BASTION_HOST "
+      cd /home/ubuntu && docker-compose stop $SERVICE_NAME && docker-compose rm -f $SERVICE_NAME && IMAGE_TAG=$IMAGE_TAG docker-compose pull $SERVICE_NAME && IMAGE_TAG=$IMAGE_TAG docker-compose up -d --no-build --force-recreate $SERVICE_NAME
+      "
+
+    # 4️⃣ 배포 서버에서 `docker-compose` 실행 (로그인 유지됨)
+    #- ssh -T -o StrictHostKeyChecking=no -i bastion.pem ubuntu@$BASTION_HOST \
+    #  "bash -l -c '
+    #     DOCKERHUB_USERNAME=$DOCKERHUB_USERNAME \
+    #    IMAGE_TAG=$IMAGE_TAG \
+    #    SERVICE_NAME=$SERVICE_NAME \
+    #    docker-compose -f /home/ubuntu/docker-compose.yml pull \$SERVICE_NAME && \
+    #    docker-compose -f /home/ubuntu/docker-compose.yml up -d \$SERVICE_NAME --remove-orphans
+    #  '"
+    - ssh -T -o StrictHostKeyChecking=no -i bastion.pem ubuntu@$BASTION_HOST "
+      docker ps"
+
+.modeling-default-deploy:
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "master" && $CI_PIPELINE_SOURCE == "push"'
+      when: always
+    - if: '$CI_COMMIT_BRANCH == "master" && $CI_PIPELINE_SOURCE == "web"' # 수동 실행도 허용하려면
+      when: manual
+    - when: never
+  tags:
+    - $GITLAB_USER_EMAIL
+  stage: deploy
+  before_script:
+    - apk add --no-cache openssh gettext coreutils
+  script:
+    # 1️⃣ SSH Key 설정
+    #- apt-get update && apt-get install -y openssh-client basez
+    - mkdir -p ~/.ssh
+    - echo "$BASTION_PRIVATE_KEY_B64" | base64 -d > bastion.pem
+    - chmod 600 bastion.pem
+    - echo "$ENV_FILE_CONTENT" > .env
+      # 2️⃣ 배포 서버에 Docker 로그인 정보 전송
+      #- ssh -T -o StrictHostKeyChecking=no -i bastion.pem ubuntu@$BASTION_HOST "echo \"$DOCKER_HUB_TOKEN\" | docker login --username \"$DOCKER_HUB_USERNAME\" --password-stdin"
+    - cat docker-compose.model-deploy.yml
+      # 3️⃣ 환경변수가 반영된 `docker-compose.yml`을 배포 서버로 전송
+    - envsubst < docker-compose.model-deploy.yml > docker-compose.processed.yml
+    - cat docker-compose.processed.yml
+    - scp -o StrictHostKeyChecking=no -i bastion.pem .env ubuntu@$MODEL_HOST:/home/ubuntu/.env
+
+    - scp -o StrictHostKeyChecking=no -i bastion.pem docker-compose.processed.yml ubuntu@$MODEL_HOST:/home/ubuntu/docker-compose.yml
+
+    - ssh -T -o StrictHostKeyChecking=no -i bastion.pem ubuntu@$MODEL_HOST "
+      cd /home/ubuntu && docker-compose stop $SERVICE_NAME && docker-compose rm -f $SERVICE_NAME && IMAGE_TAG=$IMAGE_TAG docker-compose pull $SERVICE_NAME && IMAGE_TAG=$IMAGE_TAG docker-compose up -d --no-build --force-recreate $SERVICE_NAME
+      "
+    # 4️⃣ 배포 서버에서 `docker-compose` 실행 (로그인 유지됨)
+    #- ssh -T -o StrictHostKeyChecking=no -i bastion.pem ubuntu@$MODEL_HOST \
+    #  "bash -l -c '
+    #     DOCKERHUB_USERNAME=$DOCKERHUB_USERNAME \
+    #    IMAGE_TAG=$IMAGE_TAG \
+    #    SERVICE_NAME=$SERVICE_NAME \
+    #    docker-compose -f /home/ubuntu/docker-compose.yml pull \$SERVICE_NAME && \
+    #    docker-compose -f /home/ubuntu/docker-compose.yml up -d \$SERVICE_NAME --remove-orphans
+    #  '"
+    - ssh -T -o StrictHostKeyChecking=no -i bastion.pem ubuntu@$MODEL_HOST "
+      docker ps"

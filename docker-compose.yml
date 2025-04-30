@@ -15,7 +15,7 @@ services:
     build:
       context: ./backend/game-KJH
       dockerfile: Dockerfile
-    image: ${DOCKERHUB_USERNAME:-recreatekang}/d-ice-gameKJH-service:${IMAGE_TAG:-latest}
+    image: ${DOCKERHUB_USERNAME:-recreatekang}/d-ice-gamekjh-service:${IMAGE_TAG:-latest}
     restart: always
     env_file:
       - .env
@@ -26,7 +26,7 @@ services:
     build:
       context: ./backend/game-CJM
       dockerfile: Dockerfile
-    image: ${DOCKERHUB_USERNAME:-recreatekang}/d-ice-gameCJM-service:${IMAGE_TAG:-latest}
+    image: ${DOCKERHUB_USERNAME:-recreatekang}/d-ice-gamecjm-service:${IMAGE_TAG:-latest}
     restart: always
     env_file:
       - .env
@@ -38,7 +38,7 @@ services:
     build:
       context: ./backend/game-KYH
       dockerfile: Dockerfile
-    image: ${DOCKERHUB_USERNAME:-recreatekang}/d-ice-gameKYH-service:${IMAGE_TAG:-latest}
+    image: ${DOCKERHUB_USERNAME:-recreatekang}/d-ice-gamekyh-service:${IMAGE_TAG:-latest}
     restart: always
     env_file:
       - .env
@@ -50,7 +50,7 @@ services:
     build:
       context: ./backend/game-LSR
       dockerfile: Dockerfile
-    image: ${DOCKERHUB_USERNAME:-recreatekang}/d-ice-gameLSR-service:${IMAGE_TAG:-latest}
+    image: ${DOCKERHUB_USERNAME:-recreatekang}/d-ice-gamelsr-service:${IMAGE_TAG:-latest}
     restart: always
     env_file:
       - .env
@@ -62,7 +62,7 @@ services:
     build:
       context: ./backend/game-OJS
       dockerfile: Dockerfile
-    image: ${DOCKERHUB_USERNAME:-recreatekang}/d-ice-gameOJS-service:${IMAGE_TAG:-latest}
+    image: ${DOCKERHUB_USERNAME:-recreatekang}/d-ice-gameojs-service:${IMAGE_TAG:-latest}
     restart: always
     env_file:
       - .env
@@ -74,7 +74,7 @@ services:
     build:
       context: ./backend/game-YDG
       dockerfile: Dockerfile
-    image: ${DOCKERHUB_USERNAME:-recreatekang}/d-ice-gameYDG-service:${IMAGE_TAG:-latest}
+    image: ${DOCKERHUB_USERNAME:-recreatekang}/d-ice-gameydg-service:${IMAGE_TAG:-latest}
     restart: always
     env_file:
       - .env
@@ -83,7 +83,7 @@ services:
 
   frontend-react:
     build:
-      context: ./front
+      context: ./frontend
       dockerfile: Dockerfile
       args:
         NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
@@ -108,6 +108,16 @@ services:
       - .env
     ports:
       - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    depends_on:
+      - backbone-service
+      - gameKJH-service
+      - gameCJM-service
+      - gameKYH-service
+      - gameLSR-service
+      - gameOJS-service
+      - gameYDG-service
 
   frontend-nginx:
     container_name: nginx
@@ -125,8 +135,8 @@ services:
       - "80:80"
       - "443:443"
     volumes:
-      - /etc/letsencrypt/live/j12a608.p.ssafy.io/fullchain.pem:/etc/letsencrypt/live/j12a608.p.ssafy.io/fullchain.pem  # 인증서
-      - /etc/letsencrypt/live/j12a608.p.ssafy.io/privkey.pem:/etc/letsencrypt/live/j12a608.p.ssafy.io/privkey.pem  # 개인 키
+      - ./infra/nginx/cert/localhost.pem:/etc/nginx/certs/localhost.pem
+      - ./infra/nginx/cert/localhost-key.pem:/etc/nginx/certs/localhost-key.pem
 
   redis:
     container_name: redis

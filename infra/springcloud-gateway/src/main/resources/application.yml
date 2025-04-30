@@ -4,8 +4,6 @@ spring:
   profiles:
     active: docker
 
-
-
 logging:
   level:
     org.springframework.cloud.gateway: TRACE
@@ -17,85 +15,62 @@ logging:
     org.springframework.security: DEBUG
 ---
 spring:
-  config:
-    activate:
-      on-profile: docker
-
   cloud:
     gateway:
-      default-filters:
-        - AddResponseHeader=X-GATEWAY, docker
       routes:
-        - id: test-public-service
-          uri: http://member-service:8080
+        - id: backbone-service
+          uri: http://backbone-service:8080
           predicates:
-            - Path=/api/member/test/public/**
+            - Path=/api/backbone/**
           filters:
             - StripPrefix=2
 
-        - id: test-service
-          uri: http://member-service:8080
+        - id: game-kjh-service
+          uri: http://gameKJH-service:8080
           predicates:
-            - Path=/api/member/test/**
+            - Path=/api/game/kjh/**
           filters:
-            - StripPrefix=2
-            - name: JwtAuthentication
+            - StripPrefix=3
 
-
-        - id: member-service-auth
-          uri: http://member-service:8080
+        - id: game-cjm-service
+          uri: http://gameCJM-service:8080
           predicates:
-            - Path=/api/member/auth/**
+            - Path=/api/game/cjm/**
           filters:
-            - PreserveHostHeader
-            - StripPrefix=2
+            - StripPrefix=3
 
-        - id: member-service-need-auth
-          uri: http://member-service:8080
+        - id: game-kyh-service
+          uri: http://gameKYH-service:8080
           predicates:
-            - Path=/api/member/**
+            - Path=/api/game/kyh/**
           filters:
-            - PreserveHostHeader
-            - StripPrefix=2
-            - name: JwtAuthentication
+            - StripPrefix=3
 
-        - id: account-service
-          uri: http://account-service:8080
+        - id: game-lsr-service
+          uri: http://gameLSR-service:8080
           predicates:
-            - Path=/api/account/**
+            - Path=/api/game/lsr/**
           filters:
-            - StripPrefix=2
-            - name: JwtAuthentication
+            - StripPrefix=3
 
-        - id: contract-service
-          uri: http://contract-service:8080
+        - id: game-ojs-service
+          uri: http://gameOJS-service:8080
           predicates:
-            - Path=/api/contract/**
+            - Path=/api/game/ojs/**
           filters:
-            - StripPrefix=2
-            - name: JwtAuthentication
+            - StripPrefix=3
 
-        - id: mydata-service
-          uri: http://mydata-service:8080
+        - id: game-ydg-service
+          uri: http://gameYDG-service:8080
           predicates:
-            - Path=/api/mydata/**
+            - Path=/api/game/ydg/**
           filters:
-            - StripPrefix=2
-            - name: JwtAuthentication
-
-        - id: credit-service
-          uri: http://credit-service:8080
-          predicates:
-            - Path=/api/credit/**
-          filters:
-            - StripPrefix=2
-            - name: JwtAuthentication
+            - StripPrefix=3
 #verify-url: http://member-service:8080/auth/internal/verify-token
 
 
 server:
   port: 8080
-
 ---
 spring:
   config:
@@ -107,53 +82,55 @@ spring:
       default-filters:
         - AddResponseHeader=X-GATEWAY, k8s
       routes:
-        - id: member-service-auth
-          uri: http://member-service:8080
+        - id: backbone-service
+          uri: http://backbone-service:8080
           predicates:
-            - Path=/api/member/auth/**
+            - Path=/api/backbone/**
           filters:
-            - PreserveHostHeader
             - StripPrefix=2
 
-        - id: member-service
-          uri: http://member-service:8080
+        - id: game-kjh-service
+          uri: http://gameKJH-service:8080
           predicates:
-            - Path=/api/member/**
+            - Path=/api/game/kjh/**
           filters:
-            - StripPrefix=2
-            - name: JwtAuthentication
+            - StripPrefix=3
 
-        - id: account-service
-          uri: http://account-service:8080
+        - id: game-cjm-service
+          uri: http://gameCJM-service:8080
           predicates:
-            - Path=/api/account/**
+            - Path=/api/game/cjm/**
           filters:
-            - StripPrefix=2
-            - name: JwtAuthentication
+            - StripPrefix=3
 
-        - id: contract-service
-          uri: http://contract-service:8080
+        - id: game-kyh-service
+          uri: http://gameKYH-service:8080
           predicates:
-            - Path=/api/contract/**
+            - Path=/api/game/kyh/**
           filters:
-            - StripPrefix=2
-            - name: JwtAuthentication
+            - StripPrefix=3
 
-        - id: mydata-service
-          uri: http://mydata-service:8080
+        - id: game-lsr-service
+          uri: http://gameLSR-service:8080
           predicates:
-            - Path=/api/mydata/**
+            - Path=/api/game/lsr/**
           filters:
-            - StripPrefix=2
-            - name: JwtAuthentication
+            - StripPrefix=3
 
-        - id: credit-service
-          uri: http://credit-service:8080
+        - id: game-ojs-service
+          uri: http://gameOJS-service:8080
           predicates:
-            - Path=/api/credit/**
+            - Path=/api/game/ojs/**
           filters:
-            - StripPrefix=2
-            - name: JwtAuthentication
+            - StripPrefix=3
+
+        - id: game-ydg-service
+          uri: http://gameYDG-service:8080
+          predicates:
+            - Path=/api/game/ydg/**
+          filters:
+            - StripPrefix=3
+
 #verify-url: http://member-service:8080/auth/internal/verify-token
 
 server:
