@@ -44,7 +44,7 @@ public class InitMessageHandler extends GameMessageHandler<InitMessage> implemen
 	public void doHandle(InitMessage message, String roomCode, WebSocketSession session) throws IOException {
 		Set<GameType> playedGames = roomRepository.getPlayedGames(roomCode);
 		GameType nextGameType = GameType.randomExcluding(playedGames);
-		roomRepository.initializeRoom(roomCode, nextGameType);
+		roomRepository.initializeRoom(roomCode, nextGameType, message.getTotalRound());
 		var waitMessage = new WaitMessage(nextGameType);
 		try {
 			String payload = objectMapper.writeValueAsString(waitMessage);

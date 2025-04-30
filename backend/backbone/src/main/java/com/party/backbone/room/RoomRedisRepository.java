@@ -12,7 +12,7 @@ public interface RoomRedisRepository {
 
 	void deleteRoom(String roomCode);
 
-	void initializeRoom(String roomCode, GameType gameType);
+	void initializeRoom(String roomCode, GameType gameType, int totalRound);
 
 	boolean exists(String roomCode);
 
@@ -23,6 +23,6 @@ public interface RoomRedisRepository {
 	String getAdministratorIdOfRoom(String roomCode);
 
 	int getUserCount(String roomCode);
-	
+
 	Set<GameType> getPlayedGames(String roomCode);
 }

@@ -27,8 +27,8 @@ public class MockRoomRedisRepository implements RoomRedisRepository {
 	}
 
 	@Override
-	public void initializeRoom(String roomCode, GameType gameType) {
-		
+
+	public void initializeRoom(String roomCode, GameType gameType, int totalRound) {
 	}
 
 	@Override

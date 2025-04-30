@@ -80,8 +80,9 @@ public class RoomRedisRepositoryImpl implements RoomRedisRepository {
 	}
 
 	@Override
-	public void initializeRoom(String roomCode, GameType gameType) {
+	public void initializeRoom(String roomCode, GameType gameType, int totalRound) {
 		String roomKey = getRoomKey(roomCode);
+		redisTemplate.opsForHash().put(roomKey, "totalRound", String.valueOf(totalRound));
 		redisTemplate.opsForHash().put(roomKey, "state", RoomStateTTL.PLAYING.name());
 		redisTemplate.expire(getRoomKey(roomKey), RoomStateTTL.PLAYING.getTtl());
 		redisTemplate.opsForSet().add(getPlayedGamesKey(roomCode), gameType.name());
