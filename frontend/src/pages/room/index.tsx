@@ -1,28 +1,32 @@
 import { useState, useEffect } from "react";
 import GenerateQrCode from "../../components/QRcode";
-import { WebSocketAdmin } from "../../assets/websocket";
+import adminWebSocketManager from "../../modules/AdminWebSocketManager";
+// import { WebSocketAdmin } from "../../assets/websocket";
+import { v7 } from "uuid";
 
 export default function Room() {
     const [nickname, setNickname] = useState<string | null>(null);
     const [userCount, setUserCount] = useState<number | null>(null);
+    let requestId = v7();
+    // useEffect(() => {
+    //     // WebSocket 메시지를 수신할 때 상태 업데이트
+    //     WebSocketAdmin.joinedUser((receivedNickname: string, receivedUserCount: number) => {
+    //         setNickname(receivedNickname);
+    //         setUserCount(receivedUserCount);
+    //     });
 
-    useEffect(() => {
-        // WebSocket 메시지를 수신할 때 상태 업데이트
-        WebSocketAdmin.joinedUser((receivedNickname: string, receivedUserCount: number) => {
-            setNickname(receivedNickname);
-            setUserCount(receivedUserCount);
-        });
-
-        return () => {
-            WebSocketAdmin.disconnect(); // 컴포넌트 언마운트 시 WebSocket 연결 해제
-        };
-    }, []);
+    //     return () => {
+    //         WebSocketAdmin.disconnect(); // 컴포넌트 언마운트 시 WebSocket 연결 해제
+    //     };
+    // }, []);
 
     const startGame = async () => {
         try {
-            WebSocketAdmin.startGame();
+            adminWebSocketManager.sendSessionInit(requestId, 1);
         } catch (error) {
             console.error("게임 시작 중 오류:", error);
+        } finally {
+            requestId = v7();
         }
     };
 

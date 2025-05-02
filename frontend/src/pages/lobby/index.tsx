@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { WebSocketUser } from "../../assets/websocket";
+import userWebSocketManager from "../../modules/UserWebSocketManager";
+// import { WebSocketUser } from "../../assets/websocket";
 
 export default function Lobby() {
     const [roomCodeInput, setroomCodeInput] = useState("");
@@ -23,15 +24,20 @@ export default function Lobby() {
 
         try {
             // WebSocket을 통해 방에 입장 (Promise를 반환하므로 await 사용)
-            const result = await WebSocketUser.joinRoom(roomCodeInput, nicknameInput);
+            const result = await userWebSocketManager.sendUserJoin(
+                roomCodeInput,
+                nicknameInput
+            );
 
-            if (result.success) {
-                // 성공적으로 방에 입장했을 때만 페이지 이동
-                navigate(`/${roomCodeInput}`);
-            } else {
-                // 서버에서 성공은 했지만 문제가 있는 경우 (드문 케이스)
-                setErrorMessage(result.message || "알 수 없는 오류가 발생했습니다.");
-            }
+            // if (result.success) {
+            //     // 성공적으로 방에 입장했을 때만 페이지 이동
+            //     navigate(`/${roomCodeInput}`);
+            // } else {
+            //     // 서버에서 성공은 했지만 문제가 있는 경우 (드문 케이스)
+            //     setErrorMessage(
+            //         result.message || "알 수 없는 오류가 발생했습니다."
+            //     );
+            // }
         } catch (error: any) {
             // 서버 연결 실패, 유효하지 않은 방 코드 등의 오류 처리
             console.error("방 입장 중 오류:", error);
