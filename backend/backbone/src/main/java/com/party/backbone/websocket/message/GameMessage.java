@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.party.backbone.websocket.message.admin.AdminJoinMessage;
 import com.party.backbone.websocket.message.admin.HeartbeatAckMessage;
 import com.party.backbone.websocket.message.admin.InitMessage;
+import com.party.backbone.websocket.message.admin.StartGameMessage;
 import com.party.backbone.websocket.message.server.AdminJoinedMessage;
 import com.party.backbone.websocket.message.server.AggregatedAdminMessage;
 import com.party.backbone.websocket.message.server.AggregatedUserMessage;
@@ -29,6 +30,7 @@ import com.party.backbone.websocket.message.user.UserJoinMessage;
 	@JsonSubTypes.Type(value = JoinedAdminMessage.class, name = "USER_JOINED_ADMIN"),
 	@JsonSubTypes.Type(value = InitMessage.class, name = "INIT"),
 	@JsonSubTypes.Type(value = NextGameMessage.class, name = "NEXT_GAME"),
+	@JsonSubTypes.Type(value = StartGameMessage.class, name = "START_GAME"),
 	@JsonSubTypes.Type(value = WaitMessage.class, name = "WAIT"),
 	@JsonSubTypes.Type(value = SubmitMessage.class, name = "SUBMIT"),
 	@JsonSubTypes.Type(value = AggregatedUserMessage.class, name = "AGGREGATED_USER"),

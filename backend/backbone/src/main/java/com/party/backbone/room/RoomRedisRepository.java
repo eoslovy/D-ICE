@@ -1,7 +1,6 @@
 package com.party.backbone.room;
 
 import java.util.List;
-import java.util.Set;
 
 import com.party.backbone.websocket.model.GameType;
 
@@ -24,5 +23,5 @@ public interface RoomRedisRepository {
 
 	int getUserCount(String roomCode);
 
-	Set<GameType> getPlayedGames(String roomCode);
+	GameType startGame(String roomCode);
 }

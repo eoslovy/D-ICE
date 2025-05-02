@@ -10,7 +10,6 @@ import com.party.backbone.websocket.message.admin.AdminJoinMessage;
 import com.party.backbone.websocket.message.admin.HeartbeatAckMessage;
 import com.party.backbone.websocket.message.admin.InitMessage;
 import com.party.backbone.websocket.message.admin.StartGameMessage;
-import com.party.backbone.websocket.message.server.NextGameMessage;
 
 import lombok.Getter;
 
@@ -18,7 +17,6 @@ import lombok.Getter;
 public enum AdminMessageType implements MessageType {
 	ADMIN_JOIN(AdminJoinMessage.class),
 	INIT(InitMessage.class),
-	NEXT_GAME(NextGameMessage.class),
 	HEARTBEAT_ACK(HeartbeatAckMessage.class),
 	START_GAME(StartGameMessage.class),
 	;

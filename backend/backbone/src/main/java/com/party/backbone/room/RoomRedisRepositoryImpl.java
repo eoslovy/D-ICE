@@ -4,9 +4,8 @@ import java.time.Duration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import java.util.Objects;
 import java.util.concurrent.ThreadLocalRandom;
-import java.util.stream.Collectors;
 
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Repository;
@@ -17,7 +16,9 @@ import com.party.backbone.room.model.RoomStateTTL;
 import com.party.backbone.websocket.model.GameType;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @RequiredArgsConstructor
 @Repository
 public class RoomRedisRepositoryImpl implements RoomRedisRepository {
@@ -70,16 +71,6 @@ public class RoomRedisRepositoryImpl implements RoomRedisRepository {
 	}
 
 	@Override
-	public Set<GameType> getPlayedGames(String roomCode) {
-		String key = getGamesKey(roomCode);
-		Set<String> gameNames = redisTemplate.opsForZSet().range(key, 0, -1);
-		if (gameNames == null || gameNames.isEmpty()) {
-			return Set.of();
-		}
-		return gameNames.stream().map(GameType::valueOf).collect(Collectors.toSet());
-	}
-
-	@Override
 	public void initializeRoom(String roomCode, List<GameType> games, int totalRound) {
 		String roomKey = getRoomKey(roomCode);
 		redisTemplate.opsForHash().put(roomKey, "totalRound", String.valueOf(totalRound));
@@ -88,6 +79,29 @@ public class RoomRedisRepositoryImpl implements RoomRedisRepository {
 		redisTemplate.expire(getRoomKey(roomKey), RoomStateTTL.WAITING.getTtl());
 		List<String> values = games.stream().map(Enum::name).toList();
 		redisTemplate.opsForList().rightPushAll(getGamesKey(roomCode), values);
+	}
+
+	@Override
+	public GameType startGame(String roomCode) {
+		String roomKey = getRoomKey(roomCode);
+		Object roundObj = Objects.requireNonNull(
+			redisTemplate.opsForHash().get(roomKey, "currentRound"),
+			"Invalid Round"
+		);
+		int roundIndex = Integer.parseInt(roundObj.toString()) - 1;
+		String gameTypeName = redisTemplate.opsForList().index(getGamesKey(roomCode), roundIndex);
+		if (gameTypeName == null) {
+			throw new IllegalStateException("No game type found at index " + roundIndex + " for room " + roomCode);
+		}
+
+		try {
+			redisTemplate.opsForHash().put(roomKey, "state", RoomStateTTL.PLAYING.name());
+			redisTemplate.expire(roomKey, RoomStateTTL.PLAYING.getTtl());
+		} catch (Exception e) {
+			log.error("[startGame] Failed to update room state or TTL for roomCode: {}", roomCode, e);
+			throw new IllegalStateException("Failed to update room state", e);
+		}
+		return GameType.valueOf(gameTypeName);
 	}
 
 	@Override
