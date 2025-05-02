@@ -189,3 +189,12 @@
 - 구조적으로 얼마나 잘 짜여쪘는지는 다시 생각해봐야 할 것 같다.
 
 ## 20250430 Broadcaster test
+
+- Broadcaster를 테스트 해볼 수 있게 만들어두고 싶었다.
+- 1000명의 유저가 있다고 가정하고 MockWebSocketSession, MockRoomRedisRepository, MockSessionRegistry를 만들어서 테스트 환경을 구성했다.
+- 테스트를 짜다 보니 왜 Spring에서 제공하는 것들을 무분별하게 사용하지 않는게 좋다 + Dependency Inversion의 중요성?을 느낄 수 있었다.
+
+1. @Async를 사용했기 때문에 나머지를 다 mocking해두고도 `@SpringTest`를 사용해서 테스트해야했다.
+   - 테스트 자체는 매우 가벼운데 테스트 시작하는데 매우 오랜시간이 걸렸다.
+   - CompletableFuture로의 전환도 생각해봐야할 것 같다.
+2. Mockito를 제대로 사용할 줄 모르고 원하는 동작을 하게 하려다보니(sessionId 생성 내지 userIds 설정) 구현체를 직접 Mock하려고 시도했고 결국 RoomRedisRepository와 SessionRegistry를 interface화 했다.
