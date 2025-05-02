@@ -1,0 +1,86 @@
+[
+    {
+        "key": "electricity",
+        "type": "spritesheet",
+        "path": "assets/sprites/electricity_SpriteSheet.png",
+        "frameConfig": { "frameWidth": 256, "frameHeight": 256 },
+        "animations": [ { "key": "electricity", "frames": { "start": 0, "end": 31 }, "frameRate": 20, "repeat": 0 } ]
+    },
+    {
+        "key": "explosion",
+        "type": "spritesheet",
+        "path": "assets/sprites/explosion_5_SpriteSheet.png",
+        "frameConfig": { "frameWidth": 512, "frameHeight": 512 },
+        "animations": [ { "key": "explosion", "frames": { "start": 0, "end": 7 }, "frameRate": 20, "repeat": 0 } ]
+    },
+    {
+        "key": "fire_big",
+        "type": "spritesheet",
+        "path": "assets/sprites/fire_big_SpriteSheet.png",
+        "frameConfig": { "frameWidth": 512, "frameHeight": 512 },
+        "animations": [ { "key": "fire_big", "frames": { "start": 0, "end": 7 }, "frameRate": 20, "repeat": 0 } ]
+    },
+    {
+        "key": "fire_small",
+        "type": "spritesheet",
+        "path": "assets/sprites/fire_small_SpriteSheet.png",
+        "frameConfig": { "frameWidth": 512, "frameHeight": 512 },
+        "animations": [ { "key": "fire_small", "frames": { "start": 0, "end": 7 }, "frameRate": 20, "repeat": 0 } ]
+    },
+    {
+        "key": "laser",
+        "type": "spritesheet",
+        "path": "assets/sprites/lazer_blue_SpriteSheet.png",
+        "frameConfig": { "frameWidth": 512, "frameHeight": 512 },
+        "animations": [ { "key": "laser", "frames": { "start": 0, "end": 15 }, "frameRate": 20, "repeat": 0 } ]
+    },
+    {
+        "key": "level_up",
+        "type": "spritesheet",
+        "path": "assets/sprites/Level_Up_green_SpriteSheet.png",
+        "frameConfig": { "frameWidth": 512, "frameHeight": 512 },
+        "animations": [ { "key": "level_up", "frames": { "start": 0, "end": 31 }, "frameRate": 20, "repeat": 0 } ]
+    },
+    {
+        "key": "mine",
+        "type": "spritesheet",
+        "path": "assets/sprites/mine_normal_SpriteSheet.png",
+        "frameConfig": { "frameWidth": 512, "frameHeight": 512 },
+        "animations": [ { "key": "mine", "frames": { "start": 0, "end": 15 }, "frameRate": 20, "repeat": 0 } ]
+    },
+    {
+        "key": "smoke",
+        "type": "spritesheet",
+        "path": "assets/sprites/smoke_2_SpriteSheet.png",
+        "frameConfig": { "frameWidth": 512, "frameHeight": 512 },
+        "animations": [ { "key": "smoke", "frames": { "start": 0, "end": 15 }, "frameRate": 20, "repeat": 0 } ]
+    },
+    {
+        "key": "splash",
+        "type": "spritesheet",
+        "path": "assets/sprites/splash_SpriteSheet.png",
+        "frameConfig": { "frameWidth": 512, "frameHeight": 512 },
+        "animations": [ { "key": "splash", "frames": { "start": 0, "end": 7 }, "frameRate": 20, "repeat": 0 } ]
+    },
+    {
+        "key": "uzi",
+        "type": "spritesheet",
+        "path": "assets/sprites/Uzi_red_SpriteSheet.png",
+        "frameConfig": { "frameWidth": 512, "frameHeight": 512 },
+        "animations": [ { "key": "uzi", "frames": { "start": 0, "end": 7 }, "frameRate": 20, "repeat": 0 } ]
+    },
+    {
+        "key": "vortex",
+        "type": "spritesheet",
+        "path": "assets/sprites/Vertical_Vortex_purple_SpriteSheet.png",
+        "frameConfig": { "frameWidth": 512, "frameHeight": 512 },
+        "animations": [ { "key": "vortex", "frames": { "start": 0, "end": 15 }, "frameRate": 20, "repeat": 0 } ]
+    },
+    {
+        "key": "water_splash",
+        "type": "spritesheet",
+        "path": "assets/sprites/Water_Splash_02_SpriteSheet.png",
+        "frameConfig": { "frameWidth": 512, "frameHeight": 512 },
+        "animations": [ { "key": "water_splash", "frames": { "start": 0, "end": 7 }, "frameRate": 20, "repeat": 0 } ]
+    }
+]
