@@ -25,7 +25,7 @@ export const router = createBrowserRouter([
         element: <Select />,
       },
       {
-        path: '/:roomcode',
+        path: '/:roomCode',
         element: <Room />,
       },
       {

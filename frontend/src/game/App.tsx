@@ -70,16 +70,18 @@ export default function App({ roomId = "wasted", shouldConnect = true }: AppProp
     }
   }
 
-  const handleTriggerMessage = () => {
+  const handleTriggerMessage = (text: string, fontSize: number = 32, duration: number = 3000, withEffect: boolean = true) => {
     if (overlayRef.current) {
-      overlayRef.current.triggerMessage("Hello"); // Call the method on the Phaser game instance
+      overlayRef.current.triggerMessage(text, fontSize, duration, withEffect);
     }
-  }
+  };
 
   return (
     <div className="game-container">
       {/* Conditionally render PhaserGame based on connection or other logic if needed */}
-      <PhaserGame />
+      <div id="phaser-game-container" style={{ width: '100%', height: '100%' }}>
+        <PhaserGame />
+      </div>
 
       <button
         onClick={() => navigate('/')}
@@ -107,6 +109,12 @@ export default function App({ roomId = "wasted", shouldConnect = true }: AppProp
         onTriggerParticleEffect={handleTriggerEffect}
         onTriggerSpriteShowcase={handleTriggerSpriteShowcase}
       />
+      {/* Warning message for mobile orientation */}
+      {showWarning && (
+        <div className="warning-message" style={{ position: 'absolute', top: '20px', left: '50%', transform: 'translateX(-50%)', zIndex: 1000, backgroundColor: 'rgba(255, 0, 0, 0.8)', color: '#fff', padding: '10px', borderRadius: '5px' }}>
+          Please rotate your device to portrait mode for a better experience.
+        </div>
+      )}
     </div>
   );
 }
