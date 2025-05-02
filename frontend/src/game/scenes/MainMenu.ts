@@ -34,6 +34,10 @@ export class MainMenu extends Phaser.Scene {
       this.scene.start('PerfectCircleGame')
     });
 
+    this.startButton = this.createButton(width / 2, height * 0.7, '숫자 살아남기 게임', () => {
+      this.scene.start('NumberSurvivor')
+    });
+
     // Add title text
     this.add.text(width / 2, height * 0.2, 'TOUCH TOUCH', {
       fontFamily: 'Arial',
