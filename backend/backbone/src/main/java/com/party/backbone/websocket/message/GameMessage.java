@@ -10,6 +10,7 @@ import com.party.backbone.websocket.message.server.AdminJoinedMessage;
 import com.party.backbone.websocket.message.server.AggregatedAdminMessage;
 import com.party.backbone.websocket.message.server.AggregatedUserMessage;
 import com.party.backbone.websocket.message.server.EndMessage;
+import com.party.backbone.websocket.message.server.EnterGameMessage;
 import com.party.backbone.websocket.message.server.ErrorMessage;
 import com.party.backbone.websocket.message.server.HeartbeatMessage;
 import com.party.backbone.websocket.message.server.JoinedAdminMessage;
@@ -31,6 +32,7 @@ import com.party.backbone.websocket.message.user.UserJoinMessage;
 	@JsonSubTypes.Type(value = InitMessage.class, name = "INIT"),
 	@JsonSubTypes.Type(value = NextGameMessage.class, name = "NEXT_GAME"),
 	@JsonSubTypes.Type(value = StartGameMessage.class, name = "START_GAME"),
+	@JsonSubTypes.Type(value = EnterGameMessage.class, name = "ENTER_GAME"),
 	@JsonSubTypes.Type(value = WaitMessage.class, name = "WAIT"),
 	@JsonSubTypes.Type(value = SubmitMessage.class, name = "SUBMIT"),
 	@JsonSubTypes.Type(value = AggregatedUserMessage.class, name = "AGGREGATED_USER"),
