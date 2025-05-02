@@ -180,7 +180,7 @@ export const WebSocketUser = {
             webSocketManager.on("connect", () => {
                 console.log("WebSocket 연결됨, JOIN 메시지 전송");
                 const joinRoomMessage = {
-                    type: "JOIN",
+                    type: "USER_JOIN",
                     requestId: uuidv7(),
                     nickname: nickname,
                 };
@@ -190,26 +190,27 @@ export const WebSocketUser = {
             // 메시지 수신 이벤트 처리
             webSocketManager.on("message", (message) => {
                 try {
-                    const parsedMessage = JSON.parse(message);
-                    console.log("WebSocket 메시지 수신:", parsedMessage);
+                    // console.log("WebSocket 메시지 수신:", message);
+                    // const parsedMessage = JSON.parse(message);
+                    // console.log("WebSocket 파싱 메시지:", parsedMessage);
                     
                     // 에러 메시지 처리
-                    if (parsedMessage.type === "ERROR") {
+                    if (message.type === "ERROR") {
                         clearTimeout(timeout);
                         webSocketManager.disconnect(); // 연결 종료
                         reject({ 
                             success: false, 
-                            message: parsedMessage.message || "알 수 없는 오류가 발생했습니다." 
+                            message: message.message || "알 수 없는 오류가 발생했습니다." 
                         });
                         cleanupListeners();
                         return;
                     }
                     
                     // 유저 입장 성공 처리
-                    if (parsedMessage.type === "USER_JOINED") {
+                    if (message.type === "USER_JOINED") {
                         clearTimeout(timeout);
                         
-                        const { userId, nickname } = parsedMessage;
+                        const { userId, nickname } = message;
                         
                         // 로컬 스토리지에 정보 저장
                         localStorage.setItem("userId", userId);

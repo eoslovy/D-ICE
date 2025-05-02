@@ -73,18 +73,18 @@ class WebSocketManager extends EventEmitter {
                 // console.debug('[WebSocketManager] Message received:', message);
 
                 // --- Handle Response Validation ---
-                if (message.requestId) {
-                    if (this.pendingRequests.has(message.requestId)) {
-                        const timeoutId = this.pendingRequests.get(message.requestId);
-                        clearTimeout(timeoutId); // Clear the timeout for this request
-                        this.pendingRequests.delete(message.requestId); // Remove from pending requests
-                    }
-                    else {
-                        console.warn(`[WebSocketManager] Received response for unknown requestId: ${message.requestId}`);
-                        this.emit('unknown_requestId', message.requestId, message);
-                        return; // Ignore unknown requestId
-                    }
-                }
+                // if (message.requestId) {
+                //     if (this.pendingRequests.has(message.requestId)) {
+                //         const timeoutId = this.pendingRequests.get(message.requestId);
+                //         clearTimeout(timeoutId); // Clear the timeout for this request
+                //         this.pendingRequests.delete(message.requestId); // Remove from pending requests
+                //     }
+                //     else {
+                //         console.warn(`[WebSocketManager] Received response for unknown requestId: ${message.requestId}`);
+                //         this.emit('unknown_requestId', message.requestId, message);
+                //         return; // Ignore unknown requestId
+                //     }
+                // }
                 // --- End Response Validation ---
 
                 // Emit specific events based on message type
