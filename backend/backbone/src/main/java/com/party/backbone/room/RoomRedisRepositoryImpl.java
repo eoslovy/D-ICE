@@ -62,7 +62,7 @@ public class RoomRedisRepositoryImpl implements RoomRedisRepository {
 		String roomKey = getRoomKey(roomCode);
 		String playersKey = getPlayersKey(roomCode);
 		String administratorIdKey = getAdministratorIdKey(roomCode);
-		String playedGamesKey = getPlayedGamesKey(roomCode);
+		String playedGamesKey = getGamesKey(roomCode);
 		redisTemplate.delete(roomKey);
 		redisTemplate.delete(playersKey);
 		redisTemplate.delete(administratorIdKey);
@@ -71,8 +71,8 @@ public class RoomRedisRepositoryImpl implements RoomRedisRepository {
 
 	@Override
 	public Set<GameType> getPlayedGames(String roomCode) {
-		String key = getPlayedGamesKey(roomCode);
-		Set<String> gameNames = redisTemplate.opsForSet().members(key);
+		String key = getGamesKey(roomCode);
+		Set<String> gameNames = redisTemplate.opsForZSet().range(key, 0, -1);
 		if (gameNames == null || gameNames.isEmpty()) {
 			return Set.of();
 		}
@@ -80,12 +80,14 @@ public class RoomRedisRepositoryImpl implements RoomRedisRepository {
 	}
 
 	@Override
-	public void initializeRoom(String roomCode, GameType gameType, int totalRound) {
+	public void initializeRoom(String roomCode, List<GameType> games, int totalRound) {
 		String roomKey = getRoomKey(roomCode);
 		redisTemplate.opsForHash().put(roomKey, "totalRound", String.valueOf(totalRound));
-		redisTemplate.opsForHash().put(roomKey, "state", RoomStateTTL.PLAYING.name());
-		redisTemplate.expire(getRoomKey(roomKey), RoomStateTTL.PLAYING.getTtl());
-		redisTemplate.opsForSet().add(getPlayedGamesKey(roomCode), gameType.name());
+		redisTemplate.opsForHash().put(roomKey, "currentRound", String.valueOf(1));
+		redisTemplate.opsForHash().put(roomKey, "state", RoomStateTTL.WAITING.name());
+		redisTemplate.expire(getRoomKey(roomKey), RoomStateTTL.WAITING.getTtl());
+		List<String> values = games.stream().map(Enum::name).toList();
+		redisTemplate.opsForList().rightPushAll(getGamesKey(roomCode), values);
 	}
 
 	@Override
@@ -145,8 +147,8 @@ public class RoomRedisRepositoryImpl implements RoomRedisRepository {
 		return getRoomKey(roomCode) + ":administratorId";
 	}
 
-	private String getPlayedGamesKey(String roomCode) {
-		return getRoomKey(roomCode) + ":playedGames";
+	private String getGamesKey(String roomCode) {
+		return getRoomKey(roomCode) + ":games";
 	}
 
 	private String toJson(Object obj) {

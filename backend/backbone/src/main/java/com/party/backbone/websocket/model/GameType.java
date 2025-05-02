@@ -1,8 +1,8 @@
 package com.party.backbone.websocket.model;
 
-import java.util.Collection;
-import java.util.EnumSet;
-import java.util.concurrent.ThreadLocalRandom;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 import lombok.Getter;
 
@@ -18,16 +18,13 @@ public enum GameType {
 		this.duration = duration;
 	}
 
-	public static GameType randomExcluding(Collection<GameType> exclude) {
-		EnumSet<GameType> candidates = EnumSet.allOf(GameType.class);
-		candidates.removeAll(exclude);
-
-		if (candidates.isEmpty()) {
-			throw new IllegalArgumentException("No available game types after exclusion.");
+	public static List<GameType> pickRandomList(int round) {
+		if (round > GAME_TYPES.length) {
+			throw new IllegalArgumentException("round cannot exceed available game types.");
 		}
 
-		GameType[] candidateArray = candidates.toArray(new GameType[0]);
-
-		return GAME_TYPES[ThreadLocalRandom.current().nextInt(GAME_TYPES.length)];
+		List<GameType> list = new ArrayList<>(List.of(GAME_TYPES));
+		Collections.shuffle(list);
+		return list.subList(0, round);
 	}
 }

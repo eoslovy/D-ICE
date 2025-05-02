@@ -11,6 +11,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class NextGameMessage implements GameMessage {
-	private String administratorId;
 	private GameType gameType;
+	private int currentRound;
 }

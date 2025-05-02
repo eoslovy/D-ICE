@@ -12,7 +12,7 @@ public interface RoomRedisRepository {
 
 	void deleteRoom(String roomCode);
 
-	void initializeRoom(String roomCode, GameType gameType, int totalRound);
+	void initializeRoom(String roomCode, List<GameType> games, int totalRound);
 
 	boolean exists(String roomCode);
 

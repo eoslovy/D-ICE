@@ -2,18 +2,17 @@ package com.party.backbone.websocket.dispatch.handler;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Set;
 
 import org.springframework.stereotype.Component;
+import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.party.backbone.room.RoomRedisRepository;
-import com.party.backbone.websocket.broadcast.Broadcaster;
 import com.party.backbone.websocket.dispatch.repository.IdempotencyRedisRepository;
 import com.party.backbone.websocket.handler.SessionRegistry;
 import com.party.backbone.websocket.message.admin.InitMessage;
-import com.party.backbone.websocket.message.server.WaitMessage;
+import com.party.backbone.websocket.message.server.NextGameMessage;
 import com.party.backbone.websocket.model.AdminMessageType;
 import com.party.backbone.websocket.model.GameType;
 
@@ -25,34 +24,29 @@ public class InitMessageHandler extends GameMessageHandler<InitMessage> implemen
 	private final RoomRedisRepository roomRepository;
 	private final ObjectMapper objectMapper;
 	private final SessionRegistry sessionRegistry;
-	private final Broadcaster broadcaster;
 
 	InitMessageHandler(
 		RoomRedisRepository roomRepository,
 		ObjectMapper objectMapper,
 		SessionRegistry sessionRegistry,
-		IdempotencyRedisRepository idempotencyRedisRepository,
-		Broadcaster broadcaster) {
+		IdempotencyRedisRepository idempotencyRedisRepository
+	) {
 		super(idempotencyRedisRepository);
 		this.roomRepository = roomRepository;
 		this.objectMapper = objectMapper;
 		this.sessionRegistry = sessionRegistry;
-		this.broadcaster = broadcaster;
 	}
 
 	@Override
 	public void doHandle(InitMessage message, String roomCode, WebSocketSession session) throws IOException {
-		Set<GameType> playedGames = roomRepository.getPlayedGames(roomCode);
-		GameType nextGameType = GameType.randomExcluding(playedGames);
-		roomRepository.initializeRoom(roomCode, nextGameType, message.getTotalRound());
-		var waitMessage = new WaitMessage(nextGameType);
+		List<GameType> pickedGames = GameType.pickRandomList(message.getTotalRound());
+		roomRepository.initializeRoom(roomCode, pickedGames, message.getTotalRound());
+		var firstGameMessage = new NextGameMessage(pickedGames.get(0), 1);
 		try {
-			String payload = objectMapper.writeValueAsString(waitMessage);
-			List<String> userIds = roomRepository.getUserIds(roomCode);
-			List<WebSocketSession> sessions = sessionRegistry.getOpenSessions(userIds);
-			broadcaster.broadcast(sessions, payload, roomCode);
+			String payload = objectMapper.writeValueAsString(firstGameMessage);
+			sessionRegistry.get(message.getAdministratorId()).sendMessage(new TextMessage(payload));
 		} catch (Exception e) {
-			log.error("[Broadcast] json parsing failed. payload={}", waitMessage, e);
+			log.error("[Broadcast] json parsing failed. payload={}", firstGameMessage, e);
 		}
 	}
 

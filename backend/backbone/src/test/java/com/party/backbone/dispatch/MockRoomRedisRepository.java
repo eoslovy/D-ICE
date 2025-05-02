@@ -27,9 +27,12 @@ public class MockRoomRedisRepository implements RoomRedisRepository {
 	}
 
 	@Override
+	public void initializeRoom(String roomCode, List<GameType> games, int totalRound) {
 
-	public void initializeRoom(String roomCode, GameType gameType, int totalRound) {
 	}
+
+	// @Override public void initializeRoom(String roomCode, GameType gameType, int totalRound) {
+	// }
 
 	@Override
 	public boolean exists(String roomCode) {
