@@ -1,0 +1,34 @@
+@import "tailwindcss";
+
+:root{
+    --primary-color: #4a90e2;
+    --secondary-color: #50e3c2;
+    --warning-color: #de1144
+}
+
+@layer utilities {
+    .bg-primary {
+      background-color: var(--primary-color);
+    }
+    .bg-secondary {
+      background-color: var(--secondary-color);
+    }
+    .btn-primary {
+      background-color: var(--primary-color);
+      color: white;
+      padding: 0.5rem 1rem;
+      border-radius: 0.25rem;
+    }
+    .btn-secondary {
+      background-color: var(--secondary-color);
+      color: white;
+      padding: 0.5rem 1rem;
+      border-radius: 0.25rem;
+    }
+    .btn-warning {
+      background-color: var(--warning-color);
+      color: white;
+      padding: 0.5rem 1rem;
+      border-radius: 0.25rem;
+    }
+  }
