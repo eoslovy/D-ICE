@@ -1,0 +1,282 @@
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";  
+
+// 임시 게임 목록 (나중에 서버에서 받아올 예정)
+const allGameList = [
+    { id: "game1", name: "게임1" },
+    { id: "game2", name: "게임2" },
+    { id: "game3", name: "게임3" },
+    { id: "game4", name: "게임4" },
+    { id: "game5", name: "게임5" },
+    { id: "game6", name: "게임6" },
+    { id: "game7", name: "게임7" },
+    { id: "game8", name: "게임8" },
+    { id: "game9", name: "게임9" },
+    { id: "game10", name: "게임10" },
+];
+
+// roomSettingsProps 타입 정의
+interface roomSettingsProps {
+    roomOwner: string; // 방 주인 (userId)
+    isCapacity: boolean; // 인원수 제한 여부
+    capacity?: number; // 인원수 제한시 인원수
+    isTeam: boolean; // 팀 여부
+    teamCount?: number; // 팀 수
+    gameRound: number; // 라운드 수
+    isRandom: boolean; // 게임 랜덤 지정 여부
+    gameList: { gameId: string; }[]; // 게임 목록 (게임 id와 생성자 id)
+}
+
+export default function Set() {
+    const [userId] = useState("user1"); // 방을 생성하는 사용자 (임시값)
+    const [roomCode] = useState("room1"); // 방 코드 (임시값)
+    const [selectedGames, setSelectedGames] = useState<string[]>([]); // 선택된 게임 목록
+    const navigate = useNavigate();
+
+    // roomSettings 상태 설정
+    const [roomSettings, setRoomSettings] = useState<roomSettingsProps>({
+        roomOwner: userId, // 방 주인 설정
+        isCapacity: true, // 인원수 제한 여부
+        capacity: 10, // 인원수
+        isTeam: false, // 팀 여부
+        teamCount: 2, // 팀 수
+        gameRound: 3, // 기본 라운드 수 (최소 3으로 시작)
+        isRandom: false, // 랜덤 게임 여부
+        gameList: [], // 게임 목록
+    });
+
+    // 라운드 수 변경 처리 함수
+    const handleRoundChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+        const newRound = parseInt(event.target.value);
+        setRoomSettings({
+            ...roomSettings,
+            gameRound: newRound,
+            gameList: Array(newRound).fill({ gameId: "", creatorId: userId }),
+        });
+    };
+
+    // 게임 선택 변경 처리 함수
+    const handleGameChange = (
+        event: React.ChangeEvent<HTMLSelectElement>,
+        index: number
+    ) => {
+        const updatedGameList = [...roomSettings.gameList];
+        updatedGameList[index] = {
+            gameId: event.target.value,
+        };
+        setRoomSettings({
+            ...roomSettings,
+            isRandom: false, // 사용자가 수동 수정하면 랜덤 모드를 해제
+            gameList: updatedGameList,
+        });
+    };
+
+    const handleSubmit = () => {
+        alert("방 설정이 완료되었습니다!");
+        sessionStorage.setItem("roomCode", roomCode);
+        navigate(`/${roomCode}`);
+    };
+
+    const isReadyToSubmit = () => {
+        // 랜덤이면 바로 제출 가능
+        if (roomSettings.isRandom) return true;
+        // 아니면 gameList 길이와 gameRound가 맞아야 하고, 선택되지 않은 게임이 없어야 함
+        return (
+            roomSettings.gameList.length === roomSettings.gameRound &&
+            roomSettings.gameList.every((game) => game.gameId !== "")
+        );
+    };
+
+    const generateRandomGameList = (round: number) => {
+        const shuffledGames = [...allGameList].sort(() => 0.5 - Math.random());
+        return shuffledGames.slice(0, round).map((game) => ({
+            gameId: game.id,
+            creatorId: userId,
+        }));
+    };
+
+    return (
+        <div className="max-h-[70vh] overflow-y-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-2">
+            <h1>게임 방 설정</h1>
+            <h3>게임 방 설정입니다.</h3>
+
+            {/* 라운드 수 선택 */}
+            <div>
+                <h4>라운드 수 선택 (최소 3, 최대 15)</h4>
+                <select
+                    value={roomSettings.gameRound}
+                    onChange={handleRoundChange}
+                    className="bg-black text-white border rounded p-1"
+                >
+                    {[...Array(13).keys()].map((i) => (
+                        <option key={i + 3} value={i + 3}>
+                            {i + 3} 라운드
+                        </option>
+                    ))}
+                </select>
+            </div>
+
+            {/* 게임 랜덤 설정 */}
+            <div>
+                <label>
+                    <input
+                        type="checkbox"
+                        checked={roomSettings.isRandom}
+                        onChange={() => {
+                            const newIsRandom = !roomSettings.isRandom;
+
+                            setRoomSettings((prev) => ({
+                                ...prev,
+                                isRandom: newIsRandom,
+                                gameList: newIsRandom
+                                    ? generateRandomGameList(prev.gameRound) // 랜덤 켜면 즉시 랜덤 생성
+                                    : prev.gameList, // 끌 때는 기존 gameList 유지
+                            }));
+                        }}
+                    />
+                    게임 랜덤 설정
+                </label>
+            </div>
+
+            {/* 게임 목록 선택 */}
+            <div>
+                <h4>게임 목록</h4>
+                <div className="h-96 overflow-y-scroll grid grid-cols-1 md:grid-cols-2 gap-4 p-2">
+                    {[...Array(roomSettings.gameRound)].map((_, index) => (
+                        <div key={index}>
+                            <label className="block mb-1">
+                                라운드 {index + 1}
+                            </label>
+                            <select
+                                value={
+                                    roomSettings.gameList[index]?.gameId || ""
+                                }
+                                onChange={(e) => handleGameChange(e, index)}
+                                className={`bg-gray-800 text-white border rounded p-2 w-full ${
+                                    roomSettings.isRandom
+                                        ? "cursor-not-allowed"
+                                        : ""
+                                }`}
+                            >
+                                <option value="">게임을 선택하세요</option>
+                                {allGameList.map((game) => (
+                                    <option
+                                        key={game.id}
+                                        value={game.id}
+                                        className="text-white"
+                                    >
+                                        {game.name}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                    ))}
+                </div>
+
+                {/* 랜덤 다시 뽑기 버튼 (랜덤일 때만 보여줌) */}
+                {roomSettings.isRandom && (
+                    <div className="flex justify-center mt-4">
+                        <button
+                            onClick={() =>
+                                setRoomSettings({
+                                    ...roomSettings,
+                                    gameList: generateRandomGameList(
+                                        roomSettings.gameRound
+                                    ),
+                                })
+                            }
+                            className="py-2 px-4 bg-green-500 hover:bg-green-600 text-white rounded"
+                        >
+                            다시 랜덤 뽑기
+                        </button>
+                    </div>
+                )}
+            </div>
+
+            {/* 인원수 제한 여부 설정 */}
+            <div>
+                <label className="flex items-center space-x-2">
+                    <input
+                        type="checkbox"
+                        checked={roomSettings.isCapacity}
+                        onChange={(e) =>
+                            setRoomSettings({
+                                ...roomSettings,
+                                isCapacity: e.target.checked,
+                            })
+                        }
+                    />
+                    <span>인원수 제한</span>
+                </label>
+            </div>
+
+            {/* 인원수 제한 설정 */}
+            {roomSettings.isCapacity && (
+                <div>
+                    <h4>인원수 설정</h4>
+                    <input
+                        type="number"
+                        value={roomSettings.capacity}
+                        onChange={(e) =>
+                            setRoomSettings({
+                                ...roomSettings,
+                                capacity: parseInt(e.target.value),
+                            })
+                        }
+                        min={1}
+                        max={100}
+                        className="aligin-items-center border rounded p-1"
+                    />
+                </div>
+            )}
+
+            {/* 팀 여부 설정 */}
+            {roomSettings.isTeam && (
+                <div>
+                    <h4>팀 수 설정</h4>
+                    <input
+                        type="number"
+                        value={roomSettings.teamCount || 0}
+                        onChange={(e) =>
+                            setRoomSettings({
+                                ...roomSettings,
+                                teamCount: parseInt(e.target.value),
+                            })
+                        }
+                        min={1}
+                        max={10}
+                    />
+                </div>
+            )}
+
+            <div className="mt-6 flex justify-center">
+                <button
+                    onClick={handleSubmit}
+                    disabled={!isReadyToSubmit()}
+                    className={`py-2 px-6 rounded-lg shadow-md font-semibold transition
+                        ${
+                            isReadyToSubmit()
+                                ? "bg-blue-500 hover:bg-blue-600 text-white"
+                                : "bg-gray-400 text-gray-200 cursor-not-allowed"
+                        }
+                        `}
+                >
+                    설정 완료
+                </button>
+            </div>
+
+            {/* 설정된 값 출력 */}
+            <div>
+                <h4>설정된 방 정보</h4>
+                <p>Room Owner: {userId}</p>
+                <p>게임 라운드: {roomSettings.gameRound}</p>
+                <p>
+                    게임 목록:{" "}
+                    {roomSettings.gameList
+                        .map((game) => game.gameId)
+                        .join(", ")}
+                </p>
+            </div>
+        </div>
+    );
+}
