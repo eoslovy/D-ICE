@@ -45,5 +45,5 @@ A207 파티투게더 자율 프로젝트
 # 3. 기술 스택
 - **프론트엔드**: React, TypeScript, Phaser
 - **백엔드**: Java Spring Boot
-- **데이터베이스**: Redis
-- **배포**: AWS EC2, Docker, Nginx, Jenkins
+- **데이터베이스**: MySQL, Redis
+- **배포**: AWS EC2

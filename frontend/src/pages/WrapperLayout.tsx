@@ -5,18 +5,18 @@ export default function WrapperLayout() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const roomcode = sessionStorage.getItem('roomcode');
+    const roomCode = localStorage.getItem('roomCode');
     
     const isCreatingOrJoiningRoom = 
       window.location.pathname === '/select' || 
       window.location.pathname === '/lobby' ||
       window.location.pathname === '/roomSettings';
 
-    if (!isCreatingOrJoiningRoom && roomcode == null) {
+    if (!isCreatingOrJoiningRoom && roomCode == null) {
       navigate('/select', { replace: true });
     }
-    else if (isCreatingOrJoiningRoom && roomcode != null){
-      navigate(`/${roomcode}`, { replace: true });
+    else if (isCreatingOrJoiningRoom && roomCode != null){
+      navigate(`/${roomCode}`, { replace: true });
     }
   }, [navigate]);
 
