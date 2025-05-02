@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
-import webSocketManager from '../../../modules/WebSocketManager';
+import userWebSocketManager from '../../../modules/UserWebSocketManager';
+
 
 interface GameInfo {
   nextGame: string;
@@ -204,7 +205,7 @@ export class Preloader extends Phaser.Scene {
   create() {
     // 메시지 타입별 리스너 등록
   
-    webSocketManager.on('WAIT', (data) => {
+    userWebSocketManager.on('WAIT', (data) => {
       this.readyToStart = true;
       if (data) {
         this.mockGameInfo.nextGame = data.gameType;
@@ -212,7 +213,7 @@ export class Preloader extends Phaser.Scene {
       this.moveToRoulette();
     });
   
-    webSocketManager.on('error', (error) => {
+    userWebSocketManager.on('error', (error) => {
       console.error('WebSocket Error:', error);
       if (this.waitingText) {
         this.waitingText.setText('서버 연결 오류가 발생했습니다');
@@ -220,8 +221,8 @@ export class Preloader extends Phaser.Scene {
     });
   
     // 일반 메시지 리스너 (디버깅용)
-    webSocketManager.on('message', (data) => {
-      console.log('Received message:', data);
-    });
+    // userWebSocketManager.on('message', (data) => {
+    //   console.log('Received message:', data);
+    // });
   }
 }

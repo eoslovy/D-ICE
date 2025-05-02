@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import webSocketManager from "./WebSocketManager";
 import potgManager from "./POTGManager"; // Import POTGManager
 import { v7 as uuid } from "uuid";
+import userWebSocketManager from './UserWebSocketManager';
 
 // Default Base URL (can be overridden by input)
 const DEFAULT_BASE_URL = "localhost:8080";
@@ -103,12 +103,12 @@ export default function TestModules(props: TestModulesProps) {
   const handleConnect = () => {
     const id = uuid();
     const url = `ws://${baseUrlInput}/ws/game/user/${roomId}`;
-    webSocketManager.setServerURL(url);
-    webSocketManager.connect();
+    userWebSocketManager.setServerURL(url);
+    userWebSocketManager.connect();
   };
 
   const handleDisconnect = () => {
-    webSocketManager.disconnect();
+    userWebSocketManager.disconnect();
   };
 
   const handleSendMessage = () => {
@@ -117,7 +117,7 @@ export default function TestModules(props: TestModulesProps) {
       type: "join",
       nickname,
     };
-    webSocketManager.send(message);
+    userWebSocketManager.send(message);
   };
 
   const handleSendSubmit = () => {
@@ -126,7 +126,7 @@ export default function TestModules(props: TestModulesProps) {
       score: submitScore,
       gameType: submitGameType,
     };
-    webSocketManager.send(message);
+    userWebSocketManager.send(message);
   };
 
   const sendhttpRequest = () => {
@@ -191,7 +191,7 @@ export default function TestModules(props: TestModulesProps) {
     setRawMessageError(null); // Clear previous error
     try {
       const messageObject = JSON.parse(rawMessage);
-      webSocketManager.send(messageObject);
+      userWebSocketManager.send(messageObject);
       console.log("[TestModules] Sent Raw WebSocket Message:", messageObject);
     } catch (error: any) {
       console.error("[TestModules] Invalid JSON for raw message:", error);
@@ -205,7 +205,7 @@ export default function TestModules(props: TestModulesProps) {
     };
   
     // WebSocket 이벤트 에뮬레이션
-    webSocketManager.emit('WAIT', testData);
+    userWebSocketManager.emit('WAIT', testData);
   };
   
 
