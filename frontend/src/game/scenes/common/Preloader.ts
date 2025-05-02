@@ -20,11 +20,11 @@ export class Preloader extends Phaser.Scene {
   private readyToStart: boolean = false;
   private updateTimer?: Phaser.Time.TimerEvent;
   private mockGameInfo: GameInfo = {
-    nextGame: 'Reaction',
+    nextGame: 'PerfectCircleGame',
     rouletteGames: [
       { name: '반응속도 게임', key: 'Reaction', color: 0x2ed573 },
       { name: '클리커 게임', key: 'Clicker', color: 0xff4757 },
-      { name: '메모리 게임', key: 'Memory', color: 0x1e90ff },
+      { name: '원 그리기 게임', key: 'PerfectCircleGame', color: 0x1e90ff },
       { name: '퍼즐 게임', key: 'Puzzle', color: 0xffa502 },
       { name: '리듬 게임', key: 'Rhythm', color: 0xe84393 },
       { name: '타이핑 게임', key: 'Typing', color: 0xa8e6cf },
