@@ -163,8 +163,29 @@ export class Roulette extends Scene {
           alpha: { from: 0, to: 1 },
           duration: 500,
           onComplete: () => {
-            // 2초 후 다음 씬으로
-            this.time.delayedCall(2000, this.onComplete);
+            // 2초 후 게임 설명 씬으로 전환
+            this.time.delayedCall(2000, () => {
+              // 모달 페이드아웃
+              this.tweens.add({
+                targets: [modalBg, modalContainer],
+                alpha: 0,
+                duration: 500,
+                onComplete: () => {
+                  modalBg.destroy();
+                  modalContainer.destroy();
+                  
+                  // GameInstruction 씬으로 전환
+                  this.scene.start('GameInstruction', {
+                    nextGame: this.nextGame,
+                    gameName: this.games[targetIndex].name,
+                    onComplete: () => {
+                      this.scene.stop('GameInstruction');
+                      this.onComplete();
+                    }
+                  });
+                }
+              });
+            });
           }
         });
       }

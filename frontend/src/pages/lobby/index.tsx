@@ -1,29 +1,42 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-
-// 실제 서비스에서는 Redis/WebSocket 등을 통한 방 체크
-const checkRoomExists = async (code: string): Promise<boolean> => {
-    const existingRooms = ["room1", "room2"];
-    return existingRooms.includes(code);
-};
+import { WebSocketUser } from "../../assets/websocket";
 
 export default function Lobby() {
-    const [roomCodeInput, setRoomCodeInput] = useState("");
+    const [roomCodeInput, setroomCodeInput] = useState("");
+    const [nicknameInput, setnicknameInput] = useState("");
     const [errorMessage, setErrorMessage] = useState("");
     const navigate = useNavigate();
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        if (!nicknameInput) {
+            setErrorMessage("닉네임을 입력하세요.");
+            return;
+        }
+
         if (!roomCodeInput) {
             setErrorMessage("방 번호를 입력하세요.");
             return;
         }
-        if (!(await checkRoomExists(roomCodeInput))) {
-            setErrorMessage("해당 방이 존재하지 않습니다.");
-            return;
+
+        try {
+            // WebSocket을 통해 방에 입장 (Promise를 반환하므로 await 사용)
+            const result = await WebSocketUser.joinRoom(roomCodeInput, nicknameInput);
+
+            if (result.success) {
+                // 성공적으로 방에 입장했을 때만 페이지 이동
+                navigate(`/${roomCodeInput}`);
+            } else {
+                // 서버에서 성공은 했지만 문제가 있는 경우 (드문 케이스)
+                setErrorMessage(result.message || "알 수 없는 오류가 발생했습니다.");
+            }
+        } catch (error: any) {
+            // 서버 연결 실패, 유효하지 않은 방 코드 등의 오류 처리
+            console.error("방 입장 중 오류:", error);
+            setErrorMessage("방 입장에 실패했습니다. 다시 시도해주세요.");
         }
-        sessionStorage.setItem("roomcode", roomCodeInput);
-        navigate(`/${roomCodeInput}`);
     };
 
     return (
@@ -32,13 +45,25 @@ export default function Lobby() {
             <h3 className="text-lg mb-6">게임에 입장하세요!</h3>
 
             <form onSubmit={handleSubmit} className="mb-6">
+                <input
+                    id="nickname"
+                    type="text"
+                    value={nicknameInput}
+                    onChange={(e) => {
+                        setnicknameInput(e.target.value);
+                        setErrorMessage("");
+                    }}
+                    className="flex-1 border rounded px-3 py-2"
+                    placeholder="닉네임을 입력하세요"
+                />
+
                 <div className="flex items-center">
                     <input
-                        id="roomcode"
+                        id="roomCode"
                         type="text"
                         value={roomCodeInput}
                         onChange={(e) => {
-                            setRoomCodeInput(e.target.value);
+                            setroomCodeInput(e.target.value);
                             setErrorMessage("");
                         }}
                         className="flex-1 border rounded px-3 py-2"

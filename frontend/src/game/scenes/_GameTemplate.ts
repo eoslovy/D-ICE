@@ -1,7 +1,8 @@
+// Template for creating a Phaser game scene
 import { EventBus } from '../EventBus';
 import { Scene } from 'phaser';
 
-export class Clicker extends Scene {
+export class MyAwesomeGame extends Scene {
     // Core game elements
     private camera: Phaser.Cameras.Scene2D.Camera;
     private background: Phaser.GameObjects.Image;
@@ -17,17 +18,14 @@ export class Clicker extends Scene {
     private gameStarted: boolean = false;
     private countdownTimer: Phaser.Time.TimerEvent;
     private gameTimer: Phaser.Time.TimerEvent;
-    
-    // Target management
-    private targets: Phaser.GameObjects.Group;
-    private targetColors: number[] = [0xff0000, 0x00ff00, 0x0000ff, 0xffff00, 0xff00ff];
-    private targetPoints: number[] = [1, 2, 3, 5, 10];
-    
-    // Animation elements
-    // private particles: Phaser.GameObjects.Particles.ParticleEmitter;
+
+    // Game objects
+    private objectPool: Map<string, Phaser.GameObjects.Group>;
+    // Some private variables for game state
 
     constructor() {
-        super('Clicker');
+        // Call the parent constructor with the scene key
+        super('MyAwesomeGame');
     }
 
     init() {
@@ -60,11 +58,8 @@ export class Clicker extends Scene {
             bgGradient.fillRect(0, 0, width, height);
         }
         
-        // Create the targets group
-        this.targets = this.add.group();
-        
-        // Create particle effects for clickable items
-        // this.particles = this.add.particles(0, 0, 'star');
+        // Set up object pool
+        this.objectPool = new Map();
         
         // Create UI elements
         this.setupUI();
@@ -77,6 +72,7 @@ export class Clicker extends Scene {
     }
     
     setupUI() {
+        // Setting up UI Elements
         const width = this.camera.width;
         const height = this.camera.height;
         
@@ -110,6 +106,7 @@ export class Clicker extends Scene {
     }
     
     startCountdown() {
+        // Countdown logic for game start
         let count = 3;
         this.countdownText.setText(count.toString());
         
@@ -147,6 +144,7 @@ export class Clicker extends Scene {
     }
     
     startGame() {
+        // Game start logic
         this.gameStarted = true;
         
         // Start game timer
@@ -157,19 +155,12 @@ export class Clicker extends Scene {
             repeat: this.timeRemaining - 1
         });
         
-        // Start spawning targets
-        this.spawnTarget();
-        
-        // Set interval for target spawning (adjust timing for difficulty)
-        this.time.addEvent({
-            delay: 700,
-            callback: this.spawnTarget,
-            callbackScope: this,
-            repeat: this.timeRemaining * 2
-        });
+        // Your Game Logic Here
+        this.gameLogic();
     }
     
     updateTimer() {
+        // Update timer text
         this.timeRemaining--;
         this.timerText.setText(this.timeRemaining + 's');
         
@@ -184,152 +175,109 @@ export class Clicker extends Scene {
         }
     }
     
-    spawnTarget() {
-        if (!this.gameStarted || this.timeRemaining <= 0) return;
-        
-        const width = this.camera.width;
-        const height = this.camera.height;
-        
-        // Random position (keep within safe margins)
-        const x = Phaser.Math.Between(100, width - 100);
-        const y = Phaser.Math.Between(100, height - 200); // Leave space at bottom for mobile
-        
-        // Random size (smaller = higher points but harder to tap)
-        const size = Phaser.Math.Between(50, 100);
-        
-        // Random type (index determines color and points)
-        const typeIndex = Phaser.Math.Between(0, this.targetColors.length - 1);
-        const points = this.targetPoints[typeIndex];
-        const color = this.targetColors[typeIndex];
-        
-        // Create clickable target
-        const target = this.add.circle(x, y, size, color)
-            .setInteractive()
-            .setData('points', points)
-            .setData('scale', 1)
-            .setAlpha(0);
-            
-        // Add a pulse animation
-        this.tweens.add({
-            targets: target,
-            alpha: 1,
-            scale: 1.2,
-            duration: 300,
-            yoyo: true,
-            repeat: -1
-        });
-        
-        // Auto-remove after some time
-        this.time.delayedCall(2000, () => {
-            if (target.active) {
-                this.tweens.add({
-                    targets: target,
-                    alpha: 0,
-                    scale: 0.5,
-                    duration: 300,
-                    onComplete: () => {
-                        target.destroy();
-                    }
-                });
-            }
-        });
-        
-        // Add click/tap handler
-        target.on('pointerdown', () => {
-            this.clickTarget(target);
-        });
-        
-        // Add to group
-        this.targets.add(target);
-    }
-    
-    clickTarget(target: Phaser.GameObjects.Arc) {
-        if (!target.active) return;
-        
-        // Get points from target
-        const points = target.getData('points');
-        
-        // Add score
+    updateScore(points: number) {
+        // Update score and display
         this.score += points;
         this.scoreText.setText('Score: ' + this.score);
         
-        // Create score popup
-        this.createScorePopup(target.x, target.y, points);
+        // Create floating score popup
+        this.createTextPopup(this.camera.width / 2, this.camera.height / 2, points.toString());
         
-        // Create particle effect
-        this.createParticleEffect(target.x, target.y, target.fillColor);
-        
-        // Play sound if available
-        if (this.sound.get('click')) {
-            this.sound.play('click');
+        // Play score sound if available
+        if (this.sound.get('score')) {
+            this.sound.play('score');
         }
-        
-        // Remove target with scale animation
-        this.tweens.add({
-            targets: target,
-            scale: 0,
-            alpha: 0,
-            duration: 200,
-            onComplete: () => {
-                target.destroy();
-            }
-        });
     }
-    
-    createScorePopup(x: number, y: number, points: number) {
+
+    createTextPopup(x: number, y: number, text: string, config: Phaser.Types.GameObjects.Text.TextStyle = {
+        fontFamily: 'Arial',
+        fontSize: '24px',
+        color: '#ffffff',
+        stroke: '#000000',
+        strokeThickness: 3
+    }) {
         // Create floating score text
-        const pointsText = this.add.text(x, y, '+' + points, {
-            fontFamily: 'Arial',
-            fontSize: '24px',
-            color: '#ffffff',
-            stroke: '#000000',
-            strokeThickness: 3
-        }).setOrigin(0.5);
+        const popupText = this.add.text(x, y, text, config).setOrigin(0.5);
         
         // Animate the text
         this.tweens.add({
-            targets: pointsText,
+            targets: popupText,
             y: y - 50,
             alpha: 0,
             duration: 1000,
             ease: 'Power1',
             onComplete: () => {
-                pointsText.destroy();
+                popupText.destroy();
             }
         });
+        
+        // Add to object pool
+        let textPopupsGroup = this.objectPool.get('textPopups');
+        if (textPopupsGroup) {
+            textPopupsGroup.add(popupText);
+        }
+        else {
+            textPopupsGroup = this.add.group({
+                classType: Phaser.GameObjects.Text,
+                defaultKey: 'textPopup',
+                maxSize: 100,
+                runChildUpdate: true
+            });
+            textPopupsGroup.add(popupText);
+        }
     }
     
-    createParticleEffect(x: number, y: number, color: number) {
+    createParticleEffect(x: number, y: number, particleType: string = 'star', config: Phaser.Types.GameObjects.Particles.ParticleEmitterConfig = {
+        speed: 200,
+        lifespan: 800,
+        scale: { start: 1, end: 0 },
+        alpha: { start: 1, end: 0 },
+        blendMode: 'ADD',
+        quantity: 1,
+        angle: { min: 0, max: 360 },
+    }) {
         // Create particle explosion
         
-        const emitter = this.add.particles(x, y, 'star', {
-            speed: 200,
-            lifespan: 800,
-            scale: { start: 1, end: 0 },
-            blendMode: 'ADD',
-            quantity: 10,
-            angle: { min: 0, max: 360 },
-            tint: color
-        });
+        const emitter = this.add.particles(x, y, particleType, config);
         
         // play emitter
         emitter.start();
         // Stop the emitter after a short time
         this.time.delayedCall(100, () => {
             emitter.stop();
-            // Clean up emitter after particles fade out
-            this.time.delayedCall(500, () => {
-                emitter.destroy();
-            });
         });
+        // Add to object pool
+        let particleGroup = this.objectPool.get('particles');
+        if (particleGroup) {
+            particleGroup.add(emitter);
+        }
+        else {
+            particleGroup = this.add.group({
+                classType: Phaser.GameObjects.Particles.ParticleEmitter,
+                defaultKey: 'particle',
+                maxSize: 100,
+                runChildUpdate: true
+            });
+            particleGroup.add(emitter);
+        }
     }
     
     endGame() {
+        // End game logic
+        this.gameStarted = false;
+
         // Stop all timers
         if (this.gameTimer) this.gameTimer.remove();
         
         // Clear all targets with proper cleanup
-        this.targets.clear(true, true);
+        this.objectPool.forEach((group) => {
+            group.getChildren().forEach((child) => {
+                if (child instanceof Phaser.GameObjects.Sprite) {
+                    child.destroy();
+                }
+            });
+        });
+        this.objectPool.clear();
         
         // Stop all active tweens
         this.tweens.killAll();
@@ -373,14 +321,19 @@ export class Clicker extends Scene {
         });
     }
     
-    update() {
-        // Any per-frame updates can go here
-    }
-    
     changeScene() {
         this.scene.start('GameOver', { 
             score: this.score,
             gameType: 'Clicker'
         });
+    }
+
+    update() {
+        // Any per-frame updates can go here
+    }
+    
+    gameLogic() {
+        // Implement game logic here (Called exactly once after countdown)
+        
     }
 }
