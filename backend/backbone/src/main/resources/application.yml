@@ -1,0 +1,8 @@
+spring:
+  application:
+    name: backbone
+
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
