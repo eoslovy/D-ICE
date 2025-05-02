@@ -1,10 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import PhaserGame from './PhaserGame';
-import webSocketManager from '../modules/WebSocketManager';
+import PhaserGame from "./PhaserGame";
 import OverlayScreen, { OverlayScreenHandle } from '../modules/OverlayScreen';
 // Test Modules import
 import TestModules from '../modules/TestModules';
+import userWebSocketManager from "../modules/UserWebSocketManager";
 
 // Define props if you need to pass data to control connection
 interface AppProps {
@@ -41,17 +41,17 @@ export default function App({ roomId = "wasted", shouldConnect = true }: AppProp
     // Only connect if the condition is met (e.g., shouldConnect prop is true)
     if (shouldConnect) {
       console.log('[App] Connecting WebSocket...');
-      webSocketManager.connect();
+      userWebSocketManager.connect();
 
       // Return a cleanup function to disconnect when the component unmounts
       // or when the 'shouldConnect' prop changes to false
       return () => {
-        console.log('[App] Disconnecting WebSocket...');
-        webSocketManager.disconnect();
+          console.log("[App] Disconnecting WebSocket...");
+          userWebSocketManager.disconnect();
       };
     } else {
       // Ensure disconnected if condition is false
-      webSocketManager.disconnect();
+      userWebSocketManager.disconnect();
     }
     // Add shouldConnect to dependency array if connection depends on it
   }, [shouldConnect]);
