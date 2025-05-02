@@ -7,9 +7,9 @@ import { v7 as uuid } from "uuid";
 const DEFAULT_BASE_URL = "localhost:8080";
 
 interface TestModulesProps {
+  onTriggerMessage: (text: string, fontSize?: number, duration?: number, withEffect?: boolean) => void;
   onTriggerParticleEffect: () => void;
-  onTriggerSpriteShowcase: (spriteKey?: string) => void;
-  onTriggerMessage: (text: string, size?: number, duration?: number, float?: boolean) => void;
+  onTriggerSpriteShowcase: () => void;
 }
 
 export default function TestModules(props: TestModulesProps) {
@@ -17,6 +17,9 @@ export default function TestModules(props: TestModulesProps) {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [httpError, setHttpError] = useState<string | null>(null);
   const [isConsoleVisible, setIsConsoleVisible] = useState<boolean>(false);
+
+  // 메시지 입력을 위한 state 추가
+  const [messageText, setMessageText] = useState<string>('');
 
   // --- State for sending messages ---
   const [nickname, setNickname] = useState<string>("TestUser");
@@ -156,7 +159,11 @@ export default function TestModules(props: TestModulesProps) {
   // --- Overlay Handlers ---
   const handleTriggerEffect = () => { props.onTriggerParticleEffect(); };
   const handleTriggerSpriteShowcase = () => { props.onTriggerSpriteShowcase(); };
-  const handleTriggerMessage = () => { props.onTriggerMessage("Test Message!", 32, 3000, true); };
+  const handleTriggerMessage = () => {
+    if (messageText.trim()) {
+      props.onTriggerMessage(messageText, 32, 3000, true);
+    } 
+  };
 
   // --- Console Toggle ---
   const toggleConsole = () => { setIsConsoleVisible(prev => !prev); };
@@ -350,9 +357,24 @@ export default function TestModules(props: TestModulesProps) {
           {/* Overlay Controls Section */}
           <div style={{ marginTop: '15px', borderTop: '1px solid #666', paddingTop: '10px' }}>
             <h2 style={{ fontSize: '14px', marginBottom: '8px' }}>Overlay Controls</h2>
+            <div style={{ marginBottom: '10px' }}>
+              <input
+                type="text"
+                value={messageText}
+                onChange={(e) => setMessageText(e.target.value)}
+                placeholder="Enter message text..."
+                style={inputStyle}
+              />
+            </div>
             <button onClick={handleTriggerEffect} style={buttonStyle}>Particle</button>
             <button onClick={handleTriggerSpriteShowcase} style={buttonStyle}>Sprite</button>
-            <button onClick={handleTriggerMessage} style={buttonStyle}>Message</button>
+            <button 
+              onClick={handleTriggerMessage} 
+              style={messageText.trim() ? buttonStyle : disabledButtonStyle}
+              disabled={!messageText.trim()}
+            >
+              Message
+            </button>
           </div>
           {/* 게임 시작 테스트 버튼 추가 */}
           <div style={sectionStyle}>

@@ -70,11 +70,11 @@ export default function App({ roomId = "wasted", shouldConnect = true }: AppProp
     }
   }
 
-  const handleTriggerMessage = () => {
+  const handleTriggerMessage = (text: string, fontSize: number = 32, duration: number = 3000, withEffect: boolean = true) => {
     if (overlayRef.current) {
-      overlayRef.current.triggerMessage("Hello"); // Call the method on the Phaser game instance
+      overlayRef.current.triggerMessage(text, fontSize, duration, withEffect);
     }
-  }
+  };
 
   return (
     <div className="game-container">
