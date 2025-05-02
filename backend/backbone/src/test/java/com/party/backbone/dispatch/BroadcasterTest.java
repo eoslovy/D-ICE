@@ -6,13 +6,14 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.web.socket.WebSocketSession;
 
+import com.party.backbone.config.AsyncConfig;
 import com.party.backbone.websocket.broadcast.AsyncMessageSender;
 import com.party.backbone.websocket.broadcast.Broadcaster;
 import com.party.backbone.websocket.message.GameMessage;
 
 public class BroadcasterTest {
-
-	private final Broadcaster broadcaster = new Broadcaster(new AsyncMessageSender());
+	private final Broadcaster broadcaster = new Broadcaster(
+		new AsyncMessageSender(AsyncConfig.createDefaultAsyncExecutor()));
 
 	private final MockRoomRedisRepository roomRepository = new MockRoomRedisRepository();
 
@@ -46,7 +47,6 @@ public class BroadcasterTest {
 
 	static class DummyGameMessage implements GameMessage {
 
-		@Override
 		public String getRequestId() {
 			return "";
 		}
