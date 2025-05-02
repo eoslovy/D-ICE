@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import webSocketManager from '../../../modules/WebSocketManager';
 
 interface GameInfo {
   nextGame: string;
@@ -132,12 +133,12 @@ export class Preloader extends Phaser.Scene {
       align: 'center'
     }).setOrigin(0.5);
 
-    this.clickText = this.add.text(width / 2, height / 2 + 50, '클릭하여 게임 시작', {
-      fontFamily: 'Arial',
-      fontSize: '32px',
-      color: '#ffd700',
-      align: 'center'
-    }).setOrigin(0.5).setAlpha(0);
+    // this.clickText = this.add.text(width / 2, height / 2 + 50, '클릭하여 게임 시작', {
+    //   fontFamily: 'Arial',
+    //   fontSize: '32px',
+    //   color: '#ffd700',
+    //   align: 'center'
+    // }).setOrigin(0.5).setAlpha(0);
 
     // 점 애니메이션
     let dots = '';
@@ -161,16 +162,16 @@ export class Preloader extends Phaser.Scene {
     });
 
     // 클릭 영역을 클래스 멤버 변수로 저장
-    this.clickZone = this.add.rectangle(0, 0, width, height, 0xffffff, 0)
-      .setOrigin(0)
-      .setInteractive()
-      .setDepth(1000) // 다른 UI 요소보다 위에 오도록 설정
-      .on('pointerdown', () => {
-        console.log('Clicked', this.readyToStart); // 디버깅용
-        if (this.readyToStart) {
-          this.moveToRoulette();
-        }
-      });
+    // this.clickZone = this.add.rectangle(0, 0, width, height, 0xffffff, 0)
+    //   .setOrigin(0)
+    //   .setInteractive()
+    //   .setDepth(1000) // 다른 UI 요소보다 위에 오도록 설정
+    //   .on('pointerdown', () => {
+    //     console.log('Clicked', this.readyToStart); // 디버깅용
+    //     if (this.readyToStart) {
+    //       this.moveToRoulette();
+    //     }
+    //   });
 
     // UI 요소들의 depth 설정
     this.waitingText?.setDepth(100);
@@ -201,6 +202,26 @@ export class Preloader extends Phaser.Scene {
   }
 
   create() {
-    // MainMenu로 바로 이동하지 않음
+    // 메시지 타입별 리스너 등록
+  
+    webSocketManager.on('WAIT', (data) => {
+      this.readyToStart = true;
+      if (data) {
+        this.mockGameInfo.nextGame = data.gameType;
+      }
+      this.moveToRoulette();
+    });
+  
+    webSocketManager.on('error', (error) => {
+      console.error('WebSocket Error:', error);
+      if (this.waitingText) {
+        this.waitingText.setText('서버 연결 오류가 발생했습니다');
+      }
+    });
+  
+    // 일반 메시지 리스너 (디버깅용)
+    webSocketManager.on('message', (data) => {
+      console.log('Received message:', data);
+    });
   }
 }
