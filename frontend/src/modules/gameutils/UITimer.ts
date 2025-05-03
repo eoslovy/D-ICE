@@ -35,6 +35,10 @@ export class UITimer {
     }
 
     startTimer(duration: number) {
+        if (!this.healthCheck()) {
+            return; // Health check failed
+        }
+
         if (this.timerStarted) {
             return; // Timer is already running
         }
@@ -50,7 +54,11 @@ export class UITimer {
         });
     }
 
-    updateTimer() {
+    private updateTimer() {
+        if (!this.healthCheck()) {
+            return; // Health check failed
+        }
+
         // display seconds
         this.timerText.setText(`${this.timerLeft}`);
 
@@ -68,6 +76,10 @@ export class UITimer {
     }
 
     stopTimer(interrupted: boolean = false) {
+        if (!this.healthCheck()) {
+            return; // Health check failed
+        }
+
         if (!this.timerStarted) {
             return; // Timer is not running
         }
@@ -85,5 +97,18 @@ export class UITimer {
         else {
             this.phaserScene.events.emit('timerFinished');
         }
+    }
+
+    healthCheck(): boolean {
+        if (!this.phaserScene || !this.phaserScene.scene.isActive()) {
+            console.warn('[UITimer] Phaser scene is not active or not defined');
+            return false;
+        }
+        if (!this.timerText) {
+            console.error('[UITimer] Timer text is not defined');
+            return false;
+        }
+
+        return true;
     }
 }
