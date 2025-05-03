@@ -40,6 +40,10 @@ export class UICountdown {
     }
 
     startCountdown(duration: number) {
+        if (!this.healthCheck()) {
+            return; // Health check failed
+        }
+
         if (this.countdownStarted) {
             return; // Countdown is already running
         }
@@ -55,7 +59,11 @@ export class UICountdown {
         });
     }
 
-    updateCountdown() {
+    private updateCountdown() {
+        if (!this.healthCheck()) {
+            return; // Health check failed
+        }
+
         this.countdownText.setText(`${this.countdownLeft}`);
 
         if (this.countdownLeft <= 0) {
@@ -68,6 +76,10 @@ export class UICountdown {
     }
     
     stopCountdown(interrupted: boolean = true) {
+        if (!this.healthCheck()) {
+            return; // Health check failed
+        }
+
         if (!this.countdownStarted) {
             return; // Countdown is not running
         }
@@ -82,5 +94,17 @@ export class UICountdown {
         } else {
             this.phaserScene.events.emit('countdownFinished');
         }
+    }
+
+    healthCheck() {
+        if (!this.phaserScene || !this.phaserScene.scene.isActive()) {
+            console.warn('[UICountdown] Phaser scene is not active or not defined');
+            return false;
+        }
+        if (!this.countdownText) {
+            console.error('[UICountdown] Countdown text is not defined');
+            return false;
+        }
+        return true;
     }
 }

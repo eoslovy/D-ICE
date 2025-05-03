@@ -24,13 +24,8 @@ export class PopupSprite {
      */
 
     popupSprite(texture: string, x: number = 100, y: number = 100, duration: number = 1000, fadeout: boolean = true) {
-        if (!this.phaserScene || !this.phaserScene.scene.isActive()) {
-            console.warn('Phaser scene is not active or not defined');
-            return;
-        }
-        if (!this.popupPool) {
-            console.error('Popup pool is not defined');
-            return;
+        if (!this.healthCheck()) {
+            return; // Health check failed
         }
 
         const popup = this.popupPool.get(x, y) as Phaser.GameObjects.Sprite;
@@ -71,11 +66,23 @@ export class PopupSprite {
     /**
      * Destroys the popup pool and all its sprites.
      */
-    destroy() {
+    private destroy() {
         if (this.popupPool) {
             this.popupPool.clear(true, true);
             this.popupPool.destroy();
         }
+    }
+
+    healthCheck(): boolean {
+        if (!this.phaserScene || !this.phaserScene.scene.isActive()) {
+            console.warn('[PopupSprite] Phaser scene is not active or not defined');
+            return false;
+        }
+        if (!this.popupPool) {
+            console.error('[PopupSprite] Popup pool is not defined');
+            return false;
+        }
+        return true;
     }
 
 }
