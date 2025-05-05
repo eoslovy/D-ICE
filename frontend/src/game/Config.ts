@@ -6,6 +6,7 @@ import { Clicker } from './scenes/Clicker';
 import { GameOver } from './scenes/GameOver';
 import { Reaction } from './scenes/Reaction';
 import { Roulette } from './scenes/common/Roulette';
+import { PerfectCircleGame } from './scenes/PerfectCircleGame';
 import { GameInstruction } from './scenes/common/GameInstruction';
 import { EndGame } from './scenes/EndGame';
 
@@ -36,7 +37,7 @@ const config: Phaser.Types.Core.GameConfig = {
       debug: false
     }
   },
-  scene: [Boot, Preloader, MainMenu, GameOver, EndGame, Roulette, Clicker, Reaction, GameInstruction]
+  scene: [Boot, Preloader, MainMenu, GameOver, EndGame, Roulette, Clicker, Reaction, GameInstruction, PerfectCircleGame]
 };
 
 export default config;
