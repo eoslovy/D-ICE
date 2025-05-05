@@ -1,0 +1,52 @@
+variables:
+  SERVICE_NAME: springcloud-gateway
+  BUILD_CONTEXT: ./infra/springcloud-gateway
+  K8S_PATH: ./infra/k8s/infras/gateway.yml
+build_springcloud-gateway:
+  extends: .backend-default-build
+  rules:
+    - changes:
+        - infra/springcloud-gateway/**/*
+      when: always
+    - when: never
+
+push_springcloud-gateway:
+  variables:
+    SERVICE_NAME: springcloud-gateway
+    BUILD_CONTEXT: ./infra/springcloud-gateway
+    K8S_PATH: ./infra/k8s/infras/gateway.yml
+  extends: .backend-default-push
+  needs: [build_springcloud-gateway]
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "master" && $CI_PIPELINE_SOURCE == "push"'
+      changes:
+        - infra/springcloud-gateway/**/*
+      when: always
+    - if: '$CI_COMMIT_BRANCH == "master" && $CI_PIPELINE_SOURCE == "web"' # 수동 실행도 허용하려면
+      changes:
+        - infra/springcloud-gateway/**/*
+      when: manual
+    - when: never
+
+deploy_springcloud-gateway:
+  variables:
+    SERVICE_NAME: springcloud-gateway
+    BUILD_CONTEXT: ./infra/springcloud-gateway
+    K8S_PATH: ./infra/k8s/infras/gateway.yml
+  extends: .backend-default-deploy
+  needs: [push_springcloud-gateway]
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "master" && $CI_PIPELINE_SOURCE == "push"'
+      changes:
+        - infra/springcloud-gateway/**/*
+      when: always
+    - if: '$CI_COMMIT_BRANCH == "master" && $CI_PIPELINE_SOURCE == "web"' # 수동 실행도 허용하려면
+      changes:
+        - infra/springcloud-gateway/**/*
+      when: manual
+    - when: never
+#test_include_trigger:
+# tags:
+#  - $GITLAB_USER_EMAIL
+#script:
+#  - echo "CI 정상 작동 여부 확인" sda

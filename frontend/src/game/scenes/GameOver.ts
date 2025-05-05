@@ -1,8 +1,8 @@
 import Phaser from 'phaser';
-import webSocketManager from '../../modules/WebSocketManager';
 import potgManager from '../../modules/POTGManager';
 import { v7 as uuidv7 } from 'uuid';
 import { userStore } from '../../stores/userStore';
+import userWebSocketManager from '../../modules/UserWebSocketManager';
 
 // Add interface for scene data
 interface GameOverSceneData {
@@ -54,7 +54,7 @@ export class GameOver extends Phaser.Scene {
     this.sendScoreToBackend(userId, roomCode);
 
     // WebSocket 응답 리스너 설정
-    webSocketManager.on('AGGREGATED_USER', (message: BackendResponse) => {
+    userWebSocketManager.on('AGGREGATED_USER', (message: BackendResponse) => {
       this.backendResponse = message;
       this.updateUI();
       this.handleVideoUpload();
@@ -455,7 +455,7 @@ export class GameOver extends Phaser.Scene {
     };
 
     console.log('[GameOver] Sending score to backend:', message);
-    const success = webSocketManager.send(message);
+    const success = userWebSocketManager.send(message);
     console.log('[GameOver] Score send result:', success ? 'Success' : 'Failed');
   }
 }

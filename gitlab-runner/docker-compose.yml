@@ -1,0 +1,20 @@
+version: "3.8"
+
+services:
+  gitlab-runner:
+    build: .
+    container_name: alpine-runner
+    restart: always
+    privileged: true
+    environment:
+      - GITLAB_URL=${GITLAB_URL}
+      - EXECUTOR=${EXECUTOR}
+      - DEFAULT_IMAGE=${DEFAULT_IMAGE}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock   # Docker Daemon 소켓을 컨테이너와 공유
+      - ./config:/etc/gitlab-runner
+      - ./.env:/app/.env
+    working_dir: /app
+networks:
+  gitlab_network:
+    driver: bridge
