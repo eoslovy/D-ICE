@@ -14,6 +14,5 @@ public class SubmitMessage implements IdempotentMessage {
 	private String requestId;
 	private String userId;
 	private int score;
-	private String roomCode;
 	private GameType gameType;
 }

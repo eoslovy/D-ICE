@@ -11,10 +11,11 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class AggregatedUserMessage implements GameMessage {
-	private String requestId;
-	private int round;
+	private int currentRound;
+	private int totalRound;
 	private GameType gameType;
-	private int score;
+	private int currentScore;
+	private int totalScore;
 	private String rankRecord; // round 별 순위를 `|` 를 구분자로 기록
 	private int roundRank;
 	private int overallRank;

@@ -9,6 +9,8 @@ import lombok.Getter;
 @Getter
 public enum GameType {
 	RSP(5000),
+	TEST(5000),
+	ABC(5000),
 	;
 	private static final GameType[] GAME_TYPES = values();
 

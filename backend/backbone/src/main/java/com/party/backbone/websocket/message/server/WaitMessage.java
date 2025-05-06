@@ -1,6 +1,6 @@
 package com.party.backbone.websocket.message.server;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.party.backbone.room.dto.RoundInfo;
 import com.party.backbone.websocket.message.GameMessage;
 import com.party.backbone.websocket.model.GameType;
 
@@ -10,17 +10,15 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 public class WaitMessage implements GameMessage {
-	@JsonIgnore
-	private final long DEFAULT_OFFSET = 10_000;
 	private GameType gameType;
 	private long startAt;
 	private long duration;
 	private long currentMs;
 
-	public WaitMessage(GameType gameType) {
-		this.gameType = gameType;
-		currentMs = System.currentTimeMillis();
-		startAt = currentMs + DEFAULT_OFFSET;
-		duration = gameType.getDuration();
+	public WaitMessage(RoundInfo roundInfo) {
+		this.gameType = roundInfo.gameType();
+		this.startAt = roundInfo.startAt();
+		this.duration = roundInfo.duration();
+		this.currentMs = roundInfo.currentMs();
 	}
 }

@@ -1,7 +1,10 @@
 package com.party.backbone.room;
 
 import java.util.List;
+import java.util.Set;
 
+import com.party.backbone.room.dto.RoundInfo;
+import com.party.backbone.room.dto.ScoreAggregationResult;
 import com.party.backbone.websocket.model.GameType;
 
 public interface RoomRedisRepository {
@@ -23,5 +26,19 @@ public interface RoomRedisRepository {
 
 	int getUserCount(String roomCode);
 
-	GameType startGame(String roomCode);
+	RoundInfo startGame(String roomCode);
+
+	void updateScore(String roomCode, String userId, int score);
+
+	Set<String> getDueRooms(long currentTimeMillis, int limit);
+
+	boolean removeRoomFromPending(String roomCode);
+
+	ScoreAggregationResult aggregateScores(String roomCode);
+
+	String updateRankRecord(String roomCode, String userId, int roundRank);
+
+	GameType getGame(String roomCode, int round);
+
+	void endGame(String roomCode);
 }

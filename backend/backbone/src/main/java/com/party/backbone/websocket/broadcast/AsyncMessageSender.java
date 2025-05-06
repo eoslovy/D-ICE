@@ -7,18 +7,21 @@ import java.time.ZoneId;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Component
-@RequiredArgsConstructor
 public class AsyncMessageSender {
 	private final Executor executor;
+
+	public AsyncMessageSender(@Qualifier("asyncTaskExecutor") Executor executor) {
+		this.executor = executor;
+	}
 
 	public void send(WebSocketSession session, String payloadText) {
 		CompletableFuture.runAsync(() -> {

@@ -8,13 +8,13 @@ import org.springframework.web.socket.WebSocketSession;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.party.backbone.room.RoomRedisRepository;
+import com.party.backbone.room.dto.RoundInfo;
 import com.party.backbone.websocket.broadcast.Broadcaster;
 import com.party.backbone.websocket.dispatch.repository.IdempotencyRedisRepository;
 import com.party.backbone.websocket.handler.SessionRegistry;
 import com.party.backbone.websocket.message.admin.StartGameMessage;
 import com.party.backbone.websocket.message.server.WaitMessage;
 import com.party.backbone.websocket.model.AdminMessageType;
-import com.party.backbone.websocket.model.GameType;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -41,8 +41,8 @@ public class StartGameMessageHandler extends GameMessageHandler<StartGameMessage
 
 	@Override
 	public void doHandle(StartGameMessage message, String roomCode, WebSocketSession session) throws IOException {
-		GameType nextGameType = roomRepository.startGame(roomCode);
-		var waitMessage = new WaitMessage(nextGameType);
+		RoundInfo roundInfo = roomRepository.startGame(roomCode);
+		var waitMessage = new WaitMessage(roundInfo);
 		try {
 			String payload = objectMapper.writeValueAsString(waitMessage);
 			List<String> userIds = roomRepository.getUserIds(roomCode);

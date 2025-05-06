@@ -1,5 +1,7 @@
 package com.party.backbone.websocket.message.server;
 
+import java.util.List;
+
 import com.party.backbone.websocket.message.GameMessage;
 import com.party.backbone.websocket.model.RankingInfo;
 
@@ -11,5 +13,5 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class EndMessage implements GameMessage {
-	private RankingInfo[] overallRanking;
+	private List<RankingInfo> overallRanking;
 }
