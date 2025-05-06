@@ -1,34 +1,82 @@
+@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&display=swap');
 @import "tailwindcss";
 
-:root{
-    --primary-color: #4a90e2;
-    --secondary-color: #50e3c2;
-    --warning-color: #de1144
+/* tertiary는 글자색입니다. */
+
+:root {
+  --primary-color: #42CAFD;
+  --secondary-color: #EBEBD3;
+  --tertiary-color: #1E1E1E;
+  --quaternary-color: #FBFFF1;
+  --quinary-color: #FFA69E;
+  --warning-color: #de1144;
+}
+
+.dark {
+  --primary-color: #2B2E4A;
+  --secondary-color: #E84545;
+  --tertiary-color: #EBEBD3;
+  --quaternary-color: #53354A;
+  --quinary-color: #2B2E4A;
+  --warning-color: #FF6B6B;
+}
+
+body {
+  width: 100%;
+  height: 100vh;
+  padding: 8px;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--primary-color);
+  color: var(--tertiary-color);
+  text-align: center;
+  font-family: 'Fredoka', sans-serif;
+  font-size: 16px;
+}
+
+@layer base {
+  html {
+    font-size: 16px;
+    font-family: 'Fredoka', sans-serif;
+    background-color: var(--primary-color);
+    color: var(--tertiary-color);
+  }
+  body {
+    background-color: var(--quaternary-color);
+  }
 }
 
 @layer utilities {
-    .bg-primary {
-      background-color: var(--primary-color);
-    }
-    .bg-secondary {
-      background-color: var(--secondary-color);
-    }
-    .btn-primary {
-      background-color: var(--primary-color);
-      color: white;
-      padding: 0.5rem 1rem;
-      border-radius: 0.25rem;
-    }
-    .btn-secondary {
-      background-color: var(--secondary-color);
-      color: white;
-      padding: 0.5rem 1rem;
-      border-radius: 0.25rem;
-    }
-    .btn-warning {
-      background-color: var(--warning-color);
-      color: white;
-      padding: 0.5rem 1rem;
-      border-radius: 0.25rem;
-    }
+  .bg-primary {
+    background-color: var(--quaternary);
   }
+  .bg-secondary {
+    background-color: var(--secondary-color);
+  }
+
+  .text-primary {
+    color: var(--tertiary-color);
+  }
+  .text-warning {
+    color: var(--warning-color);
+  }
+
+  .btn {
+    color: var(--tertiary-color);
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    font-weight: 600;
+  }
+  .btn-primary {
+    background-color: var(--quaternary-color);
+  }
+  .btn-secondary {
+    background-color: var(--quinary-color);
+  }
+  .btn-warning {
+    background-color: var(--warning-color);
+  }
+}

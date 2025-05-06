@@ -6,7 +6,7 @@ import adminWebSocketManager from "../../modules/AdminWebSocketManager";
 
 export default function Set() {
     const navigate = useNavigate();
-    const [rounds, setRounds] = useState(3);
+    const [rounds, setRounds] = useState(1);
     let requestId = uuidv7();
     const createRoom = async () => {
         try {
@@ -58,7 +58,7 @@ export default function Set() {
                     onChange={(e) => setRounds(Number(e.target.value))}
                     className="p-2 rounded bg-gray-700 text-white"
                 >
-                    {Array.from({ length: 8 }, (_, i) => i + 3).map((round) => (
+                    {Array.from({ length: 10 }, (_, i) => i).map((round) => (
                         <option key={round} value={round}>
                             {round}
                         </option>
@@ -67,7 +67,7 @@ export default function Set() {
             </div>
             <button
                 onClick={createRoom}
-                className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded"
+                className="btn btn-primary"
             >
                 방 생성
             </button>
