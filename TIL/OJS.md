@@ -198,3 +198,26 @@
    - 테스트 자체는 매우 가벼운데 테스트 시작하는데 매우 오랜시간이 걸렸다.
    - CompletableFuture로의 전환도 생각해봐야할 것 같다.
 2. Mockito를 제대로 사용할 줄 모르고 원하는 동작을 하게 하려다보니(sessionId 생성 내지 userIds 설정) 구현체를 직접 Mock하려고 시도했고 결국 RoomRedisRepository와 SessionRegistry를 interface화 했다.
+
+## 20250506 집계 로직
+- round 별 집계 로직을 어떻게 구현할 것인가?
+1. 게임이 시작될 때 redis에 언제 집계할 지 timeout을 걸어두고 expiration을 subscribe한다.
+2. @Scheduled 어노테이션을 활용해 무언가를 polling 한다.
+3. RabbitMQ 같은 delayed message queue 도입
+
+| 기준 \ 방식      | Redis TTL      | `@Scheduled`    | RabbitMQ          |
+| ------------ | -------------- | --------------- | ----------------- |
+| **신뢰도**      | ❌ at most once | ✅ at least once | ✅ exactly once 수준 |
+| **정밀도**      | ✅ ms 단위        | ❌ polling 주기 제한 | ✅ ms 단위           |
+| **구현 난이도**   | 낮음             | 낮음              | 높음                |
+| **외부 의존성**   | Redis만         | 없음              | RabbitMQ 필요       |
+| **분산 환경 대응** | ❌              | ⚠ 락 필요          | ✅ 기본 내장           |
+
+- 사실 처음엔 Redis TTL로 간단히 구현하려다가 at most once라는 점을 깜빡했다.
+- 새로운 인프라를 도입하는 건 좀 부담스러워서 @Scheuled를 바탕으로 polling 하는 쪽으로 구현했다.
+- 다만 크게 두가지 고려해야 할 점이 있었다.
+    1. polling 주기에 따라 집계 시각이 약간 오차가 생길 수 있다.
+
+    2. 멀티 인스턴스를 고려하면 분산 락이 필요하다.
+- 지난 프로젝트에서 분산 락을 redis를 통해 직접 구현해봤었는데 이번엔 라이브러리를 사용해봤다.
+- 작업의 복잡도나 현재 인프라 상황을 고려했을 때 [ShedLock](https://github.com/lukas-krecan/ShedLock)을 사용하면 쉽고 간단하게 @Scheduled와 통합하여 분산 락 구현이 가능했다.
