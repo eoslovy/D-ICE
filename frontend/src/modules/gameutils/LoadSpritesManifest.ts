@@ -55,12 +55,14 @@ export function LoadManifestFromJSON(scene: Phaser.Scene, manifestPath: string):
         return;
     }
 
+    const manifestKey = 'assetManifest' + Math.random().toString(36).substring(2, 15);
+
     // Load the JSON file containing the asset definitions
-    scene.load.json('assetManifest', manifestPath);
+    scene.load.json(manifestKey, manifestPath);
 
     // Once the JSON is loaded, parse it and call loadAssetsFromManifest
-    scene.load.on('filecomplete-json-assetManifest', () => {
-        const manifestData = scene.cache.json.get('assetManifest') as AssetDefinition[];
+    scene.load.on('filecomplete-json-' + manifestKey, () => {
+        const manifestData = scene.cache.json.get(manifestKey) as AssetDefinition[];
         if (!manifestData) {
             console.error('[loadManifestFromJSON] Failed to load asset manifest data.');
             return;
