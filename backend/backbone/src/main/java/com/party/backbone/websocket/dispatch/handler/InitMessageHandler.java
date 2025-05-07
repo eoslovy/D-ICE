@@ -35,7 +35,7 @@ public class InitMessageHandler extends GameMessageHandler<InitMessage> implemen
 		IdempotencyRedisRepository idempotencyRedisRepository,
 		Broadcaster broadcaster
 	) {
-		super(idempotencyRedisRepository);
+		super(idempotencyRedisRepository, roomRepository);
 		this.roomRepository = roomRepository;
 		this.objectMapper = objectMapper;
 		this.sessionRegistry = sessionRegistry;
