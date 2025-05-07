@@ -2,18 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import GenerateQrCode from "../../components/QRcode";
 import adminWebSocketManager from "../../modules/AdminWebSocketManager";
-<<<<<<< HEAD
 import { adminStore } from "../../stores/adminStore";
-import { v7 } from "uuid";
-
-export default function AdminRoom() {
-    const navigate = useNavigate();
-    const [userNickname, setUserNickname] = useState<string | null>(null);
-    const [userCount, setUserCount] = useState<number | null>(null);
-    let requestId = v7();
-    const roomCode = adminStore.getState().roomCode;
-=======
-// import { WebSocketAdmin } from "../../assets/websocket";
 import { v7 } from "uuid";
 import BackgroundAnimation from "../../components/BackgroundAnimation";
 import GameCard from "../../components/GameCard";
@@ -32,9 +21,7 @@ export default function AdminRoom() {
     const [latestNickname, setLatestNickname] = useState<string | null>(null);
     const [userCount, setUserCount] = useState<number | null>(null);
     let requestId = v7();
-    const roomCode = localStorage.getItem("roomCode") || "000000";
->>>>>>> a9028b3bb9235a1c8128430e4c999078d58131b4
-
+    const roomCode = adminStore.getState().roomCode;
     useEffect(() => {
         console.log("USER_JOINED_ADMIN 이벤트 리스너 등록");
         adminWebSocketManager.on(
@@ -43,9 +30,6 @@ export default function AdminRoom() {
                 console.log("새로운 유저 입장:", payload);
 
                 setUserCount(payload.userCount);
-<<<<<<< HEAD
-                setUserNickname(payload.nickname);
-=======
                 setLatestNickname(payload.nickname);
 
                 setUserNickname((prev) =>
@@ -53,26 +37,13 @@ export default function AdminRoom() {
                         ? prev
                         : [...prev, payload.nickname]
                 );
->>>>>>> a9028b3bb9235a1c8128430e4c999078d58131b4
             }
         );
 
         return () => {
-<<<<<<< HEAD
             adminWebSocketManager.off("USER_JOINED_ADMIN", (payload: UserJoinedAdminMessage) => {
                 console.log("USER_JOINED_ADMIN 이벤트 리스너 해제:", payload);
             });
-=======
-            adminWebSocketManager.off(
-                "USER_JOINED_ADMIN",
-                (payload: UserJoinedAdminMessage) => {
-                    console.log(
-                        "USER_JOINED_ADMIN 이벤트 리스너 해제:",
-                        payload
-                    );
-                }
-            );
->>>>>>> a9028b3bb9235a1c8128430e4c999078d58131b4
         };
     }, []);
 
@@ -82,10 +53,6 @@ export default function AdminRoom() {
             adminWebSocketManager.sendSessionInit(requestId, 1);
             // 게임 중계 방으로 이동
             navigate(`/broadcast/${roomCode}`);
-<<<<<<< HEAD
-
-=======
->>>>>>> a9028b3bb9235a1c8128430e4c999078d58131b4
         } catch (error) {
             console.error("게임 시작 중 오류:", error);
         } finally {
@@ -93,23 +60,6 @@ export default function AdminRoom() {
         }
     };
 
-<<<<<<< HEAD
-    
-
-    return (
-        <div>
-            <h1>시작 대기중...</h1>
-            {userNickname && <p>{userNickname}님이 입장하셨습니다!</p>}
-            {userCount !== null && <p>현재 인원: {userCount}명</p>}
-
-            <GenerateQrCode roomCode={roomCode} />
-            <button
-                onClick={initGame}
-                className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded"
-            >
-                게임 시작
-            </button>
-=======
     return (
         <div className="game-container">
             <BackgroundAnimation />
@@ -121,10 +71,10 @@ export default function AdminRoom() {
                     <h2 className="game-subtitle">유저 입장 대기중...</h2>
                 </div>
 
-                <RoomCode code={roomCode} />
+                <RoomCode code={String(roomCode)} />
 
                 <div className="mb-6 flex items-center justify-center">
-                    <GenerateQrCode roomCode={roomCode} />
+                    <GenerateQrCode roomCode={String(roomCode)} />
                 </div>
 
                 <div className="mb-6 items-center">
@@ -175,7 +125,6 @@ export default function AdminRoom() {
                     </p>
                 )}
             </GameCard>
->>>>>>> a9028b3bb9235a1c8128430e4c999078d58131b4
         </div>
     );
 }
