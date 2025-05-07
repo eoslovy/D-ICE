@@ -1,0 +1,52 @@
+build_redis:
+  variables:
+    SERVICE_NAME: redis
+    BUILD_CONTEXT: ./infra/redis
+    K8S_PATH: ./infra/k8s/infras/redis.yml
+  extends: .backend-default-build
+  rules:
+    - changes:
+        - infra/redis/**/*
+      when: always
+    - when: never
+
+push_redis:
+  variables:
+    SERVICE_NAME: redis
+    BUILD_CONTEXT: ./infra/redis
+    K8S_PATH: ./infra/k8s/infras/redis.yml
+  extends: .backend-default-push
+  needs: [build_redis]
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "master" && $CI_PIPELINE_SOURCE == "push"'
+      changes:
+        - infra/redis/**/*
+      when: always
+    - if: '$CI_COMMIT_BRANCH == "master" && $CI_PIPELINE_SOURCE == "web"' # 수동 실행도 허용하려면
+      changes:
+        - infra/redis/**/*
+      when: manual
+    - when: never
+
+deploy_redis:
+  variables:
+    SERVICE_NAME: redis
+    BUILD_CONTEXT: ./infra/redis
+    K8S_PATH: ./infra/k8s/infras/redis.yml
+  extends: .backend-default-deploy
+  needs: [push_redis]
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "master" && $CI_PIPELINE_SOURCE == "push"'
+      changes:
+        - infra/redis/**/*
+      when: always
+    - if: '$CI_COMMIT_BRANCH == "master" && $CI_PIPELINE_SOURCE == "web"' # 수동 실행도 허용하려면
+      changes:
+        - infra/redis/**/*
+      when: manual
+    - when: never
+#test_include_trigger:
+# tags:
+#  - $GITLAB_USER_EMAIL
+#script:
+#  - echo "CI 정상 작동 여부 확인"

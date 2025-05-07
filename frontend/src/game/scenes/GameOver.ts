@@ -1,5 +1,4 @@
 import Phaser from 'phaser';
-import webSocketManager from '../../modules/WebSocketManager';
 import potgManager from '../../modules/POTGManager';
 import { v7 as uuidv7 } from 'uuid';
 import { userStore } from '../../stores/userStore';
@@ -118,6 +117,9 @@ export class GameOver extends Phaser.Scene {
 
     // 메인 메뉴 버튼
     this.createMenuButton(width / 2, height * 0.8);
+
+    // 다음 게임 버튼
+    this.createPreloaderButton(width / 2, height * 0.9);
   }
 
   private updateUI() {
@@ -194,6 +196,9 @@ export class GameOver extends Phaser.Scene {
 
     // 메인 메뉴 버튼
     this.createMenuButton(width / 2, height * 0.9);
+
+    // 다음 게임 버튼
+    this.createPreloaderButton(width / 2, height * 0.95);
   }
 
   private createRankGraph(x: number, y: number) {
@@ -377,7 +382,19 @@ export class GameOver extends Phaser.Scene {
       ).setOrigin(0.5);
     }
   }
+  private EndGame() {
+    if (!this.backendResponse) {
+        console.error('[GameOver] No backend response available to end the game.');
+        return;
+    }
 
+    // Pass totalScore, rankRecord, and overallRank to the EndGame scene
+    this.scene.start('EndGame', {
+        totalScore: this.backendResponse.totalScore,
+        rankRecord: this.backendResponse.rankRecord,
+        overallRank: this.backendResponse.overallRank
+    });
+}
   private createMenuButton(x: number, y: number) {
     const buttonWidth = 200;
     const buttonHeight = 50;
@@ -441,7 +458,7 @@ export class GameOver extends Phaser.Scene {
     };
 
     console.log('[GameOver] Sending score to backend:', message);
-    const success = webSocketManager.send(message);
+    const success = userWebSocketManager.send(message);
     console.log('[GameOver] Score send result:', success ? 'Success' : 'Failed');
   }
 }

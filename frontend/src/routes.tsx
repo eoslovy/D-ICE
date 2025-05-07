@@ -2,7 +2,9 @@ import { createBrowserRouter } from 'react-router-dom';
 import WrapperLayout from './pages/WrapperLayout';
 import App from './game/App';
 import Select from './pages/select';
-import Room from './pages/room';
+import AdminRoom from './pages/room/AdminRoom';
+import UserRoom from './pages/room/UserRoom';
+import BroadcastRoom from './pages/room/BroadcastRoom';
 import Set from './pages/set';
 import Lobby from './pages/lobby';
 
@@ -24,8 +26,16 @@ export const router = createBrowserRouter([
         element: <Select />,
       },
       {
-        path: '/:roomCode',
-        element: <Room />,
+        path: '/adminroom/:roomCode',
+        element: <AdminRoom />,
+      },
+      {
+        path: '/userroom/:roomCode',
+        element: <UserRoom />,
+      },
+      {
+        path: '/broadcast/:roomCode',
+        element: <BroadcastRoom />,
       },
       {
         path: '/roomSettings',

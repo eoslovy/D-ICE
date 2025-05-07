@@ -2,15 +2,21 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import userWebSocketManager from "../../modules/UserWebSocketManager";
 import { useWebSocket } from "../../modules/WebSocketContext";
-import { userStore } from "../../stores/userStore";
 import { v7 as uuidv7 } from "uuid";
-// import { WebSocketUser } from "../../assets/websocket";
+import { userStore } from "../../stores/userStore";
+import BackgroundAnimation from "../../components/BackgroundAnimation"
+import GameCard from "../../components/GameCard"
+import { LogIn, Loader } from "lucide-react"
 
 export default function Lobby() {
+    const roomCode = localStorage.getItem("roomCode") || "000000";
     const [roomCodeInput, setroomCodeInput] = useState("");
     const [nicknameInput, setnicknameInput] = useState("");
     const [errorMessage, setErrorMessage] = useState("");
+    const [isJoining, setIsJoining] = useState(false)
     const navigate = useNavigate();
+    const { connectWebSocket } = useWebSocket();
+    let requestId = uuidv7();
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -20,12 +26,17 @@ export default function Lobby() {
             return;
         }
 
-        if (!roomCodeInput) {
+        if (!roomCodeInput && roomCodeInput === "000000") {
+            // 방 코드가 비어있고 기본값인 경우
             setErrorMessage("방 번호를 입력하세요.");
             return;
         }
 
         try {
+<<<<<<< HEAD
+=======
+            setIsJoining(true);
+>>>>>>> a9028b3bb9235a1c8128430e4c999078d58131b4
             const USER_WS_URL = `ws://${
                 import.meta.env.VITE_API_URL || "localhost:8080"
             }/ws/game/user/${roomCodeInput}`;
@@ -36,6 +47,7 @@ export default function Lobby() {
                 (payload: UserJoinedMessage) => {
                     console.log("유저 입장 성공:", payload);
 
+<<<<<<< HEAD
                     // zustand에 상태 저장
                     userStore.getState().setUserId(payload.userId);
                     userStore.getState().setRoomCode(roomCodeInput);
@@ -44,6 +56,11 @@ export default function Lobby() {
                     // 방 코드, 닉네임 저장 및 페이지 이동
                     // localStorage.setItem("roomCode", roomCodeInput);
                     // localStorage.setItem("nickname", nicknameInput);
+=======
+                    // 방 코드, 닉네임 저장 및 페이지 이동
+                    localStorage.setItem("roomCode", roomCodeInput);
+                    localStorage.setItem("nickname", nicknameInput);
+>>>>>>> a9028b3bb9235a1c8128430e4c999078d58131b4
                     navigate(`/userroom/${roomCodeInput}`);
                 }
             );
@@ -56,53 +73,70 @@ export default function Lobby() {
         } catch (error: any) {
             // 서버 연결 실패, 유효하지 않은 방 코드 등의 오류 처리
             console.error("방 입장 중 오류:", error);
+            setIsJoining(false)
             setErrorMessage("방 입장에 실패했습니다. 다시 시도해주세요.");
+        } finally {
+            requestId = uuidv7();
         }
     };
 
     return (
-        <div>
-            <h1 className="text-2xl font-bold mb-2">게임 로비</h1>
-            <h3 className="text-lg mb-6">게임에 입장하세요!</h3>
-
-            <form onSubmit={handleSubmit} className="mb-6">
+        <div className="game-container">
+          <BackgroundAnimation />
+    
+          <GameCard>
+            <h1 className="game-title">Join Game</h1>
+    
+            <form onSubmit={handleSubmit} className="grid gap-4">
+              <input
+                id="nickname"
+                type="text"
+                value={nicknameInput}
+                onChange={(e) => {
+                  setnicknameInput(e.target.value)
+                  setErrorMessage("")
+                }}
+                className="input-field"
+                placeholder="닉네임을 입력해주세요."
+                disabled={isJoining}
+              />
+    
+              {roomCode === "000000" && (
                 <input
-                    id="nickname"
-                    type="text"
-                    value={nicknameInput}
-                    onChange={(e) => {
-                        setnicknameInput(e.target.value);
-                        setErrorMessage("");
-                    }}
-                    className="flex-1 border rounded px-3 py-2"
-                    placeholder="닉네임을 입력하세요"
+                  id="roomCode"
+                  type="text"
+                  value={roomCodeInput}
+                  onChange={(e) => {
+                    setroomCodeInput(e.target.value)
+                    setErrorMessage("")
+                  }}
+                  className="input-field"
+                  placeholder="방 번호를 입력해주세요."
+                  disabled={isJoining}
                 />
-
-                <div className="flex items-center">
-                    <input
-                        id="roomCode"
-                        type="text"
-                        value={roomCodeInput}
-                        onChange={(e) => {
-                            setroomCodeInput(e.target.value);
-                            setErrorMessage("");
-                        }}
-                        className="flex-1 border rounded px-3 py-2"
-                        placeholder="방 번호를 입력하세요"
-                    />
-                    <button
-                        type="submit"
-                        className="ml-2 bg-blue-500 hover:bg-blue-600 text-white rounded px-4 py-2"
-                    >
-                        입장
-                    </button>
-                </div>
+              )}
+    
+              <button
+                type="submit"
+                className={`btn btn-primary flex items-center justify-center ${isJoining ? "opacity-70 cursor-not-allowed" : ""}`}
+                disabled={isJoining}
+              >
+                {isJoining ? (
+                  <div className="flex items-center">
+                    <Loader className="animate-spin mr-2" size={20} />
+                    참여중....
+                  </div>
+                ) : (
+                  <>
+                    <LogIn className="mr-2" size={20} />
+                    게임 참여하기
+                  </>
+                )}
+              </button>
             </form>
-
-            {/* 에러 메시지 출력 */}
-            {errorMessage && (
-                <p className="text-red-600 font-semibold">{errorMessage}</p>
-            )}
+    
+            {errorMessage && <p className="text-warning mt-4">{errorMessage}</p>}
+          </GameCard>
         </div>
-    );
+      );
 }

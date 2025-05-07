@@ -1,6 +1,9 @@
 import { WebSocketManager } from "./WebSocketManager";
 import { v7 as uuidv7 } from "uuid";
+<<<<<<< HEAD
 import { userStore } from "../stores/userStore";
+=======
+>>>>>>> a9028b3bb9235a1c8128430e4c999078d58131b4
 
 class UserWebSocketManager extends WebSocketManager<UserReceiveTypeMap> {
     connect(): void {
@@ -22,7 +25,11 @@ class UserWebSocketManager extends WebSocketManager<UserReceiveTypeMap> {
         gameType: string;
         requestId: string;
     }): void {
+<<<<<<< HEAD
         const userId = userStore.getState().userId;
+=======
+        const userId = localStorage.getItem("userId");
+>>>>>>> a9028b3bb9235a1c8128430e4c999078d58131b4
         if (!userId) {
             console.error(
                 "[WebSocketManager] User ID not found in local storage."
@@ -40,12 +47,20 @@ class UserWebSocketManager extends WebSocketManager<UserReceiveTypeMap> {
     }
 
     getUserNickname(): string {
+<<<<<<< HEAD
         const nickname = userStore.getState().nickname;
+=======
+        const nickname = localStorage.getItem("nickname");
+>>>>>>> a9028b3bb9235a1c8128430e4c999078d58131b4
         if (nickname) {
             return nickname;
         } else {
             const newNickname = `User_${uuidv7().substring(0, 8)}`;
+<<<<<<< HEAD
             userStore.getState().setNickname(newNickname);
+=======
+            localStorage.setItem("nickname", newNickname);
+>>>>>>> a9028b3bb9235a1c8128430e4c999078d58131b4
             return newNickname;
         }
     }
