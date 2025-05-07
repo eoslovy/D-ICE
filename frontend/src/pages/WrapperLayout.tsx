@@ -4,7 +4,18 @@ import { useNavigate, Outlet } from 'react-router-dom';
 export default function WrapperLayout() {
   const navigate = useNavigate();
 
+  const applyDarkMode = () => {
+    const prefersDarkMode = localStorage.getItem('darkMode') === 'true'; // 다크 모드 여부를 localStorage에서 가져옴
+    if (prefersDarkMode) {
+      document.documentElement.classList.add('dark'); // html 태그에 dark 클래스 추가
+    } else {
+      document.documentElement.classList.remove('dark'); // dark 클래스 제거
+    }
+  };
+
   useEffect(() => {
+    applyDarkMode();
+    
     const ROUTES = ['/select', '/lobby', '/roomSettings'];
     const path = window.location.pathname;
     const isCreatingOrJoiningRoom = ROUTES.includes(path);
