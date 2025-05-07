@@ -9,6 +9,9 @@ import org.springframework.stereotype.Component;
 
 import com.party.backbone.websocket.handler.SessionRegistry;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @Component
 public class RoomExpirationListener extends KeyExpirationEventMessageListener {
 
@@ -26,6 +29,7 @@ public class RoomExpirationListener extends KeyExpirationEventMessageListener {
 	public void onMessage(Message message, byte[] pattern) {
 		String expiredKey = message.toString();
 		if (expiredKey.startsWith("room:")) {
+			log.info("[RoomExpiration] room {} is expired and delete job is starting", expiredKey);
 			String roomCode = expiredKey.split(":")[1];
 			String administratorId = roomRepository.getAdministratorIdOfRoom(roomCode);
 			sessionRegistry.closeSession(administratorId);
