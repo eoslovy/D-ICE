@@ -12,7 +12,7 @@ export default function BroadcastRoom() {
     let requestId = uuidv7();
 
     useEffect(() => {
-        // NEXT_GAME 메시지 수신 이벤트 리스너 등록
+        console.log("NEXT_GAME 이벤트 리스너 등록");
         adminWebSocketManager.on(
             "NEXT_GAME",
             (payload: NextGameMessage) => {
@@ -21,6 +21,11 @@ export default function BroadcastRoom() {
                 setNextGame(payload.gameType);
             }
         );
+        return () => {
+            adminWebSocketManager.off("NEXT_GAME", (payload: NextGameMessage) => {
+                console.log("NEXT_GAME 이벤트 리스너 해제:", payload);
+            });
+        }
     },[]);
 
     const startGame = async () => {
