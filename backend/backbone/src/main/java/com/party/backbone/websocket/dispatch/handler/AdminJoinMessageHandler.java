@@ -26,7 +26,7 @@ public class AdminJoinMessageHandler extends GameMessageHandler<AdminJoinMessage
 		ObjectMapper objectMapper,
 		SessionRegistry sessionRegistry,
 		IdempotencyRedisRepository idempotencyRedisRepository) {
-		super(idempotencyRedisRepository);
+		super(idempotencyRedisRepository, roomRepository);
 		this.roomRepository = roomRepository;
 		this.objectMapper = objectMapper;
 		this.sessionRegistry = sessionRegistry;
