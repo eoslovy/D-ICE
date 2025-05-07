@@ -8,6 +8,7 @@ import { Reaction } from './scenes/Reaction';
 import { Roulette } from './scenes/common/Roulette';
 import { PerfectCircleGame } from './scenes/PerfectCircleGame';
 import { GameInstruction } from './scenes/common/GameInstruction';
+import { Mugungwha } from './scenes/Mugungwha';
 
 const config: Phaser.Types.Core.GameConfig = {
   type: Phaser.AUTO,
@@ -36,7 +37,7 @@ const config: Phaser.Types.Core.GameConfig = {
       debug: false
     }
   },
-  scene: [Boot, Preloader, MainMenu, GameOver, Roulette, Clicker, Reaction, GameInstruction, PerfectCircleGame]
+  scene: [Boot, Preloader, MainMenu, GameOver, Roulette, Clicker, Reaction, GameInstruction, PerfectCircleGame, Mugungwha]
 };
 
 export default config;
