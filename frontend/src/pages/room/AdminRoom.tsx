@@ -13,7 +13,7 @@ export default function AdminRoom() {
     const roomCode = localStorage.getItem("roomCode") || "000000";
 
     useEffect(() => {
-        // USER_JOINED_ADMIN 메시지 수신 이벤트 리스너 등록
+        console.log("USER_JOINED_ADMIN 이벤트 리스너 등록");
         adminWebSocketManager.on(
             "USER_JOINED_ADMIN",
             (payload: UserJoinedAdminMessage) => {
@@ -24,9 +24,11 @@ export default function AdminRoom() {
             }
         );
 
-        // return () => {
-        //     adminWebSocketManager.disconnect(); // 컴포넌트 언마운트 시 WebSocket 연결 해제
-        // };
+        return () => {
+            adminWebSocketManager.off("USER_JOINED_ADMIN", (payload: UserJoinedAdminMessage) => {
+                console.log("USER_JOINED_ADMIN 이벤트 리스너 해제:", payload);
+            });
+        };
     }, []);
 
     const initGame = async () => {
