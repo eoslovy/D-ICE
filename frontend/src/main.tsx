@@ -6,9 +6,9 @@ import { WebSocketProvider } from './modules/WebSocketContext.tsx';
 import './vite-env.d.ts';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
-  <React.StrictMode>
+  // <React.StrictMode>
     <WebSocketProvider>
       <RouterProvider router={router} />
     </WebSocketProvider>
-  </React.StrictMode>
+  // </React.StrictMode>
 );

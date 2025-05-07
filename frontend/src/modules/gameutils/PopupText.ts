@@ -26,13 +26,8 @@ export class PopupText {
      * @param config Optional text style configuration.
      */
     popupText(text: string = "text", x: number = 100, y: number = 100, duration: number = 1000, config?: Phaser.Types.GameObjects.Text.TextStyle) {
-        if (!this.phaserScene || !this.phaserScene.scene.isActive()) {
-            console.warn('Phaser scene is not active or not defined');
-            return;
-        }
-        if (!this.popupPool) {
-            console.error('Popup pool is not defined');
-            return;
+        if (!this.healthCheck()) {
+            return; // Health check failed
         }
 
         const popup = this.popupPool.get(x, y) as Phaser.GameObjects.Text;
@@ -77,5 +72,17 @@ export class PopupText {
             this.popupPool.clear(true, true);
             this.popupPool.destroy();
         }
+    }
+
+    healthCheck(): boolean {
+        if (!this.phaserScene || !this.phaserScene.scene.isActive()) {
+            console.warn('[PopupText] Phaser scene is not active or not defined');
+            return false;
+        }
+        if (!this.popupPool) {
+            console.error('[PopupText] Popup pool is not defined');
+            return false;
+        }
+        return true;
     }
 }
