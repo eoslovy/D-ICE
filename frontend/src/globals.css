@@ -13,6 +13,10 @@
   --warning-color: #de1144;
 }
 
+#app {
+  font-family: "Fredoka", "Nanum Gothic Coding", sans-serif;
+}
+
 .dark {
   --primary-color: #2b2e4a;
   --secondary-color: #e84545;
