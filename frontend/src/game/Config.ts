@@ -9,6 +9,7 @@ import { Roulette } from './scenes/common/Roulette';
 import { PerfectCircleGame } from './scenes/PerfectCircleGame';
 import { GameInstruction } from './scenes/common/GameInstruction';
 import { NumberSurvivor } from './scenes/NumberSurvivor';
+import { EndGame } from './scenes/EndGame';
 
 const config: Phaser.Types.Core.GameConfig = {
   type: Phaser.AUTO,
@@ -37,7 +38,7 @@ const config: Phaser.Types.Core.GameConfig = {
       debug: false
     }
   },
-  scene: [Boot, Preloader, MainMenu, GameOver, Roulette, Clicker, Reaction, GameInstruction, PerfectCircleGame, NumberSurvivor]
+  scene: [Boot, Preloader, MainMenu, GameOver, EndGame, Roulette, Clicker, Reaction, GameInstruction, PerfectCircleGame, NumberSurvivor]
 };
 
 export default config;

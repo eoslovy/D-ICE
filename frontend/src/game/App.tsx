@@ -1,10 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import PhaserGame from './PhaserGame';
-import webSocketManager from '../modules/WebSocketManager';
+import PhaserGame from "./PhaserGame";
 import OverlayScreen, { OverlayScreenHandle } from '../modules/OverlayScreen';
 // Test Modules import
 import TestModules from '../modules/TestModules';
+import userWebSocketManager from "../modules/UserWebSocketManager";
 
 // Define props if you need to pass data to control connection
 interface AppProps {
@@ -15,7 +15,7 @@ interface AppProps {
 }
 
 // Use the props in the component definition (optional, adjust as needed)
-export default function App({ roomId = "wasted", shouldConnect = true }: AppProps) {
+export default function App(/*{ roomId = "wasted", shouldConnect = true }: AppProps*/) {
   const [showWarning, setShowWarning] = useState(false);
   const navigate = useNavigate();
 
@@ -37,24 +37,24 @@ export default function App({ roomId = "wasted", shouldConnect = true }: AppProp
   }, []); // Empty dependency array means this runs once on mount and cleans up on unmount
 
   // Effect for WebSocket connection management
-  useEffect(() => {
-    // Only connect if the condition is met (e.g., shouldConnect prop is true)
-    if (shouldConnect) {
-      console.log('[App] Connecting WebSocket...');
-      webSocketManager.connect();
+  // useEffect(() => {
+  //   // Only connect if the condition is met (e.g., shouldConnect prop is true)
+  //   if (shouldConnect) {
+  //     console.log('[App] Connecting WebSocket...');
+  //     userWebSocketManager.connect();
 
-      // Return a cleanup function to disconnect when the component unmounts
-      // or when the 'shouldConnect' prop changes to false
-      return () => {
-        console.log('[App] Disconnecting WebSocket...');
-        webSocketManager.disconnect();
-      };
-    } else {
-      // Ensure disconnected if condition is false
-      webSocketManager.disconnect();
-    }
-    // Add shouldConnect to dependency array if connection depends on it
-  }, [shouldConnect]);
+  //     // Return a cleanup function to disconnect when the component unmounts
+  //     // or when the 'shouldConnect' prop changes to false
+  //     return () => {
+  //         console.log("[App] Disconnecting WebSocket...");
+  //         userWebSocketManager.disconnect();
+  //     };
+  //   } else {
+  //     // Ensure disconnected if condition is false
+  //     userWebSocketManager.disconnect();
+  //   }
+  //   // Add shouldConnect to dependency array if connection depends on it
+  // }, [shouldConnect]);
 
   // OverlayScreen ref to call methods on the Phaser game instance
   const overlayRef = useRef<OverlayScreenHandle>(null);

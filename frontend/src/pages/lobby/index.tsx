@@ -1,12 +1,17 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { WebSocketUser } from "../../assets/websocket";
+import userWebSocketManager from "../../modules/UserWebSocketManager";
+import { useWebSocket } from "../../modules/WebSocketContext";
+import { v7 as uuidv7 } from "uuid";
+// import { WebSocketUser } from "../../assets/websocket";
 
 export default function Lobby() {
     const [roomCodeInput, setroomCodeInput] = useState("");
     const [nicknameInput, setnicknameInput] = useState("");
     const [errorMessage, setErrorMessage] = useState("");
     const navigate = useNavigate();
+    const { connectWebSocket } = useWebSocket();
+    let requestId = uuidv7();
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -22,20 +27,34 @@ export default function Lobby() {
         }
 
         try {
-            // WebSocket을 통해 방에 입장 (Promise를 반환하므로 await 사용)
-            const result = await WebSocketUser.joinRoom(roomCodeInput, nicknameInput);
+            const USER_WS_URL = `ws://${
+                import.meta.env.VITE_API_URL || "localhost:8080"
+            }/ws/game/user/${roomCodeInput}`;
+            connectWebSocket("user", USER_WS_URL);
 
-            if (result.success) {
-                // 성공적으로 방에 입장했을 때만 페이지 이동
-                navigate(`/${roomCodeInput}`);
-            } else {
-                // 서버에서 성공은 했지만 문제가 있는 경우 (드문 케이스)
-                setErrorMessage(result.message || "알 수 없는 오류가 발생했습니다.");
-            }
+            userWebSocketManager.on(
+                "USER_JOINED",
+                (payload: UserJoinedMessage) => {
+                    console.log("유저 입장 성공:", payload);
+
+                    // 방 코드, 닉네임 저장 및 페이지 이동
+                    localStorage.setItem("roomCode", roomCodeInput);
+                    localStorage.setItem("nickname", nicknameInput);
+                    navigate(`/userroom/${roomCodeInput}`);
+                }
+            );
+
+            userWebSocketManager.on("connect", () => {
+                console.log("WebSocket 연결 성공");
+                userWebSocketManager.sendUserJoin(requestId, nicknameInput);
+            });
+ 
         } catch (error: any) {
             // 서버 연결 실패, 유효하지 않은 방 코드 등의 오류 처리
             console.error("방 입장 중 오류:", error);
             setErrorMessage("방 입장에 실패했습니다. 다시 시도해주세요.");
+        } finally {
+            requestId = uuidv7();
         }
     };
 
