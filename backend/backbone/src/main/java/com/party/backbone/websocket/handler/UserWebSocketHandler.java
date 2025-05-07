@@ -56,9 +56,9 @@ public class UserWebSocketHandler extends TextWebSocketHandler {
 
 	@Override
 	public void handleTextMessage(WebSocketSession session, TextMessage textMessage) throws IOException {
-		GameMessage message = objectMapper.readValue(textMessage.getPayload(), GameMessage.class);
-		String roomCode = (String)session.getAttributes().get("roomCode");
 		try {
+			GameMessage message = objectMapper.readValue(textMessage.getPayload(), GameMessage.class);
+			String roomCode = (String)session.getAttributes().get("roomCode");
 			log.info("[USER_WEBSOCKET] message : {}", message);
 			UserMessageType type = UserMessageType.fromMessage(message);
 			registry.getHandler(type).handle(message, roomCode, session);
@@ -66,7 +66,7 @@ public class UserWebSocketHandler extends TextWebSocketHandler {
 			log.error("[USER_WEBSOCKET] 예외 발생", e);
 			session.sendMessage(
 				new TextMessage(
-					objectMapper.writeValueAsString(new ErrorMessage(message.getRequestId(), e.getMessage()))));
+					objectMapper.writeValueAsString(new ErrorMessage(e.getMessage()))));
 		}
 	}
 
