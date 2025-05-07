@@ -1,34 +1,230 @@
+@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Nanum+Gothic+Coding:wght@400;700&display=swap');
 @import "tailwindcss";
 
-:root{
-    --primary-color: #4a90e2;
-    --secondary-color: #50e3c2;
-    --warning-color: #de1144
+/* tertiary는 글자색입니다. */
+
+:root {
+  --primary-color: #ffa;
+  --secondary-color: #ebebd3;
+  --tertiary-color: #1e1e1e;
+  --quaternary-color: #ffa69e;
+  --quinary-color: #fbfff1;
+  --warning-color: #de1144;
 }
 
-@layer utilities {
-    .bg-primary {
-      background-color: var(--primary-color);
-    }
-    .bg-secondary {
-      background-color: var(--secondary-color);
-    }
-    .btn-primary {
-      background-color: var(--primary-color);
-      color: white;
-      padding: 0.5rem 1rem;
-      border-radius: 0.25rem;
-    }
-    .btn-secondary {
-      background-color: var(--secondary-color);
-      color: white;
-      padding: 0.5rem 1rem;
-      border-radius: 0.25rem;
-    }
-    .btn-warning {
-      background-color: var(--warning-color);
-      color: white;
-      padding: 0.5rem 1rem;
-      border-radius: 0.25rem;
+#app {
+  font-family: "Fredoka", "Nanum Gothic Coding", sans-serif;
+}
+
+.dark {
+  --primary-color: #2b2e4a;
+  --secondary-color: #e84545;
+  --tertiary-color: #ebebd3;
+  --quaternary-color: #2b2e4a;
+  --quinary-color: #2a9d8f;
+  --warning-color: #ff6b6b;
+}
+
+h1 {
+  text-align: center;
+}
+
+
+@layer base {
+  html {
+    font-size: 16px;
+    background-color: var(--primary-color);
+    color: var(--tertiary-color);
+  }
+  body {
+    width: 100%;
+    min-height: 100vh;
+    margin: 0;
+    padding: 0;
+    background-color: var(--primary-color);
+    color: var(--tertiary-color);
+    overflow-x: hidden;
+  }
+}
+
+@layer components {
+  .game-container {
+    @apply relative flex flex-col items-center justify-center w-full min-h-screen p-4 overflow-hidden;
+  }
+
+  .game-card {
+    @apply relative z-10 w-full max-w-md p-6 mx-auto rounded-2xl shadow-lg opacity-95 backdrop-blur-sm;
+    background-color: var(--quaternary-color);
+  }
+
+  @media (min-width: 768px) {
+    .game-card {
+      @apply max-w-lg p-8;
     }
   }
+
+  .game-title {
+    @apply text-3xl font-bold mb-6 text-center;
+    color: var(--tertiary-color);
+  }
+
+  .game-subtitle {
+    @apply text-xl font-semibold mb-4 text-center;
+    color: var(--tertiary-color);
+  }
+
+  .btn {
+    @apply inline-block px-6 py-3 font-semibold text-center rounded-full transition-all duration-300 transform hover:scale-105 focus:outline-none shadow-md;
+    color: var(--tertiary-color);
+  }
+
+  .btn-primary {
+    background-color: var(--primary-color);
+    @apply focus:ring-2 focus:ring-pink-500 focus:opacity-50;
+  }
+
+  .btn-secondary {
+    background-color: var(--secondary-color);
+    @apply focus:ring-2 focus:ring-yellow-200 focus:opacity-50;
+  }
+
+  .btn-warning {
+    background-color: var(--warning-color);
+    color: white;
+    @apply focus:ring-2 focus:ring-red-500 focus:opacity-50;
+  }
+
+  .floating-shape {
+    @apply absolute rounded-full opacity-50;
+    animation: float 15s infinite ease-in-out;
+  }
+
+  .input-field {
+    @apply w-full px-4 py-3 mb-4 border-2 rounded-lg focus:outline-none focus:ring-2 focus:opacity-50 focus:ring-blue-300;
+    border-color: var(--secondary-color);
+    background-color: white;
+    color: var(--tertiary-color);
+  }
+
+  .select-field {
+    @apply w-full px-4 py-3 mb-4 border-2 rounded-lg focus:outline-none focus:ring-2 focus:opacity-50 focus:ring-blue-300 appearance-none bg-white;
+    border-color: var(--secondary-color);
+    background-color: white;
+    color: #1e1e1e;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%232B2E4A'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 1rem center;
+    background-size: 1.5em;
+    padding-right: 2.5rem;
+  }
+
+  .room-code {
+    @apply text-2xl font-bold p-2 rounded-lg mb-4 flex items-center justify-center mx-auto;
+    background-color: var(--secondary-color);
+    color: var(--tertiary-color);
+    max-width: 120px;
+  }
+
+  .user-badge {
+    @apply inline-block px-3 py-1 m-1 rounded-full text-sm font-medium;
+    background-color: var(--quinary-color);
+    color: var(--tertiary-color);
+  }
+
+  .game-info {
+    @apply flex items-center justify-between w-full mb-4 p-3 rounded-lg;
+    background-color: var(--secondary-color);
+    color: var(--tertiary-color);
+  }
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  25% {
+    transform: translateY(-20px) rotate(5deg);
+  }
+  50% {
+    transform: translateY(0) rotate(0deg);
+  }
+  75% {
+    transform: translateY(20px) rotate(-5deg);
+  }
+}
+
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.animate-bounce {
+  animation: bounce 1s infinite;
+}
+
+@keyframes bounce {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.dark .game-card {
+  background-color: #3a3f5d; 
+  color: #ebebd3; 
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.dark .game-title,
+.dark .game-subtitle,
+.dark label,
+.dark p {
+  color: #ebebd3; 
+}
+
+.dark .btn {
+  color: #1e1e1e; 
+}
+
+.dark .btn-primary {
+  background-color: #2a9d8f; 
+}
+
+.dark .btn-secondary {
+  background-color: #e84545; 
+}
+
+.dark .select-field,
+.dark .input-field {
+  background-color: rgba(255, 255, 255, 0.9);
+  border-color: #e84545;
+}
+
+.dark .room-code {
+  background-color: #e84545;
+  color: #ebebd3;
+}
+
+.dark .user-badge {
+  background-color: #2a9d8f;
+  color: #ebebd3;
+}
+
+.dark .game-info {
+  background-color: #3a3f5d;
+  border: 1px solid #e84545;
+}
