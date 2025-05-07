@@ -29,7 +29,7 @@ public class NumberSurvivorServiceImpl implements NumberSurvivorService {
     private final Map<String, Boolean> gameStarted = new ConcurrentHashMap<>();
     
     @Override
-    public void handleJoin(WebSocketSession session, NumberSurvivorJoinDto joinDto) throws IOException {
+    public void handleJoin(WebSocketSession session, NumberSurvivorJoinDto joinDto) {
         sessions.put(joinDto.getUserId(), session);
         
         PlayerDto player = PlayerDto.builder()
