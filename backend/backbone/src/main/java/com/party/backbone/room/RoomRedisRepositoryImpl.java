@@ -256,7 +256,7 @@ public class RoomRedisRepositoryImpl implements RoomRedisRepository {
 	@Override
 	public void endGame(String roomCode) {
 		String roomKey = getRoomKey(roomCode);
-		redisTemplate.opsForHash().put(roomKey, "state", RoomStateTTL.ENDED);
+		redisTemplate.opsForHash().put(roomKey, "state", RoomStateTTL.ENDED.name());
 		redisTemplate.expire(roomKey, RoomStateTTL.ENDED.getTtl());
 	}
 
