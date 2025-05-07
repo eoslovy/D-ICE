@@ -19,15 +19,23 @@ public abstract class GameMessageHandler<T extends GameMessage> {
 	public final void handle(T message, String roomCode, WebSocketSession session) throws IOException {
 		preHandle(message, roomCode);
 		doHandle(message, roomCode, session);
+		postHandle(message, roomCode);
 	}
 
-	protected void preHandle(T message, String roomCode) {
+	private void preHandle(T message, String roomCode) {
 		if (!(message instanceof IdempotentMessage idempotentMessage)) {
 			return;
 		}
-		if (!idempotencyRedisRepository.checkAndSetRequestId(roomCode, idempotentMessage.getRequestId())) {
+		if (!idempotencyRedisRepository.isRequestIdProcessed(roomCode, idempotentMessage.getRequestId())) {
 			throw new DuplicateRequestException("Request already processed: " + idempotentMessage.getRequestId());
 		}
+	}
+
+	private void postHandle(T message, String roomCode) {
+		if (!(message instanceof IdempotentMessage idempotentMessage)) {
+			return;
+		}
+		idempotencyRedisRepository.markRequestIdProcessed(roomCode, idempotentMessage.getRequestId());
 	}
 
 	protected abstract void doHandle(T message, String roomCode, WebSocketSession session) throws IOException;
