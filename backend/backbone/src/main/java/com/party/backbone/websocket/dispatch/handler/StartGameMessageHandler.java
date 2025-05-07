@@ -32,7 +32,7 @@ public class StartGameMessageHandler extends GameMessageHandler<StartGameMessage
 		SessionRegistry sessionRegistry,
 		IdempotencyRedisRepository idempotencyRedisRepository,
 		Broadcaster broadcaster) {
-		super(idempotencyRedisRepository);
+		super(idempotencyRedisRepository, roomRepository);
 		this.roomRepository = roomRepository;
 		this.objectMapper = objectMapper;
 		this.sessionRegistry = sessionRegistry;

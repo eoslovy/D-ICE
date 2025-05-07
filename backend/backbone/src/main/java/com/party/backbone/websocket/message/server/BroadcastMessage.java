@@ -1,4 +1,4 @@
-package com.party.backbone.websocket.message.admin;
+package com.party.backbone.websocket.message.server;
 
 import com.party.backbone.websocket.message.GameMessage;
 
@@ -9,6 +9,8 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class HeartbeatAckMessage implements GameMessage, AdminMessage {
-	private String administratorId;
+public class BroadcastMessage implements GameMessage {
+	private String requestId;
+	private String userId;
+	private String payload;
 }

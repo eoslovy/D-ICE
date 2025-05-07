@@ -30,11 +30,14 @@ function GenerateQrCode({ roomCode, isDarkMode = false }: GenerateQrCodeProps) {
   useEffect(() => {
     if (!roomCode) return;
     
-    // Create the URL for joining the room
     const origin = window.location.origin;
     const joinUrl = `${origin}/userroom/${roomCode}`;
+    localStorage.setItem("roomCode", roomCode);
+    localStorage.setItem("isQRCode", true.toString());
     setUrl(joinUrl);
   }, [roomCode]);
+
+  if (!roomCode) return <div>Loading...</div>;
 
   if (!roomCode) return <div>Loading...</div>;
   if (!url) return <div>Generating QR Code...</div>;
@@ -47,7 +50,6 @@ function GenerateQrCode({ roomCode, isDarkMode = false }: GenerateQrCodeProps) {
         bgColor={bgColor}
         fgColor={fgColor}
         level="L"
-        includeMargin={true}
       />
     </div>
   );
