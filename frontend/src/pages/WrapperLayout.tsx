@@ -1,28 +1,95 @@
+"use client";
+
 import { useEffect } from 'react';
 import { useNavigate, Outlet } from 'react-router-dom';
 
 export default function WrapperLayout() {
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const roomCode = localStorage.getItem('roomCode');
-    
-    const isCreatingOrJoiningRoom = 
-      window.location.pathname === '/select' || 
-      window.location.pathname === '/lobby' ||
-      window.location.pathname === '/roomSettings';
-
-    if (!isCreatingOrJoiningRoom && roomCode == null) {
-      navigate('/select', { replace: true });
+  const applyDarkMode = () => {
+    const prefersDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches; // 시스템 다크 모드 여부 확인
+    if (prefersDarkMode) {
+      document.documentElement.classList.add('dark'); // html 태그에 dark 클래스 추가하기
+    } else {
+      document.documentElement.classList.remove('dark'); // dark 클래스 제거
     }
-    else if (isCreatingOrJoiningRoom && roomCode != null){
-      navigate(`/${roomCode}`, { replace: true });
+  };
+
+  const darkModeMediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+  darkModeMediaQuery.addEventListener("change", applyDarkMode);
+
+  useEffect(() => {
+    applyDarkMode();
+
+    const ROUTES = ['/select', '/lobby', '/roomSettings'];
+    const path = window.location.pathname;
+    const isCreatingOrJoiningRoom = ROUTES.includes(path);
+    const roomCode = localStorage.getItem('roomCode') || "000000";
+    const user = localStorage.getItem('nickname');
+    const admin = localStorage.getItem('administratorId');
+
+    const isUser = user !== null || user !== undefined;
+    const isAdmin = admin !== null || admin !== undefined;
+    
+    // URL에서 현재 방 코드 추출 (예: /123456/admin -> 123456)
+    const currentRoomCode = path.split('/')[1];
+    
+    // 1. 방 생성/입장 페이지가 아니고, 방 코드가 없거나 기본값인 경우 -> 선택 페이지로
+    if (!isCreatingOrJoiningRoom && (roomCode === null || roomCode === "000000")) {
+      navigate('/select', { replace: true });
+      return; // 더 이상 처리하지 않음
+    }
+    
+    // 2. URL의 방 코드와 localStorage의 방 코드가 다른 경우 -> 선택 페이지로
+    if (!isCreatingOrJoiningRoom && currentRoomCode && roomCode !== "000000" && roomCode !== currentRoomCode) {
+      navigate('/select', { replace: true });
+      return; // 더 이상 처리하지 않음
+    }
+
+    if (isCreatingOrJoiningRoom && roomCode !== "000000" && isAdmin) {
+      navigate(`/adminroom/${roomCode}`, { replace: true });
+      return; // 더 이상 처리하지 않음
+    }
+
+    if (isCreatingOrJoiningRoom && roomCode !== "000000" && isUser) {
+      navigate(`/userroom/${roomCode}`, { replace: true });
+      return; // 더 이상 처리하지 않음
+    }
+    
+    // 3. 방 코드가 기본값이 아니고 생성/입장 페이지에 있는 경우 처리
+    if (roomCode !== "000000" && isCreatingOrJoiningRoom) {
+      // 사용자인 경우 게임룸으로
+      if (isUser) {
+        navigate(`/${roomCode}`, { replace: true });
+        return;
+      }
+      // 관리자인 경우 관리자 페이지로
+      else if (isAdmin) {
+        navigate(`/${roomCode}/admin`, { replace: true });
+        return;
+      }
+    }
+    
+    // 4. 방 코드가 기본값이고 생성/입장 페이지에 있으며, 사용자 정보가 없는 경우 (QR 접속)
+    if (
+      roomCode === "000000" &&
+      isCreatingOrJoiningRoom &&
+      !isUser &&
+      !isAdmin &&
+      path !== "/select" &&
+      path !== "/roomSettings" // select 페이지에서는 lobby로 이동하지 않음
+    ) {
+      navigate('/lobby', { replace: true });
+      return;
+    }
+
+    return () => {
+      darkModeMediaQuery.removeEventListener("change", applyDarkMode)
     }
   }, [navigate]);
 
-
   return (
-    <div className="p-8 w-screen h-screen flex flex-col items-center justify-center bg-black text-white text-center">
+    <div className="min-h-screen">
       <Outlet />
     </div>
   );
