@@ -29,7 +29,7 @@ public class JoinMessageHandler extends GameMessageHandler<UserJoinMessage>
 		ObjectMapper objectMapper,
 		SessionRegistry sessionRegistry,
 		IdempotencyRedisRepository idempotencyRedisRepository) {
-		super(idempotencyRedisRepository);
+		super(idempotencyRedisRepository, roomRepository);
 		this.roomRepository = roomRepository;
 		this.objectMapper = objectMapper;
 		this.sessionRegistry = sessionRegistry;
