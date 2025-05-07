@@ -5,7 +5,7 @@ export default function WrapperLayout() {
   const navigate = useNavigate();
 
   const applyDarkMode = () => {
-    const prefersDarkMode = localStorage.getItem('darkMode') === 'true'; // 다크 모드 여부를 localStorage에서 가져옴
+    const prefersDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches; // 시스템 다크 모드 여부 확인
     if (prefersDarkMode) {
       document.documentElement.classList.add('dark'); // html 태그에 dark 클래스 추가
     } else {
@@ -15,7 +15,7 @@ export default function WrapperLayout() {
 
   useEffect(() => {
     applyDarkMode();
-    
+
     const ROUTES = ['/select', '/lobby', '/roomSettings'];
     const path = window.location.pathname;
     const isCreatingOrJoiningRoom = ROUTES.includes(path);
@@ -61,7 +61,8 @@ export default function WrapperLayout() {
       isCreatingOrJoiningRoom &&
       !isUser &&
       !isAdmin &&
-      path !== "/select" // select 페이지에서는 lobby로 이동하지 않음
+      path !== "/select" &&
+      path !== "/roomSettings" // select 페이지에서는 lobby로 이동하지 않음
     ) {
       navigate('/lobby', { replace: true });
       return;
