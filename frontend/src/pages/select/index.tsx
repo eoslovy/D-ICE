@@ -3,6 +3,7 @@ import GameCard from "../../components/GameCard";
 import DarkModeToggle from "../../components/DarkModeToggle";
 import { Users, Settings } from "lucide-react";
 
+
 export default function Select() {
     return (
         <div className="game-container">
@@ -10,11 +11,11 @@ export default function Select() {
             <DarkModeToggle />
 
             <GameCard>
-                <div className="animate-bounce mb-4">
+                <div>
                     <img
                         src="/assets/logo.png"
                         alt="D-Ice Logo"
-                        className="mx-auto h-24 w-auto"
+                        className="mx-auto h-36 w-auto"
                     />
                 </div>
                 <h1 className="game-title">Welcome to D-Ice!</h1>
