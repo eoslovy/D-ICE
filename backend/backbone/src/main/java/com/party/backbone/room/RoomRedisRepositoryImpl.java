@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
@@ -73,8 +74,9 @@ public class RoomRedisRepositoryImpl implements RoomRedisRepository {
 		keysToDelete.add(getAdministratorIdKey(roomCode));
 		keysToDelete.add(getGamesKey(roomCode));
 
-		int totalRound = Integer.parseInt(Objects.requireNonNull(redisTemplate.opsForHash()
-			.get(getRoomKey(roomCode), "totalRound")).toString());
+		int totalRound = Optional.ofNullable(redisTemplate.opsForList().size(getGamesKey(roomCode)))
+			.map(Long::intValue)
+			.orElse(0);
 
 		for (int round = 1; round <= totalRound; round++) {
 			keysToDelete.add(getRoundScoreKey(roomCode, round));
