@@ -9,6 +9,7 @@ import com.party.backbone.websocket.message.admin.StartGameMessage;
 import com.party.backbone.websocket.message.server.AdminJoinedMessage;
 import com.party.backbone.websocket.message.server.AggregatedAdminMessage;
 import com.party.backbone.websocket.message.server.AggregatedUserMessage;
+import com.party.backbone.websocket.message.server.BroadcastMessage;
 import com.party.backbone.websocket.message.server.EndMessage;
 import com.party.backbone.websocket.message.server.EnterGameMessage;
 import com.party.backbone.websocket.message.server.ErrorMessage;
@@ -17,6 +18,7 @@ import com.party.backbone.websocket.message.server.JoinedAdminMessage;
 import com.party.backbone.websocket.message.server.JoinedUserMessage;
 import com.party.backbone.websocket.message.server.NextGameMessage;
 import com.party.backbone.websocket.message.server.WaitMessage;
+import com.party.backbone.websocket.message.user.BroadcastRequestMessage;
 import com.party.backbone.websocket.message.user.SubmitMessage;
 import com.party.backbone.websocket.message.user.UserJoinMessage;
 
@@ -33,6 +35,8 @@ import com.party.backbone.websocket.message.user.UserJoinMessage;
 	@JsonSubTypes.Type(value = NextGameMessage.class, name = "NEXT_GAME"),
 	@JsonSubTypes.Type(value = StartGameMessage.class, name = "START_GAME"),
 	@JsonSubTypes.Type(value = EnterGameMessage.class, name = "ENTER_GAME"),
+	@JsonSubTypes.Type(value = BroadcastRequestMessage.class, name = "BROADCAST_REQUEST"),
+	@JsonSubTypes.Type(value = BroadcastMessage.class, name = "BROADCAST"),
 	@JsonSubTypes.Type(value = WaitMessage.class, name = "WAIT"),
 	@JsonSubTypes.Type(value = SubmitMessage.class, name = "SUBMIT"),
 	@JsonSubTypes.Type(value = AggregatedUserMessage.class, name = "AGGREGATED_USER"),

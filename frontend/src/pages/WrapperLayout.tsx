@@ -1,3 +1,5 @@
+"use client";
+
 import { useEffect } from 'react';
 import { useNavigate, Outlet } from 'react-router-dom';
 
@@ -87,7 +89,6 @@ export default function WrapperLayout() {
       darkModeMediaQuery.removeEventListener("change", applyDarkMode)
     }
   }, [navigate]);
-
 
   return (
     <div id='app' className="min-h-screen">
