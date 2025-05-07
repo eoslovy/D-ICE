@@ -1,0 +1,112 @@
+services:
+  backbone-service:
+    container_name: backbone-service
+    image: ${DOCKERHUB_USERNAME:-recreatekang}/d-ice-backbone-service:${IMAGE_TAG:-latest}
+    restart: always
+    env_file:
+      - .env
+    ports:
+      - "18081:8080"
+  gamekjh-service:
+    container_name: gamekjh-service
+    image: ${DOCKERHUB_USERNAME:-recreatekang}/d-ice-gamekjh-service:${IMAGE_TAG:-latest}
+    restart: always
+    env_file:
+      - .env
+    ports:
+      - "18082:8080"
+  gamecjm-service:
+    container_name: gamecjm-service
+    image: ${DOCKERHUB_USERNAME:-recreatekang}/d-ice-gamecjm-service:${IMAGE_TAG:-latest}
+    restart: always
+    env_file:
+      - .env
+    ports:
+      - "18083:8080"
+
+  gamekyh-service:
+    container_name: gamekyh-service
+    image: ${DOCKERHUB_USERNAME:-recreatekang}/d-ice-gamekyh-service:${IMAGE_TAG:-latest}
+    restart: always
+    env_file:
+      - .env
+    ports:
+      - "18084:8080"
+
+  gamelsr-service:
+    container_name: gamelsr-service
+    image: ${DOCKERHUB_USERNAME:-recreatekang}/d-ice-gamelsr-service:${IMAGE_TAG:-latest}
+    restart: always
+    env_file:
+      - .env
+    ports:
+      - "18085:8080"
+
+  gameojs-service:
+    container_name: gameojs-service
+    image: ${DOCKERHUB_USERNAME:-recreatekang}/d-ice-gameojs-service:${IMAGE_TAG:-latest}
+    restart: always
+    env_file:
+      - .env
+    ports:
+      - "18086:8080"
+
+  gameydg-service:
+    container_name: gameydg-service
+    image: ${DOCKERHUB_USERNAME:-recreatekang}/d-ice-gameydg-service:${IMAGE_TAG:-latest}
+    restart: always
+    env_file:
+      - .env
+    ports:
+      - "18087:8080"
+
+  frontend-react:
+    image: ${DOCKERHUB_USERNAME:-recreatekang}/d-ice-frontend:${IMAGE_TAG:-latest}
+    env_file:
+      - .env
+    profiles:
+      - build-only
+    ports:
+      - "80:80"
+
+  springcloud-gateway:
+    container_name: springcloud-gateway
+    image: ${DOCKERHUB_USERNAME:-recreatekang}/d-ice-springcloud-gateway:${IMAGE_TAG:-latest}
+    restart: always
+    env_file:
+      - .env
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    depends_on:
+      - backbone-service
+      - gamekjh-service
+      - gamecjm-service
+      - gamekyh-service
+      - gamelsr-service
+      - gameojs-service
+      - gameydg-service
+
+  frontend-nginx:
+    container_name: nginx
+    image: ${DOCKERHUB_USERNAME:-recreatekang}/d-ice-nginx:${IMAGE_TAG:-latest}
+    restart: always
+    env_file:
+      - .env
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /etc/letsencrypt/live/p.ssafy.io/fullchain.pem:/etc/letsencrypt/live/p.ssafy.io/fullchain.pem  # 인증서
+      - /etc/letsencrypt/live/p.ssafy.io/privkey.pem:/etc/letsencrypt/live/p.ssafy.io/privkey.pem  # 개인 키
+
+
+  redis:
+    container_name: redis
+    env_file:
+      - .env
+    image: ${DOCKERHUB_USERNAME:-recreatekang}/d-ice-redis:${IMAGE_TAG:-latest}
+    restart: always
+    ports:
+      - "6379:6379"
