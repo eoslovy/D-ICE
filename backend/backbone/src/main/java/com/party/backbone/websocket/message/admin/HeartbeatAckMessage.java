@@ -10,5 +10,5 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class HeartbeatAckMessage implements GameMessage {
-	private String requestId;
+	private String administratorId;
 }
