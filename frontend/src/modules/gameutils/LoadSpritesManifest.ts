@@ -50,13 +50,19 @@ export function LoadManifestFromJSON(scene: Phaser.Scene, manifestPath: string):
         console.error('[loadManifestFromJSON] Invalid manifest path provided.');
         return;
     }
+    if (!scene|| !scene.load) {
+        console.error('[loadManifestFromJSON] Invalid scene or load method provided.');
+        return;
+    }
+
+    const manifestKey = 'assetManifest' + Math.random().toString(36).substring(2, 15);
 
     // Load the JSON file containing the asset definitions
-    scene.load.json('assetManifest', manifestPath);
+    scene.load.json(manifestKey, manifestPath);
 
     // Once the JSON is loaded, parse it and call loadAssetsFromManifest
-    scene.load.on('filecomplete-json-assetManifest', () => {
-        const manifestData = scene.cache.json.get('assetManifest') as AssetDefinition[];
+    scene.load.on('filecomplete-json-' + manifestKey, () => {
+        const manifestData = scene.cache.json.get(manifestKey) as AssetDefinition[];
         if (!manifestData) {
             console.error('[loadManifestFromJSON] Failed to load asset manifest data.');
             return;
@@ -68,16 +74,20 @@ export function LoadManifestFromJSON(scene: Phaser.Scene, manifestPath: string):
 
 function loadAssetsFromManifest(scene: Phaser.Scene, manifestData: AssetDefinition[]): void {
     if (!manifestData || !Array.isArray(manifestData)) {
-        console.error('[loadAssetsFromManifest] Invalid or missing manifest data provided.');
+        console.error('[LoadSpritesManifest] Invalid or missing manifest data provided.');
+        return;
+    }
+    if (!scene || !scene.load) {
+        console.error('[LoadSpritesManifest] Invalid scene or load method provided.');
         return;
     }
 
-    console.log(`[loadAssetsFromManifest] Starting asset loading from manifest (${manifestData.length} entries)...`);
+    console.log(`[LoadSpritesManifest] Starting asset loading from manifest (${manifestData.length} entries)...`);
     manifestData.forEach(asset => {
         try {
             // Basic validation of the asset entry
             if (!asset || typeof asset.key !== 'string' || typeof asset.path !== 'string' || typeof asset.type !== 'string') {
-                 console.warn(`[loadAssetsFromManifest] Skipping invalid asset definition:`, asset);
+                 console.warn(`[LoadSpritesManifest] Skipping invalid asset definition:`, asset);
                  return;
             }
 
@@ -89,28 +99,28 @@ function loadAssetsFromManifest(scene: Phaser.Scene, manifestData: AssetDefiniti
             } else if (asset.type === 'spritesheet') {
                 // Ensure frameConfig exists and has necessary properties for spritesheets
                 if (!asset.frameConfig || typeof asset.frameConfig.frameWidth !== 'number' || typeof asset.frameConfig.frameHeight !== 'number') {
-                    console.warn(`[loadAssetsFromManifest] Skipping spritesheet '${asset.key}' due to missing or invalid frameConfig.`);
+                    console.warn(`[LoadSpritesManifest] Skipping spritesheet '${asset.key}' due to missing or invalid frameConfig.`);
                     return; // Skip this spritesheet if config is bad
                 }
                 // Pass the whole frameConfig object to the loader
                 scene.load.spritesheet(asset.key, asset.path, asset.frameConfig);
             } else {
-                console.warn(`[loadAssetsFromManifest] Unsupported asset type '${asset.type}' encountered for key: ${asset.key}`);
+                console.warn(`[LoadSpritesManifest] Unsupported asset type '${asset.type}' encountered for key: ${asset.key}`);
             }
         } catch (error) {
             // Catch potential errors during the load call setup (rare)
-            console.error(`[loadAssetsFromManifest] Error initiating load for asset ${asset.key}:`, error);
+            console.error(`[LoadSpritesManifest] Error initiating load for asset ${asset.key}:`, error);
         }
     });
     // After all assets are queued, you can add a listener for the complete event
     scene.load.on('complete', () => {
-        console.log(`[loadAssetsFromManifest] All assets loaded successfully.`);
+        console.log(`[LoadSpritesManifest] All assets loaded successfully.`);
         // Optionally, you can call createAnimationsFromManifest here if you want to create animations immediately after loading
         createAnimationsFromManifest(scene, manifestData);
     });
     // Optionally, you can add a progress listener to track loading progress
     
-    console.log(`[loadAssetsFromManifest] Finished initiating asset loading.`);
+    console.log(`[LoadSpritesManifest] Finished initiating asset loading.`);
 }
 
 // --- Function to create animations after loading ---
@@ -125,11 +135,15 @@ function loadAssetsFromManifest(scene: Phaser.Scene, manifestData: AssetDefiniti
  */
 function createAnimationsFromManifest(scene: Phaser.Scene, manifestData: AssetDefinition[]): void {
      if (!manifestData || !Array.isArray(manifestData)) {
-        console.error('[createAnimationsFromManifest] Invalid or missing manifest data provided.');
+        console.error('[LoadSpritesManifest] Invalid or missing manifest data provided.');
+        return;
+    }
+    if (!scene || !scene.anims) {
+        console.error('[LoadSpritesManifest] Invalid scene or anims manager provided.');
         return;
     }
 
-    console.log(`[createAnimationsFromManifest] Starting animation creation from manifest...`);
+    console.log(`[LoadSpritesManifest] Starting animation creation from manifest...`);
     manifestData.forEach(asset => {
         // Only process spritesheets that have an 'animations' array
         if (asset.type === 'spritesheet' && asset.animations && Array.isArray(asset.animations)) {
@@ -137,7 +151,7 @@ function createAnimationsFromManifest(scene: Phaser.Scene, manifestData: AssetDe
                 try {
                      // Basic validation of the animation definition
                      if (!anim || typeof anim.key !== 'string' || !anim.frames || typeof anim.frameRate !== 'number' || typeof anim.repeat !== 'number') {
-                        console.warn(`[createAnimationsFromManifest] Skipping invalid animation definition for sheet '${asset.key}':`, anim);
+                        console.warn(`[LoadSpritesManifest] Skipping invalid animation definition for sheet '${asset.key}':`, anim);
                         return; // Skip invalid animation entry
                     }
 
@@ -167,10 +181,10 @@ function createAnimationsFromManifest(scene: Phaser.Scene, manifestData: AssetDe
 
                 } catch (error) {
                     // Catch errors during animation creation (e.g., texture key not found)
-                    console.error(`[createAnimationsFromManifest] Error creating animation '${anim.key}' for sheet '${asset.key}':`, error);
+                    console.error(`[LoadSpritesManifest] Error creating animation '${anim.key}' for sheet '${asset.key}':`, error);
                 }
             });
         }
     });
-    console.log(`[createAnimationsFromManifest] Finished creating animations.`);
+    console.log(`[LoadSpritesManifest] Finished creating animations.`);
 }
