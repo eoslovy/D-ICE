@@ -58,6 +58,10 @@ export class GameOver extends Phaser.Scene {
       this.backendResponse = message;
       this.updateUI();
       this.handleVideoUpload();
+      // 나중에 시간 지나면 자동으로 넘어가는 로직 안에 넣기
+      if(this.backendResponse.currentRound == this.backendResponse.totalRound){
+        this.EndGame();
+      }
     });
   }
   
@@ -110,6 +114,9 @@ export class GameOver extends Phaser.Scene {
 
     // 메인 메뉴 버튼
     this.createMenuButton(width / 2, height * 0.8);
+
+    // 다음 게임 버튼
+    this.createPreloaderButton(width / 2, height * 0.9);
   }
 
   private updateUI() {
@@ -186,6 +193,9 @@ export class GameOver extends Phaser.Scene {
 
     // 메인 메뉴 버튼
     this.createMenuButton(width / 2, height * 0.9);
+
+    // 다음 게임 버튼
+    this.createPreloaderButton(width / 2, height * 0.95);
   }
 
   private createRankGraph(x: number, y: number) {
@@ -369,7 +379,19 @@ export class GameOver extends Phaser.Scene {
       ).setOrigin(0.5);
     }
   }
+  private EndGame() {
+    if (!this.backendResponse) {
+        console.error('[GameOver] No backend response available to end the game.');
+        return;
+    }
 
+    // Pass totalScore, rankRecord, and overallRank to the EndGame scene
+    this.scene.start('EndGame', {
+        totalScore: this.backendResponse.totalScore,
+        rankRecord: this.backendResponse.rankRecord,
+        overallRank: this.backendResponse.overallRank
+    });
+}
   private createMenuButton(x: number, y: number) {
     const buttonWidth = 200;
     const buttonHeight = 50;
@@ -393,6 +415,30 @@ export class GameOver extends Phaser.Scene {
       this.scene.start('MainMenu');
     });
   }
+
+  private createPreloaderButton(x: number, y: number) {
+    const buttonWidth = 200;
+    const buttonHeight = 50;
+
+    const button = this.add.container(x, y);
+    
+    const bg = this.add.graphics();
+    bg.fillStyle(0x4a4a4a, 1);
+    bg.fillRoundedRect(-buttonWidth/2, -buttonHeight/2, buttonWidth, buttonHeight, 16);
+    
+    const text = this.add.text(0, 0, '다음 게임', {
+      fontSize: '24px',
+      color: '#ffffff'
+    }).setOrigin(0.5);
+    
+    button.add([bg, text]);
+    button.setSize(buttonWidth, buttonHeight);
+    button.setInteractive();
+    
+    button.on('pointerup', () => {
+      this.scene.start('Preloader');
+    });
+}
   
   private sendScoreToBackend(userId: string, roomCode: string) {
     if (!userId || !roomCode) {

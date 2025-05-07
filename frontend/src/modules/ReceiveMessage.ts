@@ -22,11 +22,15 @@ interface UserJoinedMessage {
     nickname: string;
     requestId: string;
 }
+interface EnterGameMessage {
+    type: "ENTER_GAME";
+}
 
 interface UserJoinedAdminMessage {
     type: "USER_JOINED_ADMIN";
     userId: string;
     userCount: number;
+    nickname: string;
     requestId: string;
 }
 
@@ -102,6 +106,7 @@ type AdminReceiveTypeMap = {
 type UserReceiveTypeMap = {
     USER_JOINED: UserJoinMessage;
     WAIT: WaitMessage;
+    ENTER_GAME: EnterGameMessage;
     AGGREGATED_USER: AggregatedUserMessage;
 };
 
