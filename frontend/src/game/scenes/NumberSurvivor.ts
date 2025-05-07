@@ -1,16 +1,32 @@
 import { Scene } from 'phaser';
 import webSocketManager from '../../modules/WebSocketManager';
 
-interface RoundResult {
-    numberSelections: { [key: number]: PlayerInfo[] };
-    survivors: PlayerInfo[];
-    previousSurvivorCount: number;
-    currentSurvivorCount: number;
-}
+// 게임 설정 상수
+const GAME_CONFIG = {
+    WIDTH: 800,
+    HEIGHT: 600,
+    BUTTON_SIZE: 60,
+    PADDING: 10,
+    COLUMNS: 5,
+    CENTER_X: 400,
+    CENTER_Y: 300,
+    MESSAGE_Y: 50,
+    TIMER_Y: 100,
+    GRID_START_Y: 250
+} as const;
 
+// 타입 정의
 interface PlayerInfo {
     userId: string;
     nickname: string;
+}
+
+interface RoundResult {
+    type: "ROUND_RESULT";
+    round: number;
+    numberSelections: { [key: number]: PlayerInfo[] };
+    survivors: PlayerInfo[];
+    eliminated: PlayerInfo[];
 }
 
 interface MyResult {
@@ -19,6 +35,7 @@ interface MyResult {
 }
 
 interface RoundStartMessage {
+    type: "ROUND_START";
     numberRange: {
         max: number;
     };
@@ -26,6 +43,7 @@ interface RoundStartMessage {
 }
 
 interface GameOverMessage {
+    type: "GAME_OVER";
     winners: PlayerInfo[];
 }
 
@@ -36,7 +54,7 @@ export class NumberSurvivor extends Scene {
     private numberButtons: Phaser.GameObjects.Container[];
     private messageText?: Phaser.GameObjects.Text;
     private timerText?: Phaser.GameObjects.Text;
-    private maxNumber: number = 21;
+    private maxNumber: number;
     private timerEvent?: Phaser.Time.TimerEvent;
     
     constructor() {
@@ -56,6 +74,11 @@ export class NumberSurvivor extends Scene {
         
         this.events.on('shutdown', this.shutdown, this);
         
+        if (!webSocketManager.isConnected()) {
+            this.showError('서버와 연결이 끊어졌습니다.');
+            return;
+        }
+
         webSocketManager.send({
             type: 'NUMBER_SURVIVOR_JOIN',
             userId: this.userId,
@@ -72,18 +95,18 @@ export class NumberSurvivor extends Scene {
 
     private createGameUI() {
         // 배경 추가
-        this.add.rectangle(400, 300, 800, 600, 0x000000)
+        this.add.rectangle(GAME_CONFIG.CENTER_X, GAME_CONFIG.CENTER_Y, GAME_CONFIG.WIDTH, GAME_CONFIG.HEIGHT, 0x000000)
             .setAlpha(0.8);
 
         // 상단 메시지 텍스트
-        this.messageText = this.add.text(400, 50, '게임 시작을 기다리는 중...', {
+        this.messageText = this.add.text(GAME_CONFIG.CENTER_X, GAME_CONFIG.MESSAGE_Y, '게임 시작을 기다리는 중...', {
             fontSize: '24px',
             color: '#ffffff',
             align: 'center'
         }).setOrigin(0.5);
 
         // 타이머 텍스트
-        this.timerText = this.add.text(400, 100, '', {
+        this.timerText = this.add.text(GAME_CONFIG.CENTER_X, GAME_CONFIG.TIMER_Y, '', {
             fontSize: '32px',
             color: '#ffff00',
             align: 'center'
@@ -93,21 +116,15 @@ export class NumberSurvivor extends Scene {
     }
 
     private createNumberGrid() {
-        const buttonWidth = 60;
-        const buttonHeight = 60;
-        const padding = 10;
-        const columns = 5;
-        
-        const gridWidth = (buttonWidth + padding) * columns - padding;
-        const startX = 400 - (gridWidth / 2) + (buttonWidth / 2);
-        const startY = 250;
+        const gridWidth = (GAME_CONFIG.BUTTON_SIZE + GAME_CONFIG.PADDING) * GAME_CONFIG.COLUMNS - GAME_CONFIG.PADDING;
+        const startX = GAME_CONFIG.CENTER_X - (gridWidth / 2) + (GAME_CONFIG.BUTTON_SIZE / 2);
         
         for (let i = 1; i <= this.maxNumber; i++) {
-            const col = (i - 1) % columns;
-            const row = Math.floor((i - 1) / columns);
+            const col = (i - 1) % GAME_CONFIG.COLUMNS;
+            const row = Math.floor((i - 1) / GAME_CONFIG.COLUMNS);
             
-            const x = startX + (col * (buttonWidth + padding));
-            const y = startY + (row * (buttonHeight + padding));
+            const x = startX + (col * (GAME_CONFIG.BUTTON_SIZE + GAME_CONFIG.PADDING));
+            const y = GAME_CONFIG.GRID_START_Y + (row * (GAME_CONFIG.BUTTON_SIZE + GAME_CONFIG.PADDING));
             
             const button = this.createNumberButton(x, y, i);
             this.numberButtons.push(button);
@@ -117,14 +134,12 @@ export class NumberSurvivor extends Scene {
     private createNumberButton(x: number, y: number, number: number): Phaser.GameObjects.Container {
         const container = this.add.container(x, y);
         
-        // 버튼 배경
-        const bg = this.add.rectangle(0, 0, 60, 60, 0x4444aa)
+        const bg = this.add.rectangle(0, 0, GAME_CONFIG.BUTTON_SIZE, GAME_CONFIG.BUTTON_SIZE, 0x4444aa)
             .setInteractive({ cursor: 'pointer' })
             .on('pointerover', () => bg.setFillStyle(0x6666cc))
             .on('pointerout', () => bg.setFillStyle(0x4444aa))
             .on('pointerdown', () => this.handleNumberSelection(number));
             
-        // 숫자 텍스트
         const text = this.add.text(0, 0, number.toString(), {
             fontSize: '24px',
             color: '#ffffff'
@@ -135,42 +150,47 @@ export class NumberSurvivor extends Scene {
     }
 
     private handleNumberSelection(number: number) {
-        if (webSocketManager.isConnected()) {
-            // 숫자 선택 - send 직접 사용
-            webSocketManager.send({
-                type: 'NUMBER_SURVIVOR_SELECT',
-                userId: this.userId,
-                roomId: this.roomId,
-                selectedNumber: number
-            });
-            
-            // 선택 후 버튼 비활성화
-            this.numberButtons.forEach(button => button.setAlpha(0.5));
-            
-            if (this.messageText) {
-                this.messageText.setText(`${number}번을 선택했습니다!`);
-            }
+        if (!webSocketManager.isConnected()) {
+            this.showError('서버와 연결이 끊어졌습니다.');
+            return;
+        }
+
+        webSocketManager.send({
+            type: 'NUMBER_SURVIVOR_SELECT',
+            userId: this.userId,
+            roomId: this.roomId,
+            selectedNumber: number
+        });
+        
+        this.disableNumberButtons();
+        
+        if (this.messageText) {
+            this.messageText.setText(`${number}번을 선택했습니다!`);
         }
     }
 
-    private handleRoundStart(message: RoundStartMessage) {
-        // 이전 타이머 정리
-        if (this.timerEvent) {
-            this.timerEvent.destroy();
-        }
+    private disableNumberButtons() {
+        this.numberButtons.forEach(button => button.setAlpha(0.5));
+    }
 
-        // 버튼 활성화
-        this.numberButtons.forEach(button => {
-            button.setAlpha(1);
-            const [bg] = button.list as [Phaser.GameObjects.Rectangle];
-            bg.setInteractive();
-        });
+    private handleRoundStart(message: RoundStartMessage) {
+        this.cleanupTimer();
+        this.maxNumber = message.numberRange.max;
+        this.enableNumberButtons();
         
         if (this.messageText) {
             this.messageText.setText(`1부터 ${message.numberRange.max}까지 숫자를 선택하세요!`);
         }
         
         this.startTimer(message.timeLimit);
+    }
+
+    private enableNumberButtons() {
+        this.numberButtons.forEach(button => {
+            button.setAlpha(1);
+            const [bg] = button.list as [Phaser.GameObjects.Rectangle];
+            bg.setInteractive();
+        });
     }
 
     private startTimer(seconds: number) {
@@ -200,11 +220,7 @@ export class NumberSurvivor extends Scene {
         }
 
         if (!myResult.isAlive) {
-            this.numberButtons.forEach(button => {
-                button.setAlpha(0.3);
-                const [bg] = button.list as [Phaser.GameObjects.Rectangle];
-                bg.disableInteractive();
-            });
+            this.disableNumberButtons();
         }
     }
 
@@ -234,39 +250,42 @@ export class NumberSurvivor extends Scene {
             }
         }
 
-        message += `${result.previousSurvivorCount}명 중 ${result.currentSurvivorCount}명이 살아남았습니다!`;
+        message += `${result.survivors.length}명이 살아남았습니다!`;
         
         return { message, isAlive };
     }
 
     private handleGameOver(message: GameOverMessage) {
         if (this.messageText) {
-            if (Array.isArray(message.winners)) {
-                if (message.winners.length === 1) {
-                    this.messageText.setText(`게임 종료! 우승자: ${message.winners[0].nickname}`);
-                } else if (message.winners.length > 1) {
-                    const names = message.winners.map((w: any) => w.nickname).join(', ');
-                    this.messageText.setText(`게임 종료! 공동 우승자: ${names}`);
-                } else {
-                    this.messageText.setText('게임 종료! 우승자 없음');
-                }
-            } else {
-                this.messageText.setText('게임 종료!');
-            }
+            const winnerNames = message.winners.map(w => w.nickname).join(', ');
+            this.messageText.setText(`게임 종료! 우승자: ${winnerNames}`);
         }
 
-        // 모든 버튼 비활성화
-        this.numberButtons.forEach(button => {
-            button.setAlpha(0.3);
-            const [bg] = button.list as [Phaser.GameObjects.Rectangle];
-            bg.disableInteractive();
-        });
+        this.disableNumberButtons();
+    }
+
+    private showError(message: string) {
+        if (this.messageText) {
+            this.messageText.setText(message);
+        }
+    }
+
+    private cleanupTimer() {
+        if (this.timerEvent) {
+            this.timerEvent.destroy();
+            this.timerEvent = undefined;
+        }
     }
 
     shutdown() {
-        if (this.timerEvent) {
-            this.timerEvent.destroy();
-        }
+        super.shutdown();
+        this.cleanupResources();
+    }
+
+    private cleanupResources() {
+        this.cleanupTimer();
+        this.numberButtons.forEach(button => button.destroy());
+        this.numberButtons = [];
         
         webSocketManager.removeListener('NUMBER_SURVIVOR_START', this.handleRoundStart, this);
         webSocketManager.removeListener('NUMBER_SURVIVOR_RESULT', this.handleRoundResult, this);
