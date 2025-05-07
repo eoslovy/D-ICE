@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import userWebSocketManager from '../../../modules/UserWebSocketManager';
+import { LoadManifestFromJSON } from '../../../modules/gameutils/LoadSpritesManifest';
 
 
 interface GameInfo {
@@ -27,7 +28,8 @@ export class Preloader extends Phaser.Scene {
       { name: '카드 매칭', key: 'Cards', color: 0x3742fa },
       { name: '미로 찾기', key: 'Maze', color: 0x2f3542 },
       { name: '색상 맞추기', key: 'Color', color: 0x7bed9f },
-      { name: '숫자 게임', key: 'Number', color: 0xfed330 }
+      { name: '숫자 게임', key: 'Number', color: 0xfed330 },
+      { name: '무궁화', key: 'Mugungwha', color: 0xff6348 },
     ]
   };
 
@@ -66,6 +68,7 @@ export class Preloader extends Phaser.Scene {
     this.load.image('bg', 'assets/bg.png');
     this.load.image('logo', 'assets/logo.png');
     this.load.image('star', 'assets/star.png');
+    LoadManifestFromJSON(this, 'assets/manifest.json');
   }
 
   private showWaitingMessage() {
