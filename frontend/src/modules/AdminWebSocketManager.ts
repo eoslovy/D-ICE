@@ -1,25 +1,16 @@
 import { WebSocketManager } from "./WebSocketManager";
-<<<<<<< HEAD
 import { adminStore } from "../stores/adminStore";
 
 class AdminWebSocketManager extends WebSocketManager<AdminReceiveTypeMap> {
 
 
-=======
-
-class AdminWebSocketManager extends WebSocketManager<AdminReceiveTypeMap> {
->>>>>>> a9028b3bb9235a1c8128430e4c999078d58131b4
     connect(): void {
         super.connect();
         this.setUpOnMessage();
     }
 
     sendAdminJoin(requestId: string): void {
-<<<<<<< HEAD
         const administratorId = adminStore.getState().administratorId;
-=======
-        const administratorId = localStorage.getItem("administratorId");
->>>>>>> a9028b3bb9235a1c8128430e4c999078d58131b4
         if (!administratorId) {
             console.error(
                 "[WebSocketManager] Administrator ID not found in local storage."
@@ -35,11 +26,7 @@ class AdminWebSocketManager extends WebSocketManager<AdminReceiveTypeMap> {
     }
 
     sendSessionInit(requestId: string, totalRound: number): void {
-<<<<<<< HEAD
         const administratorId = adminStore.getState().administratorId;
-=======
-        const administratorId = localStorage.getItem("administratorId");
->>>>>>> a9028b3bb9235a1c8128430e4c999078d58131b4
         if (!administratorId) {
             console.error(
                 "[WebSocketManager] Administrator ID not found in local storage."
@@ -56,11 +43,7 @@ class AdminWebSocketManager extends WebSocketManager<AdminReceiveTypeMap> {
     }
 
     sendStartGame(requestId: string): void {
-<<<<<<< HEAD
         const administratorId = adminStore.getState().administratorId;
-=======
-        const administratorId = localStorage.getItem("administratorId");
->>>>>>> a9028b3bb9235a1c8128430e4c999078d58131b4
         if (!administratorId) {
             console.error(
                 "[WebSocketManager] Administrator ID not found in local storage."

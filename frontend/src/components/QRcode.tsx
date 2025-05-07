@@ -4,12 +4,8 @@ import { useState, useEffect, useCallback } from "react";
 import { QRCodeCanvas } from "qrcode.react";
 
 interface GenerateQrCodeProps {
-<<<<<<< HEAD
-  roomCode: string | null;
-=======
   roomCode: string;
   isDarkMode?: boolean;
->>>>>>> a9028b3bb9235a1c8128430e4c999078d58131b4
 }
 
 function GenerateQrCode({ roomCode, isDarkMode = false }: GenerateQrCodeProps) {
@@ -43,7 +39,6 @@ function GenerateQrCode({ roomCode, isDarkMode = false }: GenerateQrCodeProps) {
 
   if (!roomCode) return <div>Loading...</div>;
 
-  if (!roomCode) return <div>Loading...</div>;
   if (!url) return <div>Generating QR Code...</div>;
 
   return (

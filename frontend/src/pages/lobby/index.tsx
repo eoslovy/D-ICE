@@ -33,10 +33,7 @@ export default function Lobby() {
         }
 
         try {
-<<<<<<< HEAD
-=======
             setIsJoining(true);
->>>>>>> a9028b3bb9235a1c8128430e4c999078d58131b4
             const USER_WS_URL = `ws://${
                 import.meta.env.VITE_API_URL || "localhost:8080"
             }/ws/game/user/${roomCodeInput}`;
@@ -47,7 +44,6 @@ export default function Lobby() {
                 (payload: UserJoinedMessage) => {
                     console.log("유저 입장 성공:", payload);
 
-<<<<<<< HEAD
                     // zustand에 상태 저장
                     userStore.getState().setUserId(payload.userId);
                     userStore.getState().setRoomCode(roomCodeInput);
@@ -56,11 +52,6 @@ export default function Lobby() {
                     // 방 코드, 닉네임 저장 및 페이지 이동
                     // localStorage.setItem("roomCode", roomCodeInput);
                     // localStorage.setItem("nickname", nicknameInput);
-=======
-                    // 방 코드, 닉네임 저장 및 페이지 이동
-                    localStorage.setItem("roomCode", roomCodeInput);
-                    localStorage.setItem("nickname", nicknameInput);
->>>>>>> a9028b3bb9235a1c8128430e4c999078d58131b4
                     navigate(`/userroom/${roomCodeInput}`);
                 }
             );
