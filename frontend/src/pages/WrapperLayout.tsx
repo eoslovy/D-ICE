@@ -89,7 +89,7 @@ export default function WrapperLayout() {
   }, [navigate]);
 
   return (
-    <div className="min-h-screen">
+    <div id='app' className="min-h-screen">
       <Outlet />
     </div>
   );

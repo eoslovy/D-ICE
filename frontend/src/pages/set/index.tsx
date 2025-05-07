@@ -66,8 +66,8 @@ export default function Set() {
 
             <GameCard>
                 <h1 className="game-title">
-                    <Settings className="inline-block mr-2" size={28} />
-                    게임 설정
+                    <Settings className="inline-flex mr-2" size={28} />
+                    라운드 선택
                 </h1>
 
                 <div className="mb-6">
