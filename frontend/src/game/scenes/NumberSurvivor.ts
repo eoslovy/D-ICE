@@ -18,6 +18,17 @@ interface MyResult {
     isAlive: boolean;
 }
 
+interface RoundStartMessage {
+    numberRange: {
+        max: number;
+    };
+    timeLimit: number;
+}
+
+interface GameOverMessage {
+    winners: PlayerInfo[];
+}
+
 export class NumberSurvivor extends Scene {
     private userId: string;
     private roomId: string;
@@ -142,7 +153,7 @@ export class NumberSurvivor extends Scene {
         }
     }
 
-    private handleRoundStart(message: any) {
+    private handleRoundStart(message: RoundStartMessage) {
         // 이전 타이머 정리
         if (this.timerEvent) {
             this.timerEvent.destroy();
@@ -228,7 +239,7 @@ export class NumberSurvivor extends Scene {
         return { message, isAlive };
     }
 
-    private handleGameOver(message: any) {
+    private handleGameOver(message: GameOverMessage) {
         if (this.messageText) {
             if (Array.isArray(message.winners)) {
                 if (message.winners.length === 1) {
