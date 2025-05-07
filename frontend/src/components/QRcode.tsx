@@ -3,7 +3,7 @@
 import { QRCodeCanvas } from "qrcode.react";
 
 interface GenerateQrCodeProps {
-  roomCode: string;
+  roomCode: string | null;
 }
 
 function GenerateQrCode({ roomCode }: GenerateQrCodeProps) {
