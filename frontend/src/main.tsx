@@ -5,7 +5,8 @@ import { router } from './routes';
 import './vite-env.d.ts';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
-  <React.StrictMode>
+  // Strict mode 는 개발 중 비활성화 (싱글톤 문제)
+  // <React.StrictMode>
     <RouterProvider router={router} />
-  </React.StrictMode>
+  // </React.StrictMode>
 );
