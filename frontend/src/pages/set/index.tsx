@@ -4,14 +4,25 @@ import { API } from "../../assets/api";
 import { v7 as uuidv7 } from "uuid";
 import adminWebSocketManager from "../../modules/AdminWebSocketManager";
 import { useWebSocket } from "../../modules/WebSocketContext";
+import BackgroundAnimation from "../../components/BackgroundAnimation";
+import GameCard from "../../components/GameCard";
+import DarkModeToggle from "../../components/DarkModeToggle";
+import { Settings, Loader } from "lucide-react";
+
+interface AdminJoinedMessage {
+    // Define the structure of AdminJoinedMessage here.  For example:
+    message: string;
+}
 
 export default function Set() {
     const navigate = useNavigate();
     const [rounds, setRounds] = useState(1);
+    const [isCreating, setIsCreating] = useState(false);
     let requestId = uuidv7();
     const { connectWebSocket } = useWebSocket();
     const createRoom = async () => {
         try {
+            setIsCreating(true);
             const data = await API.createRoom();
             console.log("방 생성 성공:", data);
 
@@ -36,41 +47,66 @@ export default function Set() {
                 }
             );
 
-            adminWebSocketManager.on("connect", () =>{
+            adminWebSocketManager.on("connect", () => {
                 console.log("WebSocket 연결 성공");
                 adminWebSocketManager.sendAdminJoin(requestId);
             });
-
         } catch (error) {
             console.error("방 생성 중 오류:", error);
+            setIsCreating(false);
         } finally {
             requestId = uuidv7();
         }
     };
 
     return (
-        <div>
-            <h1 className="text-2xl font-bold mb-6">게임 방 설정</h1>
-            <div className="mb-4">
-                <label className="block mb-2">라운드 수 (더미):</label>
-                <select
-                    value={rounds}
-                    onChange={(e) => setRounds(Number(e.target.value))}
-                    className="p-2 rounded bg-gray-700 text-white"
+        <div className="game-container">
+            <BackgroundAnimation />
+            <DarkModeToggle />
+
+            <GameCard>
+                <h1 className="game-title">
+                    <Settings className="inline-block mr-2" size={28} />
+                    게임 설정
+                </h1>
+
+                <div className="mb-6">
+                    <label className="block text-sm font-medium mb-2">
+                        라운드 수:
+                    </label>
+                    <select
+                        value={rounds}
+                        onChange={(e) => setRounds(Number(e.target.value))}
+                        className="select-field"
+                        disabled={isCreating}
+                    >
+                        {Array.from({ length: 10 }, (_, i) => i + 1).map(
+                            (round) => (
+                                <option key={round} value={round}>
+                                    {round} 라운드
+                                </option>
+                            )
+                        )}
+                    </select>
+                </div>
+
+                <button
+                    onClick={createRoom}
+                    disabled={isCreating}
+                    className={`btn btn-primary w-full ${
+                        isCreating ? "opacity-70 cursor-not-allowed" : ""
+                    }`}
                 >
-                    {Array.from({ length: 10 }, (_, i) => i).map((round) => (
-                        <option key={round} value={round}>
-                            {round}
-                        </option>
-                    ))}
-                </select>
-            </div>
-            <button
-                onClick={createRoom}
-                className="btn btn-primary"
-            >
-                방 생성
-            </button>
+                    {isCreating ? (
+                        <div className="flex items-center justify-center">
+                            <Loader className="animate-spin mr-2" size={20} />방
+                            생성 중....
+                        </div>
+                    ) : (
+                        "방 생성"
+                    )}
+                </button>
+            </GameCard>
         </div>
     );
 }

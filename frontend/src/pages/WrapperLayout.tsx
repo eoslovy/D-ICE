@@ -1,3 +1,5 @@
+"use client";
+
 import { useEffect } from 'react';
 import { useNavigate, Outlet } from 'react-router-dom';
 
@@ -13,6 +15,9 @@ export default function WrapperLayout() {
     }
   };
 
+  const darkModeMediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+  darkModeMediaQuery.addEventListener("change", applyDarkMode);
+
   useEffect(() => {
     applyDarkMode();
 
@@ -23,8 +28,8 @@ export default function WrapperLayout() {
     const user = localStorage.getItem('nickname');
     const admin = localStorage.getItem('administratorId');
 
-    const isUser = user !== null;
-    const isAdmin = admin !== null;
+    const isUser = user !== null || user !== undefined;
+    const isAdmin = admin !== null || admin !== undefined;
     
     // URL에서 현재 방 코드 추출 (예: /123456/admin -> 123456)
     const currentRoomCode = path.split('/')[1];
@@ -36,8 +41,18 @@ export default function WrapperLayout() {
     }
     
     // 2. URL의 방 코드와 localStorage의 방 코드가 다른 경우 -> 선택 페이지로
-    if (currentRoomCode && roomCode !== "000000" && roomCode !== currentRoomCode) {
+    if (!isCreatingOrJoiningRoom && currentRoomCode && roomCode !== "000000" && roomCode !== currentRoomCode) {
       navigate('/select', { replace: true });
+      return; // 더 이상 처리하지 않음
+    }
+
+    if (isCreatingOrJoiningRoom && roomCode !== "000000" && isAdmin) {
+      navigate(`/adminroom/${roomCode}`, { replace: true });
+      return; // 더 이상 처리하지 않음
+    }
+
+    if (isCreatingOrJoiningRoom && roomCode !== "000000" && isUser) {
+      navigate(`/userroom/${roomCode}`, { replace: true });
       return; // 더 이상 처리하지 않음
     }
     
@@ -67,11 +82,14 @@ export default function WrapperLayout() {
       navigate('/lobby', { replace: true });
       return;
     }
-    
+
+    return () => {
+      darkModeMediaQuery.removeEventListener("change", applyDarkMode)
+    }
   }, [navigate]);
 
   return (
-    <div className="">
+    <div className="min-h-screen">
       <Outlet />
     </div>
   );
