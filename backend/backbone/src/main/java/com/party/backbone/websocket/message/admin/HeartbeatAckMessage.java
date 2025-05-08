@@ -9,6 +9,6 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class HeartbeatAckMessage implements GameMessage {
-	private String requestId;
+public class HeartbeatAckMessage implements GameMessage, AdminMessage {
+	private String administratorId;
 }
