@@ -1,5 +1,5 @@
 interface AdminSendMessage {
-    type: "ADMIN_JOIN" | "INIT" | "START_GAME";
+    type: "ADMIN_JOIN" | "INIT" | "START_GAME" | "RECONNECT_ADMIN";
     administratorId: string;
     requestId: string;
 }
@@ -17,3 +17,6 @@ interface StartGameMessage extends AdminSendMessage {
     type: "START_GAME";
 }
 
+interface ReconnectAdminMessage extends AdminSendMessage {
+    type: "RECONNECT_ADMIN",
+}

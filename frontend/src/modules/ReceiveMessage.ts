@@ -16,11 +16,21 @@ interface AdminJoinedMessage {
     requestId: string;
 }
 
+interface AdminReconnectedMessage {
+    type: "ADMIN_RECONNECTED";
+    requestId: string;
+}
+
 interface UserJoinedMessage {
     type: "USER_JOINED";
     userId: string;
     nickname: string;
     requestId: string;
+}
+interface UserReconnectedMessage {
+    type: "USER_RECONNECTED",
+    requestId: string;
+    userId: string;
 }
 interface EnterGameMessage {
     type: "ENTER_GAME";
@@ -81,6 +91,12 @@ interface EndMessage {
     overallRanking: RankingInfo[];
 }
 
+interface BroadcastMessage {
+    type: "BROADCAST";
+    requestId: string; //UUIDv7
+    userId: string;
+    payload: string;
+}
 type ReceiveMessage =
     | {
           [K in keyof AdminReceiveTypeMap]: {
@@ -97,16 +113,20 @@ type ReceiveMessageMap = AdminReceiveTypeMap | UserReceiveTypeMap;
 
 type AdminReceiveTypeMap = {
     ADMIN_JOINED: AdminJoinedMessage;
+    ADMIN_RECONNECTED: AdminReconnectedMessage;
     USER_JOINED_ADMIN: UserJoinedAdminMessage;
     NEXT_GAME: NextGameMessage;
     AGGREGATED_ADMIN: AggregatedAdminMessage;
     END: EndMessage;
+    BROADCAST: BroadcastMessage;
 };
 
 type UserReceiveTypeMap = {
     USER_JOINED: UserJoinMessage;
+    USER_RECONNECTED: UserReconnectedMessage;
     WAIT: WaitMessage;
     ENTER_GAME: EnterGameMessage;
     AGGREGATED_USER: AggregatedUserMessage;
+    BROADCAST: BroadcastMessage;
 };
 
