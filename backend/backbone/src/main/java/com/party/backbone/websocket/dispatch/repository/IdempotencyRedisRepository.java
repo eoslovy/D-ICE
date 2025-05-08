@@ -13,10 +13,14 @@ public class IdempotencyRedisRepository {
 		this.redisTemplate = redisTemplate;
 	}
 
-	public boolean checkAndSetRequestId(String roomCode, String requestId) {
+	public boolean isRequestIdProcessed(String roomCode, String requestId) {
 		String key = buildKey(roomCode, requestId);
-		Boolean success = redisTemplate.opsForValue().setIfAbsent(key, "1", Duration.ofMinutes(10)); // TTL 예시
-		return Boolean.TRUE.equals(success);
+		return Boolean.TRUE.equals(redisTemplate.hasKey(key));
+	}
+
+	public void markRequestIdProcessed(String roomCode, String requestId) {
+		String key = buildKey(roomCode, requestId);
+		redisTemplate.opsForValue().set(key, "1", Duration.ofMinutes(10));
 	}
 
 	private String buildKey(String roomCode, String requestId) {

@@ -3,7 +3,8 @@ import { useNavigate } from "react-router-dom";
 import userWebSocketManager from "../../modules/UserWebSocketManager";
 import { useWebSocket } from "../../modules/WebSocketContext";
 import { v7 as uuidv7 } from "uuid";
-import BackgroundAnimation from "../../components/BackgroundAnimation"
+import BackgroundAnimation from "../../components/BackgroundAnimation";
+import DarkModeToggle from "../../components/DarkModeToggle";
 import GameCard from "../../components/GameCard"
 import { LogIn, Loader } from "lucide-react"
 
@@ -68,6 +69,7 @@ export default function Lobby() {
     return (
         <div className="game-container">
           <BackgroundAnimation />
+          <DarkModeToggle />
     
           <GameCard>
             <h1 className="game-title">Join Game</h1>

@@ -27,7 +27,7 @@ public class BroadcastRequestMessageHandler extends GameMessageHandler<Broadcast
 	BroadcastRequestMessageHandler(
 		IdempotencyRedisRepository idempotencyRedisRepository, Broadcaster broadcaster, SessionRegistry sessionRegistry,
 		RoomRedisRepository roomRepository, ObjectMapper objectMapper) {
-		super(idempotencyRedisRepository);
+		super(idempotencyRedisRepository, roomRepository);
 		this.broadcaster = broadcaster;
 		this.sessionRegistry = sessionRegistry;
 		this.roomRepository = roomRepository;
