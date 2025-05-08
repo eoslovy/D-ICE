@@ -23,7 +23,7 @@ export default function Set() {
 
             const { roomCode, administratorId } = data;
 
-            adminStore.getState().setadministratorId(administratorId);
+            adminStore.getState().setAdministratorId(administratorId);
 
             const ADMIN_WS_URL = `ws://${
                 import.meta.env.VITE_API_URL || "localhost:8080"
