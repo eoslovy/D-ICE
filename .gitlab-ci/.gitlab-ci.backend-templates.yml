@@ -4,12 +4,23 @@ workflow:
       variables:
         HOST_SERVER: d-ice.co.kr
         SERVER_DOMAIN: d-ice.co.kr
-        CERT_DOMAIN: d-ice.co.kr bucket.d-ice.co.kr
+        BUCKET_DOMAIN: bucket.d-ice.co.kr
+        CERT_DOMAIN: d-ice.co.kr
+        BUILD_ARCHITECTURE: linux/arm64
+    - if: '$CI_COMMIT_BRANCH == "master" && $CI_PIPELINE_SOURCE == "web"'
+      variables:
+        HOST_SERVER: d-ice.co.kr
+        SERVER_DOMAIN: d-ice.co.kr
+        BUCKET_DOMAIN: bucket.d-ice.co.kr
+        CERT_DOMAIN: d-ice.co.kr
+        BUILD_ARCHITECTURE: linux/arm64
     - when: always
       variables:
         HOST_SERVER: test.d-ice.co.kr
         SERVER_DOMAIN: test.d-ice.co.kr
-        CERT_DOMAIN: test.d-ice.co.kr bucket.test.d-ice.co.kr
+        BUCKET_DOMAIN: bucket.test.d-ice.co.kr
+        CERT_DOMAIN: test.d-ice.co.kr
+        BUILD_ARCHITECTURE: linux/amd64
 
 .backend-default-build:
   stage: build
@@ -17,7 +28,7 @@ workflow:
     - $GITLAB_USER_EMAIL
   script:
     - echo "🔨 Docker 이미지 빌드 및 테스트 중..."
-    - docker build -t ${DOCKERHUB_USERNAME:-default}/$REGISTRY_PATH-${SERVICE_NAME}:$CI_COMMIT_SHORT_SHA ${BUILD_CONTEXT}
+    - docker build --platform ${BUILD_ARCHITECTURE} -t ${DOCKERHUB_USERNAME:-default}/$REGISTRY_PATH-${SERVICE_NAME}:$CI_COMMIT_SHORT_SHA ${BUILD_CONTEXT}
     #- echo "✅ 빌드 완료: $IMAGE_NAME:$CI_COMMIT_SHORT_SHA
 
 .backend-default-push:

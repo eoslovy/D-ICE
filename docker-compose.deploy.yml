@@ -60,15 +60,6 @@ services:
     ports:
       - "18087:8080"
 
-  frontend-react:
-    image: ${DOCKERHUB_USERNAME:-recreatekang}/d-ice-frontend-nginx:${IMAGE_TAG:-latest}
-    env_file:
-      - .env
-    profiles:
-      - build-only
-    ports:
-      - "80:80"
-
   springcloud-gateway:
     container_name: springcloud-gateway
     image: ${DOCKERHUB_USERNAME:-recreatekang}/d-ice-springcloud-gateway:${IMAGE_TAG:-latest}
@@ -79,18 +70,10 @@ services:
       - "8080:8080"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
-    depends_on:
-      - backbone-service
-      - gamekjh-service
-      - gamecjm-service
-      - gamekyh-service
-      - gamelsr-service
-      - gameojs-service
-      - gameydg-service
 
   frontend-nginx:
     container_name: nginx
-    image: ${DOCKERHUB_USERNAME:-recreatekang}/d-ice-nginx:${IMAGE_TAG:-latest}
+    image: ${DOCKERHUB_USERNAME:-recreatekang}/d-ice-frontend-nginx:${IMAGE_TAG:-latest}
     restart: always
     env_file:
       - .env
@@ -110,3 +93,17 @@ services:
     restart: always
     ports:
       - "6379:6379"
+  minio-bucket:
+    container_name: minio-bucket
+    env_file:
+      - .env
+    image: ${DOCKERHUB_USERNAME:-recreatekang}/d-ice-minio-bucket:${IMAGE_TAG:-latest}
+    ports:
+      - "9000:9000"      # API 포트
+      - "9001:9001"      # 웹 콘솔 포트
+    environment:
+      MINIO_ROOT_USER: minioadmin         # 접속 ID (변경 권장)
+      MINIO_ROOT_PASSWORD: minioadmin     # 접속 PW (변경 권장)
+    volumes:
+      - ./infra/minio/data:/data                      # 데이터 보관용 볼륨
+    restart: always
