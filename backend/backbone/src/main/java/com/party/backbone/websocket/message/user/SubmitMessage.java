@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class SubmitMessage implements IdempotentMessage {
+public class SubmitMessage implements IdempotentMessage, UserMessage {
 	private String requestId;
 	private String userId;
 	private int score;
