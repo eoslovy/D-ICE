@@ -6,14 +6,14 @@ workflow:
         SERVER_DOMAIN: d-ice.co.kr
         BUCKET_DOMAIN: bucket.d-ice.co.kr
         CERT_DOMAIN: d-ice.co.kr
-        BUILD_ARCHITECTURE: linux/arm64
+        BUILD_ARCHITECTURE: linux/amd64
     - when: always
       variables:
         HOST_SERVER: test.d-ice.co.kr
         SERVER_DOMAIN: test.d-ice.co.kr
         BUCKET_DOMAIN: bucket.test.d-ice.co.kr
         CERT_DOMAIN: test.d-ice.co.kr
-        BUILD_ARCHITECTURE: linux/amd64
+        BUILD_ARCHITECTURE: linux/arm64
 
 .backend-default-build:
   stage: build
