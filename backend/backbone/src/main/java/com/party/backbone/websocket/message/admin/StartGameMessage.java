@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class StartGameMessage implements IdempotentMessage {
+public class StartGameMessage implements IdempotentMessage, AdminMessage {
 	private String requestId;
 	private String administratorId;
 }

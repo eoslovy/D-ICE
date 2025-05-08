@@ -1,5 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Nanum+Gothic+Coding:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Jua&display=swap');
 @import "tailwindcss";
 
 /* tertiary는 글자색입니다. */
@@ -28,6 +28,11 @@
 
 h1 {
   text-align: center;
+}
+
+#app {
+  font-family: "Fredoka", "Jua", sans-serif;
+
 }
 
 
@@ -201,7 +206,7 @@ h1 {
 }
 
 .dark .btn-primary {
-  background-color: #2a9d8f; 
+  background-color: #2a9d8f;
 }
 
 .dark .btn-secondary {
@@ -211,6 +216,7 @@ h1 {
 .dark .select-field,
 .dark .input-field {
   background-color: rgba(255, 255, 255, 0.9);
+  color: var(--quaternary-color);
   border-color: #e84545;
 }
 
