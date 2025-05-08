@@ -61,7 +61,7 @@ services:
       - "18087:8080"
 
   frontend-react:
-    image: ${DOCKERHUB_USERNAME:-recreatekang}/d-ice-frontend:${IMAGE_TAG:-latest}
+    image: ${DOCKERHUB_USERNAME:-recreatekang}/d-ice-frontend-nginx:${IMAGE_TAG:-latest}
     env_file:
       - .env
     profiles:
