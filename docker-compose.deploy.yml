@@ -95,6 +95,9 @@ services:
       - "6379:6379"
   minio-bucket:
     container_name: minio-bucket
+    env_file:
+      - .env
+    image: ${DOCKERHUB_USERNAME:-recreatekang}/d-ice-minio-bucket:${IMAGE_TAG:-latest}
     ports:
       - "9000:9000"      # API 포트
       - "9001:9001"      # 웹 콘솔 포트
