@@ -1,29 +1,22 @@
 package com.party.backbone.websocket.handler;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.Collection;
+import java.util.List;
 
-import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketSession;
 
-@Component
-public class SessionRegistry {
+public interface SessionRegistry {
+	void register(String id, WebSocketSession session);
 
-	private final Map<String, WebSocketSession> sessionMap = new ConcurrentHashMap<>();
+	WebSocketSession get(String id);
 
-	public void register(String id, WebSocketSession session) {
-		sessionMap.put(id, session);
-	}
+	List<WebSocketSession> getOpenSessions(List<String> ids);
 
-	public WebSocketSession get(String id) {
-		return sessionMap.get(id);
-	}
+	void unregister(String id);
 
-	public void unregister(String id) {
-		sessionMap.remove(id);
-	}
+	void unregisterAll(Collection<String> ids);
 
-	// public void unregister(WebSocketSession session) {
-	// 	sessionMap.entrySet().removeIf(e -> e.getValue().getId().equals(session.getId()));
-	// }
+	void closeSession(String id);
+
+	void closeSessionAll(Collection<String> userIds);
 }

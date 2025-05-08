@@ -18,6 +18,14 @@ push_redis:
   extends: .backend-default-push
   needs: [build_redis]
   rules:
+    - if: '$CI_COMMIT_BRANCH == "dev" && $CI_PIPELINE_SOURCE == "push"'
+      changes:
+        - infra/redis/**/*
+      when: always
+    - if: '$CI_COMMIT_BRANCH == "dev" && $CI_PIPELINE_SOURCE == "web"' # 수동 실행도 허용하려면
+      changes:
+        - infra/redis/**/*
+      when: manual
     - if: '$CI_COMMIT_BRANCH == "master" && $CI_PIPELINE_SOURCE == "push"'
       changes:
         - infra/redis/**/*
@@ -36,6 +44,14 @@ deploy_redis:
   extends: .backend-default-deploy
   needs: [push_redis]
   rules:
+    - if: '$CI_COMMIT_BRANCH == "dev" && $CI_PIPELINE_SOURCE == "push"'
+      changes:
+        - infra/redis/**/*
+      when: always
+    - if: '$CI_COMMIT_BRANCH == "dev" && $CI_PIPELINE_SOURCE == "web"' # 수동 실행도 허용하려면
+      changes:
+        - infra/redis/**/*
+      when: manual
     - if: '$CI_COMMIT_BRANCH == "master" && $CI_PIPELINE_SOURCE == "push"'
       changes:
         - infra/redis/**/*

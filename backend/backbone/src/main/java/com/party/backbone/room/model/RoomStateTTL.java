@@ -6,8 +6,9 @@ import lombok.Getter;
 
 @Getter
 public enum RoomStateTTL {
-	CREATED(Duration.ofMinutes(5)),
-	INIT(Duration.ofMinutes(40)),
+	CREATED(Duration.ofMinutes(15)),
+	WAITING(Duration.ofMinutes(30)),
+	PLAYING(Duration.ofMinutes(40)),
 	ENDED(Duration.ofMinutes(5));
 
 	private final Duration ttl;

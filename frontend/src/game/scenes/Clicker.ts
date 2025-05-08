@@ -366,7 +366,10 @@ export class Clicker extends Scene {
         this.time.delayedCall(3000, () => {
             // Clean up any remaining objects before transitioning
             this.tweens.killAll();
-            this.scene.start('GameOver', { score: this.score });
+            this.scene.start('GameOver', { 
+                score: this.score,
+                gameType: 'Clicker'
+            });
         });
     }
     
@@ -375,6 +378,9 @@ export class Clicker extends Scene {
     }
     
     changeScene() {
-        this.scene.start('GameOver', { score: this.score });
+        this.scene.start('GameOver', { 
+            score: this.score,
+            gameType: 'Clicker'
+        });
     }
 }

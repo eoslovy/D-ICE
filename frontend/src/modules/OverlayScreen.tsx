@@ -97,7 +97,7 @@ class OverlayScene extends Phaser.Scene {
         );
     }
 
-    public displayMessage(text: string, size: number = 16, duration: number = 2000, float: boolean = true) {
+    public displayMessage(text: string, size: number = 16, duration: number = 2000, withEffect: boolean = true) {
         console.log('[OverlayScene] displayMessage');
         // Check if the text is empty
         if (!text) {
@@ -130,13 +130,13 @@ class OverlayScene extends Phaser.Scene {
             padding: { x: 10, y: 5 },
         };
 
-        const posX = float ? Math.random() * this.scale.width : this.scale.width / 2;
-        const posY = float ? Math.random() * this.scale.height : this.scale.height / 2;
+        const posX = withEffect ? Math.random() * this.scale.width : this.scale.width / 2;
+        const posY = withEffect ? Math.random() * this.scale.height : this.scale.height / 2;
 
         const message = this.add.text(posX, posY, text, style);
         message.setOrigin(0.5);
 
-        if (float) {
+        if (withEffect) {
             // fade out and move up
             this.tweens.add({
                 targets: message,

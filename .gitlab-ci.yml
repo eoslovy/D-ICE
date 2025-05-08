@@ -15,6 +15,7 @@ include:
   # 인프라 서비스
   - local: .gitlab-ci/.gitlab-ci.frontend-nginx.yml
   - local: .gitlab-ci/.gitlab-ci.redis.yml
+  - local: .gitlab-ci/.gitlab-ci.minio.yml
   - local: .gitlab-ci/.gitlab-ci.springcloud-gateway.yml
 stages:
   - build
