@@ -11,7 +11,7 @@ ENV NGINX_CONF=${NGINX}
 ENV SERVER_DOMAIN=${SERVER_DOMAIN}
 ENV CERT_DOMAIN=${CERT_DOMAIN}
 # 기본 html 제거
-RUN rm -rf /usr/share/nginx/html/* \
+RUN rm -rf /usr/share/nginx/html/*
 
 # React 정적 파일 복사
 COPY --from=frontend /dist /usr/share/nginx/html
