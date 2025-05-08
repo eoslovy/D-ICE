@@ -10,6 +10,8 @@ import { Roulette } from './scenes/common/Roulette';
 import { PerfectCircle } from './scenes/PerfectCircle';
 import { GameInstruction } from './scenes/common/GameInstruction';
 import { Mugungwha } from './scenes/Mugungwha';
+import { Wirewalk } from './scenes/Wirewalk';
+import { Josephus } from './scenes/Josephus';
 
 const config: Phaser.Types.Core.GameConfig = {
   type: Phaser.AUTO,
@@ -38,7 +40,7 @@ const config: Phaser.Types.Core.GameConfig = {
       debug: false
     }
   },
-  scene: [Boot, Preloader, MainMenu, GameOver, EndGame, Roulette, Clicker, Reaction, GameInstruction, PerfectCircle, Mugungwha]
+  scene: [Boot, Preloader, MainMenu, GameOver, EndGame, Roulette, Clicker, Reaction, GameInstruction, PerfectCircle, Mugungwha, Wirewalk, Josephus]
 };
 
 export default config;
