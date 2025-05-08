@@ -15,7 +15,8 @@ type CustomManagingEvent =
     | "raw_message"
     | "unknown_requestId"
     | "error"
-    | "reconnect_failed";
+    | "reconnect_failed"
+    | "already_connected";
 
 abstract class WebSocketManager<
     M extends Record<string, any>
@@ -51,6 +52,7 @@ abstract class WebSocketManager<
 
         if (this.ws && this.ws.readyState === WebSocket.OPEN) {
             console.log("[WebSocketManager] Already connected.");
+            this.emit("already_connected"); // Already connected event 
             return;
         }
 

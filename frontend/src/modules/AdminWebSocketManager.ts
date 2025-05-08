@@ -25,7 +25,7 @@ class AdminWebSocketManager extends WebSocketManager<AdminReceiveTypeMap> {
         });
     }
 
-    sendSessionInit(requestId: string, totalRound: number): void {
+    sendSessionInit(requestId: string, totalRound: number | null): void {
         const administratorId = adminStore.getState().administratorId;
         if (!administratorId) {
             console.error(

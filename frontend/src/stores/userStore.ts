@@ -6,6 +6,7 @@ interface UserState {
   userId: string | null;
   roomCode: string | null;
   nickname: string | null;
+  setStatus: (status: "INGAME" | "WAITING") => void; 
   setUserId: (userId: string) => void;
   setRoomCode: (roomCode: string) => void;
   setNickname: (nickname: string) => void;
@@ -19,6 +20,7 @@ export const userStore = create<UserState>()(
     userId: null,
     roomCode: null,
     nickname: null,
+    setStatus: (status: "INGAME" | "WAITING") => set({ status }), 
     setUserId: (userId: string) => set({ userId }),
     setRoomCode: (roomCode: string) => set({ roomCode }),
     setNickname: (nickname: string) => set({ nickname }),

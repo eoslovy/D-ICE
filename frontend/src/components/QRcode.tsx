@@ -31,9 +31,7 @@ function GenerateQrCode({ roomCode, isDarkMode = false }: GenerateQrCodeProps) {
     if (!roomCode) return;
     
     const origin = window.location.origin;
-    const joinUrl = `${origin}/userroom/${roomCode}`;
-    localStorage.setItem("roomCode", roomCode);
-    localStorage.setItem("isQRCode", true.toString());
+    const joinUrl = `${origin}/join/${roomCode}`;
     setUrl(joinUrl);
   }, [roomCode]);
 

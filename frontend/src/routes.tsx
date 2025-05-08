@@ -7,12 +7,10 @@ import UserRoom from './pages/room/UserRoom';
 import BroadcastRoom from './pages/room/BroadcastRoom';
 import Set from './pages/set';
 import Lobby from './pages/lobby';
+import Join from './pages/join/join';
+import NotFound from './pages/error/NotFound';
 
 export const router = createBrowserRouter([
-  // {
-  //   path: '/',
-  //   element: <Home />
-  // },
   {
     path: '/game',
     element: <App />
@@ -21,6 +19,14 @@ export const router = createBrowserRouter([
     path: '/',
     element: <WrapperLayout />,
     children: [
+      {
+        index: true, // 기본 경로로 설정
+        element: <Select />, // 기본 컴포넌트로 Select 렌더링
+      },
+      {
+        path: '/join/:roomCode',
+        element: <Join />,
+      },
       {
         path: '/select',
         element: <Select />,
@@ -44,6 +50,10 @@ export const router = createBrowserRouter([
       {
         path: '/lobby',
         element: <Lobby />,
+      },
+      {
+        path: '*', // 선언되지 않은 모든 경로 처리
+        element: <NotFound />, // 404 페이지 렌더링
       },
     ],
   },

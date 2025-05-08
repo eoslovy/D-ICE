@@ -6,7 +6,6 @@ import adminWebSocketManager from "../../modules/AdminWebSocketManager";
 import { useWebSocket } from "../../modules/WebSocketContext";
 import BackgroundAnimation from "../../components/BackgroundAnimation";
 import GameCard from "../../components/GameCard";
-import DarkModeToggle from "../../components/DarkModeToggle";
 import { Settings, Loader } from "lucide-react";
 import { adminStore } from "../../stores/adminStore";
 
@@ -37,6 +36,7 @@ export default function Set() {
                     console.log("관리자 입장 성공:", payload);
 
                     // 방 코드, 라운드 수 저장 및 페이지 이동
+                    adminStore.getState().setStatus("WAITING");
                     adminStore.getState().setRoomCode(roomCode);
                     adminStore.getState().setTotalRound(rounds);
                     navigate(`/adminroom/${roomCode}`);
@@ -58,7 +58,6 @@ export default function Set() {
     return (
         <div className="game-container">
             <BackgroundAnimation />
-            <DarkModeToggle />
 
             <GameCard>
                 <h1 className="game-title">

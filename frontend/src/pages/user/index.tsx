@@ -1,9 +1,6 @@
-"use client";
-
 import { useState } from "react";
 import BackgroundAnimation from "../../components/BackgroundAnimation";
 import GameCard from "../../components/GameCard";
-import DarkModeToggle from "../../components/DarkModeToggle";
 import { User, Save } from "lucide-react";
 
 export default function UserRoom() {
@@ -37,7 +34,6 @@ export default function UserRoom() {
     return (
         <div className="game-container">
             <BackgroundAnimation />
-            <DarkModeToggle />
 
             <GameCard>
                 <h1 className="game-title">프로필 설정</h1>
