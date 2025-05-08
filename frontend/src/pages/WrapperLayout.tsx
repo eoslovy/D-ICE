@@ -54,6 +54,15 @@ export default function WrapperLayout() {
     });
   };
 
+  const applyDarkMode = () => {
+    const prefersDarkMode = window.matchMedia("(prefers-color-scheme: dark)").matches // 시스템 다크 모드 여부 확인
+    if (prefersDarkMode) {
+      document.documentElement.classList.add("dark") // html 태그에 dark 클래스 추가하기
+    } else {
+      document.documentElement.classList.remove("dark") // dark 클래스 제거
+    }
+  }
+
   useEffect(() => {
     const userStoreData = localStorage.getItem('userStore');
     const adminStoreData = localStorage.getItem('adminStore');
