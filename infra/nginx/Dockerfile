@@ -4,10 +4,12 @@ FROM ${FRONTEND_IMAGE} as frontend
 
 # 2단계: Nginx로 최종 이미지 구성
 FROM nginx:1.25
-
+ARG SERVER_DOMAIN
+ARG CERT_DOMAIN
 ARG NGINX=local_nginx.conf
 ENV NGINX_CONF=${NGINX}
-
+ENV SERVER_DOMAIN=${SERVER_DOMAIN}
+ENV CERT_DOMAIN=${CERT_DOMAIN}
 # 기본 html 제거
 RUN rm -rf /usr/share/nginx/html/*
 
@@ -15,7 +17,8 @@ RUN rm -rf /usr/share/nginx/html/*
 COPY --from=frontend /dist /usr/share/nginx/html
 
 # 커스텀 Nginx 설정 적용
-COPY ${NGINX_CONF} /etc/nginx/nginx.conf
+COPY ${NGINX_CONF} /etc/nginx/nginx.conf.template
+RUN sh -c "envsubst '\$SERVER_DOMAIN \$CERT_DOMAIN' < /etc/nginx/nginx.conf.template > /etc/nginx/nginx.conf"
 
 EXPOSE 80
 EXPOSE 443
