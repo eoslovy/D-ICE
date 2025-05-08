@@ -1,22 +1,13 @@
 import { useState, useEffect, useRef } from "react"
 import { Trophy, Medal, Crown, Star, Play, ArrowRight } from "lucide-react"
 
-interface Player {
-  id: string
-  nickname: string
-  score: number
-  rank?: number
-  videoUrl?: string
-}
-
 interface FinalResultProps {
-  players: Player[]
-  gameTitle?: string // 선택적 prop으로 변경
-  onContinue?: () => void
+  data: AggregatedAdminMessage | null;
+  onContinue: () => void;
 }
 
-export default function FinalResult({ players, gameTitle, onContinue }: FinalResultProps) {
-  const [sortedPlayers, setSortedPlayers] = useState<Player[]>([])
+export default function FinalResult({ data, onContinue }: FinalResultProps) {
+  const [sortedPlayers, setSortedPlayers] = useState<RankingInfo[]>([])
   const [videoEnded, setVideoEnded] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
   const [showConfetti, setShowConfetti] = useState(false)
@@ -38,15 +29,17 @@ export default function FinalResult({ players, gameTitle, onContinue }: FinalRes
 
   // 순위 계산 및 정렬
   useEffect(() => {
-    const withRanks = [...players]
-      .sort((a, b) => b.score - a.score)
-      .map((player, index) => ({
-        ...player,
-        rank: index + 1,
-      }))
+    if (data) {
+      const withRanks = [...data.roundRanking] // or `data.overallRanking` based on your needs
+        .sort((a, b) => b.score - a.score)
+        .map((player, index) => ({
+          ...player,
+          rank: index + 1,
+        }))
 
-    setSortedPlayers(withRanks)
-  }, [players])
+      setSortedPlayers(withRanks)
+    }
+  }, [data])
 
   // 비디오 자동 재생 처리
   useEffect(() => {
@@ -81,7 +74,7 @@ export default function FinalResult({ players, gameTitle, onContinue }: FinalRes
   const topThreePlayers = sortedPlayers.slice(0, 3)
 
   // 1등 플레이어의 비디오 URL
-  const firstPlaceVideoUrl = sortedPlayers.length > 0 ? sortedPlayers[0]?.videoUrl : null
+  const firstPlaceVideoUrl = data?.firstPlace.videoUrl || null
 
   return (
     <div className="result-container">
@@ -122,7 +115,7 @@ export default function FinalResult({ players, gameTitle, onContinue }: FinalRes
       <div className="result-title">
         <h2>🏆 최종 결과 🏆</h2>
         <p>모든 게임이 종료되었습니다!</p>
-        {gameTitle && <p className="text-lg font-medium">{gameTitle}</p>}
+        {data?.gameType && <p className="text-lg font-medium">{data?.gameType}</p>}
       </div>
 
       {/* 모바일 레이아웃 */}
@@ -152,7 +145,7 @@ export default function FinalResult({ players, gameTitle, onContinue }: FinalRes
 
           {/* 순위표 섹션 (모바일에서 영상이 끝난 후에만 표시) */}
           {(videoEnded || !firstPlaceVideoUrl) && (
-            <div className="rankings-container">
+            <div className="animate-fadeIn">
               {/* 상위 3명 포디움 */}
               <div className="podium-container">
                 <h3 className="podium-title">🏆 우승자 🏆</h3>
@@ -224,7 +217,7 @@ export default function FinalResult({ players, gameTitle, onContinue }: FinalRes
                     else if (playerRank === 3) rankItemClass += " rank-item-third"
 
                     return (
-                      <div key={player.id} className={rankItemClass}>
+                      <div key={player.rank} className={rankItemClass}>
                         <div className="rank-number">
                           {playerRank === 1 ? (
                             <Trophy className="text-yellow-500 mx-auto" size={24} />
@@ -345,7 +338,7 @@ export default function FinalResult({ players, gameTitle, onContinue }: FinalRes
                     else if (playerRank === 3) rankItemClass += " rank-item-third"
 
                     return (
-                      <div key={player.id} className={rankItemClass}>
+                      <div key={player.rank} className={rankItemClass}>
                         <div className="rank-number">
                           {playerRank === 1 ? (
                             <Trophy className="text-yellow-500 mx-auto" size={24} />

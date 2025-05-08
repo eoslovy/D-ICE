@@ -17,12 +17,8 @@ export default function BroadcastRoom() {
     const [isLoading, setIsLoading] = useState(false);
 
     //현재 추가된 결과 통신
-    const [currentGame, setCurrentGame] = useState<string| null>(null);
-    const [roundRanking, setRoundRanking] = useState<RankingInfo[]| null>(null);
-    const [overallRanking, setOverallRanking] = useState<RankingInfo[]| null>(null);
-    const [firstPlace, setFirstPlace] = useState<PotgInfo| null>(null);
-    const [lastPlace, setLastPlace] = useState<PotgInfo| null>(null);
-    const [showResults, setShowResults] = useState(false)
+    const [data, setData] = useState<AggregatedAdminMessage | null>(null);
+    const [showResults, setShowResults] = useState(false);
 
     let requestId = uuidv7();
 
@@ -36,16 +32,24 @@ export default function BroadcastRoom() {
         });
 
         // 게임 결과 이벤트 리스너 (실제 이벤트 이름은 API에 맞게 수정 필요)
-        adminWebSocketManager.on("AGGREGATED_ADMIN", (payload: AggregatedAdminMessage) => {
-            console.log("게임 결과 수신:", payload);
-            setCurrentRound(payload.currentRound);
-            setCurrentGame(payload.gameType);
-            setRoundRanking(payload.roundRanking);
-            setOverallRanking(payload.overallRanking);
-            setFirstPlace(payload.firstPlace);
-            setLastPlace(payload.lastPlace);
-            setShowResults(true);
-        });
+        adminWebSocketManager.on(
+            "AGGREGATED_ADMIN",
+            (payload: AggregatedAdminMessage) => {
+                console.log("게임 결과 수신:", payload);
+                setData({
+                    currentRound: payload.currentRound,
+                    gameType: payload.gameType,
+                    roundRanking: payload.roundRanking,
+                    overallRanking: payload.overallRanking,
+                    firstPlace: payload.firstPlace,
+                    lastPlace: payload.lastPlace,
+                    totalRound: payload.totalRound,
+                    type: payload.type,             
+                    requestId: payload.requestId,   
+                  });
+                setShowResults(true);
+            }
+        );
 
         return () => {
             adminWebSocketManager.off(
@@ -70,7 +74,14 @@ export default function BroadcastRoom() {
         }
     };
 
-    const isFinalResult = currentRound === parseInt(totalRound);
+    const handleContinue = () => {
+        setShowResults(false);
+        // 필요한 경우 다음 게임으로 진행하는 로직 추가
+    };
+
+    const isFinalResult =
+        currentRound ===
+        parseInt(localStorage.getItem("totalRound") || "1", 10);
 
     return (
         <div className="game-container">
@@ -78,28 +89,11 @@ export default function BroadcastRoom() {
 
             {showResults ? (
                 <div className="relative z-10 w-full max-w-4xl p-6 mx-auto rounded-2xl shadow-lg bg-opacity-95 backdrop-blur-sm bg-quaternary">
-                    {/* {isFinalResult ? (
-                        <FinalResult
-                            players={
-                                gameResults?.players || testResults.players
-                            }
-                            gameTitle={
-                                gameResults?.gameTitle || testResults.gameTitle
-                            }
-                            onContinue={handleContinue}
-                        />
+                    {isFinalResult ? (
+                        <FinalResult data={data} onContinue={handleContinue} />
                     ) : (
-                        <Result
-                            players={
-                                gameResults?.players || testResults.players
-                            }
-                            gameTitle={
-                                gameResults?.gameTitle || testResults.gameTitle
-                            }
-                            isFinalResult={false}
-                            onContinue={handleContinue}
-                        />
-                    )} */}
+                        <Result data={data} onContinue={handleContinue} />
+                    )}
                 </div>
             ) : (
                 <GameCard>
