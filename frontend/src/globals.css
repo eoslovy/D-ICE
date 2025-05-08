@@ -81,18 +81,18 @@
 
   .btn-primary {
     background-color: var(--quinary-color);
-    @apply focus:ring-2 focus:ring-pink-500 focus:ring-opacity-50;
+    @apply focus:ring-2 focus:ring-pink-500 focus:opacity-50;
   }
 
   .btn-secondary {
     background-color: var(--secondary-color);
-    @apply focus:ring-2 focus:ring-yellow-200 focus:ring-opacity-50;
+    @apply focus:ring-2 focus:ring-yellow-200 focus:opacity-50;
   }
 
   .btn-warning {
     background-color: var(--warning-color);
     color: white;
-    @apply focus:ring-2 focus:ring-red-500 focus:ring-opacity-50;
+    @apply focus:ring-2 focus:ring-red-500 focus:opacity-50;
   }
 
   /* 배경 애니메이션 */
@@ -103,14 +103,14 @@
 
   /* 입력 필드 */
   .input-field {
-    @apply w-full px-4 py-3 mb-4 border-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-opacity-50 focus:ring-blue-300;
+    @apply w-full px-4 py-3 mb-4 border-2 rounded-lg focus:outline-none focus:ring-2 focus:opacity-50 focus:ring-blue-300;
     border-color: var(--secondary-color);
     background-color: white;
     color: var(--tertiary-color);
   }
 
   .select-field {
-    @apply w-full px-4 py-3 mb-4 border-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-opacity-50 focus:ring-blue-300 appearance-none;
+    @apply w-full px-4 py-3 mb-4 border-2 rounded-lg focus:outline-none focus:ring-2 focus:opacity-50 focus:ring-blue-300 appearance-none;
     border-color: var(--secondary-color);
     background-color: white;
     color: #1e1e1e; /* Always dark text on light background for inputs */
@@ -187,10 +187,10 @@
     @apply bg-gray-200 dark:bg-gray-700;
   }
 
-  /* 순���표 관련 스타일 */
+  /* 순위표 관련 스타일 */
   .rankings-container {
     @apply animate-fadeIn;
-  }
+  } 
 
   .rankings-table {
     @apply bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden mb-6;
@@ -443,17 +443,6 @@
   }
 }
 
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
 @keyframes confetti {
   0% {
     transform: translateY(0) rotate(0deg);
@@ -488,10 +477,6 @@
 /* 애니메이션 클래스 */
 .animate-confetti {
   animation: confetti 5s ease-in-out forwards;
-}
-
-.animate-fadeIn {
-  animation: fadeIn 0.5s ease-out forwards;
 }
 
 .animate-pulse {

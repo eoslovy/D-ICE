@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 import { useNavigate, Outlet } from 'react-router-dom';
 import DarkModeToggle from '../components/DarkModeToggle';
+import '../globals.css';
 
 export default function WrapperLayout() {
   const navigate = useNavigate();

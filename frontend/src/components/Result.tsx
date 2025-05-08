@@ -1,32 +1,5 @@
 import { useState, useEffect, useRef } from "react"
 import { Trophy, Medal, Frown, ChevronDown, ChevronUp, Play, ArrowRight } from "lucide-react"
-
-// API 응답 인터페이스 정의
-interface RankingInfo {
-  rank: number
-  userId: string
-  nickname: string
-  score: number
-}
-
-interface PotgInfo {
-  userId: string
-  nickname: string
-  videoUrl: string
-}
-
-interface AggregatedAdminMessage {
-  type: string
-  requestId?: string
-  currentRound: number
-  totalRound: number
-  gameType: string
-  roundRanking: RankingInfo[]
-  overallRanking: RankingInfo[]
-  firstPlace: PotgInfo
-  lastPlace: PotgInfo
-}
-
 interface ResultProps {
   data: AggregatedAdminMessage
   onContinue?: () => void
