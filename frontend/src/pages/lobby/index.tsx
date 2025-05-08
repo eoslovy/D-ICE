@@ -9,8 +9,8 @@ import GameCard from "../../components/GameCard"
 import { LogIn, Loader } from "lucide-react"
 
 export default function Lobby() {
-    const roomCode = localStorage.getItem("roomCode") || "000000";
-    const [roomCodeInput, setroomCodeInput] = useState(roomCode === "000000" ? "" : roomCode);
+    const urlRoomCode = sessionStorage.getItem("urlRoomCode") || null;
+    const [roomCodeInput, setroomCodeInput] = useState(urlRoomCode === null ? "" : urlRoomCode);
     const [nicknameInput, setnicknameInput] = useState("");
     const [errorMessage, setErrorMessage] = useState("");
     const [isJoining, setIsJoining] = useState(false)
@@ -21,15 +21,12 @@ export default function Lobby() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-
-
         if (!nicknameInput) {
             setErrorMessage("닉네임을 입력하세요.");
             return;
         }
 
-        if (!roomCodeInput && roomCodeInput === "000000") {
-            // 방 코드가 비어있고 기본값인 경우
+        if (!roomCodeInput) {
             setErrorMessage("방 번호를 입력하세요.");
             return;
         }
@@ -53,11 +50,8 @@ export default function Lobby() {
                     userStore.getState().setRoomCode(roomCodeInput);
                     userStore.getState().setNickname(nicknameInput);
 
-                    localStorage.removeItem('roomCode');
+                    sessionStorage.removeItem('urlRoomCode');
 
-                    // 방 코드, 닉네임 저장 및 페이지 이동
-                    // localStorage.setItem("roomCode", roomCodeInput);
-                    // localStorage.setItem("nickname", nicknameInput);
                     navigate(`/userroom/${roomCodeInput}`);
                 }
             );
@@ -98,19 +92,32 @@ export default function Lobby() {
                 disabled={isJoining}
               />
     
-              {roomCode === "000000" && (
-                <input
-                  id="roomCode"
-                  type="text"
-                  value={roomCodeInput}
-                  onChange={(e) => {
-                    setroomCodeInput(e.target.value)
-                    setErrorMessage("")
+              <input
+                id="urlRoomCode"
+                type="text"
+                value={roomCodeInput}
+                onChange={(e) => {
+                  setroomCodeInput(e.target.value)
+                  setErrorMessage("")
+                }}
+                className="input-field"
+                placeholder="방 번호를 입력해주세요."
+                disabled={urlRoomCode !== null || isJoining}
+              />
+              
+              {urlRoomCode !== null && (
+                <button
+                  type="button"
+                  className={`btn btn-secondary flex items-center justify-center ${isJoining ? "opacity-70 cursor-not-allowed" : ""}`}
+                  onClick={() => {
+                    sessionStorage.removeItem("urlRoomCode"); // 로컬 스토리지에서 urlRoomCode 제거
+                    setroomCodeInput(""); // 입력 필드 초기화
+                    setErrorMessage(""); // 에러 메시지 초기화
                   }}
-                  className="input-field"
-                  placeholder="방 번호를 입력해주세요."
                   disabled={isJoining}
-                />
+                >
+                  방 번호 초기화
+                </button>
               )}
     
               <button
