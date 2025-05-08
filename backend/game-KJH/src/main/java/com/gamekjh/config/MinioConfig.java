@@ -13,7 +13,7 @@ public class MinioConfig {
 	@Qualifier("internalMinio")
 	public MinioClient minioInternal(){
 		return MinioClient.builder()
-			.endpoint("http://localhost:9000")
+			.endpoint("http://minio-bucket")
 			.credentials("minioadmin", "minioadmin")
 			.build();
 	}
@@ -23,7 +23,7 @@ public class MinioConfig {
 	public MinioClient minioClient() {
 		return MinioClient.builder()
 			//.endpoint("http://localhost:9000")
-			.endpoint("http://localhost:9000")
+			.endpoint("http://minio-bucket")
 			.credentials("minioadmin", "minioadmin")
 			.build();
 	}
