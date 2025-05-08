@@ -15,8 +15,15 @@ export default function BroadcastRoom() {
     const [currentRound, setCurrentRound] = useState(1);
     const [nextGame, setNextGame] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
-    const [showResults, setShowResults] = useState(false);
-    const [gameResults, setGameResults] = useState<string| null>(null);
+
+    //현재 추가된 결과 통신
+    const [currentGame, setCurrentGame] = useState<string| null>(null);
+    const [roundRanking, setRoundRanking] = useState<RankingInfo[]| null>(null);
+    const [overallRanking, setOverallRanking] = useState<RankingInfo[]| null>(null);
+    const [firstPlace, setFirstPlace] = useState<PotgInfo| null>(null);
+    const [lastPlace, setLastPlace] = useState<PotgInfo| null>(null);
+    const [showResults, setShowResults] = useState(false)
+
     let requestId = uuidv7();
 
     useEffect(() => {
@@ -31,7 +38,12 @@ export default function BroadcastRoom() {
         // 게임 결과 이벤트 리스너 (실제 이벤트 이름은 API에 맞게 수정 필요)
         adminWebSocketManager.on("AGGREGATED_ADMIN", (payload: AggregatedAdminMessage) => {
             console.log("게임 결과 수신:", payload);
-            setGameResults(payload.currentRound);
+            setCurrentRound(payload.currentRound);
+            setCurrentGame(payload.gameType);
+            setRoundRanking(payload.roundRanking);
+            setOverallRanking(payload.overallRanking);
+            setFirstPlace(payload.firstPlace);
+            setLastPlace(payload.lastPlace);
             setShowResults(true);
         });
 
@@ -58,8 +70,7 @@ export default function BroadcastRoom() {
         }
     };
 
-    const isFinalResult =
-        gameResults?.isFinalResult || testResults.isFinalResult;
+    const isFinalResult = currentRound === parseInt(totalRound);
 
     return (
         <div className="game-container">
@@ -67,7 +78,7 @@ export default function BroadcastRoom() {
 
             {showResults ? (
                 <div className="relative z-10 w-full max-w-4xl p-6 mx-auto rounded-2xl shadow-lg bg-opacity-95 backdrop-blur-sm bg-quaternary">
-                    {isFinalResult ? (
+                    {/* {isFinalResult ? (
                         <FinalResult
                             players={
                                 gameResults?.players || testResults.players
@@ -88,7 +99,7 @@ export default function BroadcastRoom() {
                             isFinalResult={false}
                             onContinue={handleContinue}
                         />
-                    )}
+                    )} */}
                 </div>
             ) : (
                 <GameCard>

@@ -53,7 +53,7 @@ interface WaitMessage {
 interface AggregatedAdminMessage {
     type: "AGGREGATED_ADMIN";
     requestId: string; //UUIDv7
-    crruentRound: number; // 현재 round
+    currentRound: number; // 현재 round
     totalRound: number; // 전체 round
     gameType: string; //게임이름
     roundRanking: RankingInfo[];
@@ -65,7 +65,7 @@ interface AggregatedAdminMessage {
 interface AggregatedUserMessage {
     type: "AGGREGATED_USER";
     requestId: string; //UUIDv7
-    crruentRound: number; // 현재 round
+    currentRound: number; // 현재 round
     totalRound: number; // 전체 round
     gameType: string; //게임이름
     currentScore: number; // int 이번 round 점수
