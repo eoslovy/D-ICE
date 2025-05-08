@@ -60,15 +60,6 @@ services:
     ports:
       - "18087:8080"
 
-  frontend-react:
-    image: ${DOCKERHUB_USERNAME:-recreatekang}/d-ice-frontend-nginx:${IMAGE_TAG:-latest}
-    env_file:
-      - .env
-    profiles:
-      - build-only
-    ports:
-      - "80:80"
-
   springcloud-gateway:
     container_name: springcloud-gateway
     image: ${DOCKERHUB_USERNAME:-recreatekang}/d-ice-springcloud-gateway:${IMAGE_TAG:-latest}
@@ -90,7 +81,7 @@ services:
 
   frontend-nginx:
     container_name: nginx
-    image: ${DOCKERHUB_USERNAME:-recreatekang}/d-ice-nginx:${IMAGE_TAG:-latest}
+    image: ${DOCKERHUB_USERNAME:-recreatekang}/d-ice-frontend-nginx:${IMAGE_TAG:-latest}
     restart: always
     env_file:
       - .env
