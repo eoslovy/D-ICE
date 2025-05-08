@@ -98,8 +98,8 @@ services:
       - "80:80"
       - "443:443"
     volumes:
-      - /etc/letsencrypt/live/p.ssafy.io/fullchain.pem:/etc/letsencrypt/live/p.ssafy.io/fullchain.pem  # 인증서
-      - /etc/letsencrypt/live/p.ssafy.io/privkey.pem:/etc/letsencrypt/live/p.ssafy.io/privkey.pem  # 개인 키
+      - /etc/letsencrypt/live/${CERT_DOMAIN}/fullchain.pem:/etc/letsencrypt/live/${CERT_DOMAIN}/fullchain.pem  # 인증서
+      - /etc/letsencrypt/live/${CERT_DOMAIN}/privkey.pem:/etc/letsencrypt/live/${CERT_DOMAIN}/privkey.pem  # 개인 키
 
 
   redis:
