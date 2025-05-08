@@ -17,8 +17,8 @@ workflow:
     - $GITLAB_USER_EMAIL
   script:
     - echo "🔨 Docker 이미지 빌드 및 테스트 중..."
-    - docker build -t ${DOCKERHUB_USERNAME:-default}/$REGISTRY_PATH-${SERVICE_NAME}:$IMAGE_TAG ${BUILD_CONTEXT}
-    #- echo "✅ 빌드 완료: $IMAGE_NAME:$IMAGE_TAG
+    - docker build -t ${DOCKERHUB_USERNAME:-default}/$REGISTRY_PATH-${SERVICE_NAME}:$CI_COMMIT_SHORT_SHA ${BUILD_CONTEXT}
+    #- echo "✅ 빌드 완료: $IMAGE_NAME:$CI_COMMIT_SHORT_SHA
 
 .backend-default-push:
   rules:
@@ -37,7 +37,7 @@ workflow:
   script:
     - docker images
     - docker login -u "$DOCKERHUB_USERNAME" -p "$DOCKERHUB_TOKEN"
-    - docker push ${DOCKERHUB_USERNAME:-default}/$REGISTRY_PATH-${SERVICE_NAME}:$IMAGE_TAG
+    - docker push ${DOCKERHUB_USERNAME:-default}/$REGISTRY_PATH-${SERVICE_NAME}:$CI_COMMIT_SHORT_SHA
 
 .backend-default-deploy:
   rules:
@@ -79,14 +79,14 @@ workflow:
     - scp -o StrictHostKeyChecking=no -i bastion.pem docker-compose.processed.yml ubuntu@$HOST_SERVER:/home/ubuntu/docker-compose.yml
 
     - ssh -T -o StrictHostKeyChecking=no -i bastion.pem ubuntu@$HOST_SERVER "
-      cd /home/ubuntu && docker-compose stop $SERVICE_NAME && docker-compose rm -f $SERVICE_NAME && IMAGE_TAG=$IMAGE_TAG docker-compose pull $SERVICE_NAME && IMAGE_TAG=$IMAGE_TAG docker-compose up -d --no-build --force-recreate $SERVICE_NAME
+      cd /home/ubuntu && docker-compose stop $SERVICE_NAME && docker-compose rm -f $SERVICE_NAME && IMAGE_TAG=$CI_COMMIT_SHORT_SHA docker-compose pull $SERVICE_NAME && IMAGE_TAG=$CI_COMMIT_SHORT_SHA docker-compose up -d --no-build --force-recreate $SERVICE_NAME
       "
 
     # 4️⃣ 배포 서버에서 `docker-compose` 실행 (로그인 유지됨)
     #- ssh -T -o StrictHostKeyChecking=no -i bastion.pem ubuntu@$HOST_SERVER \
     #  "bash -l -c '
     #     DOCKERHUB_USERNAME=$DOCKERHUB_USERNAME \
-    #    IMAGE_TAG=$IMAGE_TAG \
+    #    IMAGE_TAG=$CI_COMMIT_SHORT_SHA \
     #    SERVICE_NAME=$SERVICE_NAME \
     #    docker-compose -f /home/ubuntu/docker-compose.yml pull \$SERVICE_NAME && \
     #    docker-compose -f /home/ubuntu/docker-compose.yml up -d \$SERVICE_NAME --remove-orphans
