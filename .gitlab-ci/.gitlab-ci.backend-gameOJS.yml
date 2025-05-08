@@ -18,6 +18,14 @@ push_gameojs_service:
   extends: .backend-default-push
   needs: [build_gameojs_service]
   rules:
+    - if: '$CI_COMMIT_BRANCH == "dev" && $CI_PIPELINE_SOURCE == "push"'
+      changes:
+        - backend/game-OJS/**/*
+      when: always
+    - if: '$CI_COMMIT_BRANCH == "dev" && $CI_PIPELINE_SOURCE == "web"' # 수동 실행도 허용하려면
+      changes:
+        - backend/game-OJS/**/*
+      when: manual
     - if: '$CI_COMMIT_BRANCH == "master" && $CI_PIPELINE_SOURCE == "push"'
       changes:
         - backend/game-OJS/**/*
@@ -36,6 +44,14 @@ deploy_gameojs_service:
   extends: .backend-default-deploy
   needs: [push_gameojs_service]
   rules:
+    - if: '$CI_COMMIT_BRANCH == "dev" && $CI_PIPELINE_SOURCE == "push"'
+      changes:
+        - backend/game-OJS/**/*
+      when: always
+    - if: '$CI_COMMIT_BRANCH == "dev" && $CI_PIPELINE_SOURCE == "web"' # 수동 실행도 허용하려면
+      changes:
+        - backend/game-OJS/**/*
+      when: manual
     - if: '$CI_COMMIT_BRANCH == "master" && $CI_PIPELINE_SOURCE == "push"'
       changes:
         - backend/game-OJS/**/*

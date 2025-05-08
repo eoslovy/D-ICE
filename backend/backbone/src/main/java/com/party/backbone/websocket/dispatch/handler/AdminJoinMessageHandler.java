@@ -8,22 +8,32 @@ import org.springframework.web.socket.WebSocketSession;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.party.backbone.room.RoomRedisRepository;
+import com.party.backbone.websocket.dispatch.repository.IdempotencyRedisRepository;
 import com.party.backbone.websocket.handler.SessionRegistry;
 import com.party.backbone.websocket.message.admin.AdminJoinMessage;
 import com.party.backbone.websocket.message.server.AdminJoinedMessage;
 import com.party.backbone.websocket.model.AdminMessageType;
 
-import lombok.RequiredArgsConstructor;
-
 @Component
-@RequiredArgsConstructor
-public class AdminJoinMessageHandler implements AdminMessageHandler<AdminJoinMessage> {
+public class AdminJoinMessageHandler extends GameMessageHandler<AdminJoinMessage>
+	implements AdminMessageHandler {
 	private final RoomRedisRepository roomRepository;
 	private final ObjectMapper objectMapper;
 	private final SessionRegistry sessionRegistry;
 
+	AdminJoinMessageHandler(
+		RoomRedisRepository roomRepository,
+		ObjectMapper objectMapper,
+		SessionRegistry sessionRegistry,
+		IdempotencyRedisRepository idempotencyRedisRepository) {
+		super(idempotencyRedisRepository, roomRepository);
+		this.roomRepository = roomRepository;
+		this.objectMapper = objectMapper;
+		this.sessionRegistry = sessionRegistry;
+	}
+
 	@Override
-	public void handle(AdminJoinMessage message, String roomCode, WebSocketSession session) throws IOException {
+	public void doHandle(AdminJoinMessage message, String roomCode, WebSocketSession session) throws IOException {
 		String administratorId = roomRepository.getAdministratorIdOfRoom(roomCode);
 		if (!message.getAdministratorId().equals(administratorId)) {
 			throw new IllegalArgumentException("Invalid administratorId");

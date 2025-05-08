@@ -1,34 +1,63 @@
-import { EventEmitter } from 'eventemitter3';
+import { EventEmitter } from "eventemitter3";
 
 declare var WebSocket: {
     prototype: WebSocket;
-    new(url: string | URL, protocols?: string | string[]): WebSocket;
+    new (url: string | URL, protocols?: string | string[]): WebSocket;
     readonly CONNECTING: number;
     readonly OPEN: number;
     readonly CLOSING: number;
     readonly CLOSED: number;
 };
 
-class WebSocketManager extends EventEmitter {
-    private ws: WebSocket | null = null;
-    private url: string;
+type CustomManagingEvent =
+    | "connect"
+    | "disconnect"
+    | "raw_message"
+    | "unknown_requestId"
+    | "error"
+    | "reconnect_failed";
+
+abstract class WebSocketManager<
+    M extends Record<string, any>
+> extends EventEmitter<(keyof M & string) | CustomManagingEvent> {
+    protected ws: WebSocket | null = null;
+    private url: string = ""; // Initialize url
     private reconnectInterval: number = 5000; // Reconnect every 5 seconds
     private reconnectAttempts: number = 0;
     private maxReconnectAttempts: number = 5;
     private reconnectTimer: number | null = null; // Use number for browser setTimeout
+    protected pendingRequests: Map<string, any> = new Map(); // Store pending requests timeout
 
-    setServerURL(url: string): void {   
+    setServerURL(url: string): void {
+        if (
+            this.isConnected() ||
+            (this.ws && this.ws.readyState === WebSocket.CONNECTING)
+        ) {
+            console.warn(
+                "[WebSocketManager] Cannot change URL while connected or connecting. Please disconnect first."
+            );
+            return;
+        }
         this.url = url;
     }
 
     connect(): void {
+        if (!this.url) {
+            console.error(
+                "[WebSocketManager] URL is not set. Call setServerURL first."
+            );
+            return;
+        }
+
         if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-            console.log('[WebSocketManager] Already connected.');
+            console.log("[WebSocketManager] Already connected.");
             return;
         }
 
         if (this.ws && this.ws.readyState === WebSocket.CONNECTING) {
-            console.log('[WebSocketManager] Connection attempt already in progress.');
+            console.log(
+                "[WebSocketManager] Connection attempt already in progress."
+            );
             return;
         }
 
@@ -40,7 +69,10 @@ class WebSocketManager extends EventEmitter {
             this.ws = new WebSocket(this.url);
             this.setupEventListeners();
         } catch (error) {
-            console.error('[WebSocketManager] Failed to create WebSocket:', error);
+            console.error(
+                "[WebSocketManager] Failed to create WebSocket:",
+                error
+            );
             this.handleDisconnect(undefined); // Treat creation failure as a disconnect
         }
     }
@@ -49,41 +81,30 @@ class WebSocketManager extends EventEmitter {
         if (!this.ws) return;
 
         this.ws.onopen = () => {
-            console.log('[WebSocketManager] Connected.');
+            console.log("[WebSocketManager] Connected.");
             this.reconnectAttempts = 0; // Reset reconnect attempts on successful connection
             this.clearReconnectTimer();
-            this.emit('connect');
-        };
-
-        this.ws.onmessage = (event) => {
-            try {
-                const message = JSON.parse(event.data);
-                // console.debug('[WebSocketManager] Message received:', message);
-                // Emit specific events based on message type, or a generic one
-                if (message.type) {
-                    this.emit(message.type, message);
-                }
-                this.emit('message', message); // Emit generic message event
-            } catch (e) {
-                console.error('[WebSocketManager] Failed to parse message:', event.data, e);
-                this.emit('raw_message', event.data); // Emit raw data if parsing fails
-            }
+            this.emit("connect");
         };
 
         this.ws.onerror = (event) => {
-            // The 'error' event is usually followed by 'close'.
-            // Specific error details might be limited in the browser 'error' event.
-            console.error('[WebSocketManager] Error:', event);
-            this.emit('error', event);
-            // No automatic reconnect here, wait for the 'close' event.
+            console.error("[WebSocketManager] Error:", event);
+            this.emit("error", event);
         };
 
         this.ws.onclose = (event) => {
-            console.log(`[WebSocketManager] Disconnected. Code: ${event.code}, Reason: ${event.reason}, Clean: ${event.wasClean}`);
+            console.log(
+                `[WebSocketManager] Disconnected. Code: ${event.code}, Reason: ${event.reason}, Clean: ${event.wasClean}`
+            );
             const wsInstance = this.ws; // Capture instance before clearing
             this.ws = null; // Clear the instance
+            // Consider clearing pending requests or using timeouts
+            this.pendingRequests.forEach((timeoutId) => {
+                clearTimeout(timeoutId); // Clear all pending timeouts
+            });
+            this.pendingRequests.clear(); // Clear the pending requests map
             this.handleDisconnect(event);
-            this.emit('disconnect', event); // Emit disconnect after handling
+            this.emit("disconnect", event); // Emit disconnect after handling
         };
     }
 
@@ -91,14 +112,20 @@ class WebSocketManager extends EventEmitter {
         // Optional: Implement automatic reconnection logic
         if (this.reconnectAttempts < this.maxReconnectAttempts) {
             this.reconnectAttempts++;
-            console.log(`[WebSocketManager] Attempting reconnect (${this.reconnectAttempts}/${this.maxReconnectAttempts}) in ${this.reconnectInterval / 1000}s...`);
+            console.log(
+                `[WebSocketManager] Attempting reconnect (${
+                    this.reconnectAttempts
+                }/${this.maxReconnectAttempts}) in ${
+                    this.reconnectInterval / 1000
+                }s...`
+            );
             this.clearReconnectTimer(); // Ensure no duplicate timers
             this.reconnectTimer = setTimeout(() => {
                 this.connect();
             }, this.reconnectInterval);
         } else {
-            console.log('[WebSocketManager] Max reconnect attempts reached.');
-            this.emit('reconnect_failed');
+            console.log("[WebSocketManager] Max reconnect attempts reached.");
+            this.emit("reconnect_failed");
         }
     }
 
@@ -109,19 +136,60 @@ class WebSocketManager extends EventEmitter {
         }
     }
 
-    send(data: object): boolean {
-        if (this.isConnected()) {
-            try {
-                this.ws?.send(JSON.stringify(data));
-                // console.debug('[WebSocketManager] Message sent:', data);
-                return true;
-            } catch (error) {
-                console.error('[WebSocketManager] Failed to send message:', error);
-                return false;
+    // Just for normal send
+    send(data: { type: string; [key: string]: any }): boolean {
+        if (!this.isConnected()) {
+            console.warn(
+                "[WebSocketManager] Cannot send message, WebSocket is not open."
+            );
+            return false;
+        }
+        try {
+            this.ws?.send(JSON.stringify(data));
+            // console.debug('[WebSocketManager] Message sent:', data);
+            return true;
+        } catch (error) {
+            console.error(
+                "[WebSocketManager] Failed to send message:",
+                error,
+                data
+            );
+            return false;
+        }
+    }
+
+    // --- Dedicated method for sending requests with tracked requestId ---
+    protected sendRequest<T extends SendMessage>(message: T): boolean {
+        if (!this.isConnected()) {
+            console.warn(
+                "[WebSocketManager] Cannot send request, WebSocket is not open."
+            );
+            return false;
+        }
+        try {
+            this.ws?.send(JSON.stringify(message));
+            // console.debug('[WebSocketManager] Request sent:', messageToSend);
+
+            // Optional: Implement request timeout logic here
+            if (this.hasRequestId(message)) {
+                this.pendingRequests.set(
+                    message.requestId,
+                    setTimeout(() => {
+                        console.warn(
+                            `[WebSocketManager] Request ${message.requestId} timed out.`
+                        );
+                        this.pendingRequests.delete(message.requestId); // Clean up pending request
+                    }, 5000)
+                ); // Example timeout of 5 seconds
             }
-        } else {
-            console.warn('[WebSocketManager] Cannot send message, WebSocket is not open.');
-            // Optional: Queue message to send upon reconnection
+            return true;
+        } catch (error) {
+            console.error(
+                "[WebSocketManager] Failed to send request:",
+                error,
+                message
+            );
+            // Consider removing requestId from pending set on send failure if possible/needed
             return false;
         }
     }
@@ -130,11 +198,17 @@ class WebSocketManager extends EventEmitter {
         this.clearReconnectTimer(); // Stop any reconnection attempts
         this.reconnectAttempts = this.maxReconnectAttempts; // Prevent auto-reconnect after manual disconnect
         if (this.ws) {
-            console.log('[WebSocketManager] Disconnecting...');
+            console.log("[WebSocketManager] Disconnecting...");
+            this.ws.onclose = null; // Prevent handleDisconnect during manual close
             this.ws.close();
-            // The onclose handler will set this.ws to null
+            this.ws = null;
+            this.emit("disconnect", {
+                code: 1000,
+                reason: "Manual disconnect",
+                wasClean: true,
+            });
         } else {
-            console.log('[WebSocketManager] Already disconnected.');
+            console.log("[WebSocketManager] Already disconnected.");
         }
     }
 
@@ -145,11 +219,27 @@ class WebSocketManager extends EventEmitter {
     getReadyState(): number {
         return this.ws?.readyState ?? WebSocket.CLOSED; // Return CLOSED if ws is null
     }
+
+    // --- Update all send methods to use sendRequest ---
+
+    protected isReceiveMessageWithRequestId(
+        msg: ReceiveMessage
+    ): msg is Extract<ReceiveMessage, { requestId: string }> & {
+        requestId: string;
+    } {
+        return "requestId" in msg && typeof msg.requestId === "string";
+    }
+
+    protected hasRequestId(
+        msg: SendMessage
+    ): msg is SendMessage & { requestId: string } {
+        return "requestId" in msg && typeof msg.requestId === "string";
+    }
 }
 
 // Export a single instance (Singleton pattern)
-const webSocketManager = new WebSocketManager();
-export default webSocketManager;
+// const webSocketManager = new WebSocketManager();
+// export default webSocketManager;
 
 // Or export the class if you need multiple instances
-// export { WebSocketManager };
+export { WebSocketManager };

@@ -1,10 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import PhaserGame from './PhaserGame';
-import webSocketManager from '../modules/WebSocketManager';
+import PhaserGame from "./PhaserGame";
 import OverlayScreen, { OverlayScreenHandle } from '../modules/OverlayScreen';
 // Test Modules import
 import TestModules from '../modules/TestModules';
+import userWebSocketManager from "../modules/UserWebSocketManager";
 
 // Define props if you need to pass data to control connection
 interface AppProps {
@@ -15,7 +15,7 @@ interface AppProps {
 }
 
 // Use the props in the component definition (optional, adjust as needed)
-export default function App({ roomId = "wasted", shouldConnect = true }: AppProps) {
+export default function App(/*{ roomId = "wasted", shouldConnect = true }: AppProps*/) {
   const [showWarning, setShowWarning] = useState(false);
   const navigate = useNavigate();
 
@@ -37,24 +37,24 @@ export default function App({ roomId = "wasted", shouldConnect = true }: AppProp
   }, []); // Empty dependency array means this runs once on mount and cleans up on unmount
 
   // Effect for WebSocket connection management
-  useEffect(() => {
-    // Only connect if the condition is met (e.g., shouldConnect prop is true)
-    if (shouldConnect) {
-      console.log('[App] Connecting WebSocket...');
-      webSocketManager.connect();
+  // useEffect(() => {
+  //   // Only connect if the condition is met (e.g., shouldConnect prop is true)
+  //   if (shouldConnect) {
+  //     console.log('[App] Connecting WebSocket...');
+  //     userWebSocketManager.connect();
 
-      // Return a cleanup function to disconnect when the component unmounts
-      // or when the 'shouldConnect' prop changes to false
-      return () => {
-        console.log('[App] Disconnecting WebSocket...');
-        webSocketManager.disconnect();
-      };
-    } else {
-      // Ensure disconnected if condition is false
-      webSocketManager.disconnect();
-    }
-    // Add shouldConnect to dependency array if connection depends on it
-  }, [shouldConnect]);
+  //     // Return a cleanup function to disconnect when the component unmounts
+  //     // or when the 'shouldConnect' prop changes to false
+  //     return () => {
+  //         console.log("[App] Disconnecting WebSocket...");
+  //         userWebSocketManager.disconnect();
+  //     };
+  //   } else {
+  //     // Ensure disconnected if condition is false
+  //     userWebSocketManager.disconnect();
+  //   }
+  //   // Add shouldConnect to dependency array if connection depends on it
+  // }, [shouldConnect]);
 
   // OverlayScreen ref to call methods on the Phaser game instance
   const overlayRef = useRef<OverlayScreenHandle>(null);
@@ -70,16 +70,18 @@ export default function App({ roomId = "wasted", shouldConnect = true }: AppProp
     }
   }
 
-  const handleTriggerMessage = () => {
+  const handleTriggerMessage = (text: string, fontSize: number = 32, duration: number = 3000, withEffect: boolean = true) => {
     if (overlayRef.current) {
-      overlayRef.current.triggerMessage("Hello"); // Call the method on the Phaser game instance
+      overlayRef.current.triggerMessage(text, fontSize, duration, withEffect);
     }
-  }
+  };
 
   return (
     <div className="game-container">
       {/* Conditionally render PhaserGame based on connection or other logic if needed */}
-      <PhaserGame />
+      <div id="phaser-game-container" style={{ width: '100%', height: '100%' }}>
+        <PhaserGame />
+      </div>
 
       <button
         onClick={() => navigate('/')}
@@ -107,6 +109,12 @@ export default function App({ roomId = "wasted", shouldConnect = true }: AppProp
         onTriggerParticleEffect={handleTriggerEffect}
         onTriggerSpriteShowcase={handleTriggerSpriteShowcase}
       />
+      {/* Warning message for mobile orientation */}
+      {showWarning && (
+        <div className="warning-message" style={{ position: 'absolute', top: '20px', left: '50%', transform: 'translateX(-50%)', zIndex: 1000, backgroundColor: 'rgba(255, 0, 0, 0.8)', color: '#fff', padding: '10px', borderRadius: '5px' }}>
+          Please rotate your device to portrait mode for a better experience.
+        </div>
+      )}
     </div>
   );
 }
