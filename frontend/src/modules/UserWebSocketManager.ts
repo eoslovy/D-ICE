@@ -8,9 +8,22 @@ class UserWebSocketManager extends WebSocketManager<UserReceiveTypeMap> {
         this.setUpOnMessage();
     }
 
+    sendUserReconnect(requestId: string, userId: string): void {
+        const userReconnectMessage: UserReconnectMessage = {
+            type: "USER_RECONNECT",
+            userId: userId,
+            requestId: requestId,
+        }
+        this.sendRequest(userReconnectMessage);
+    }
+
     sendUserJoin(requestId: string, nickname: string): void {
-        // Use sendRequest
-        this.sendRequest({ type: "USER_JOIN", nickname, requestId });
+        const userJoinMessage: UserJoinMessage = {
+            type: "USER_JOIN",
+            nickname: nickname,
+            requestId: requestId,
+        };
+        this.sendRequest(userJoinMessage);
     }
 
     sendSubmit({
@@ -29,14 +42,15 @@ class UserWebSocketManager extends WebSocketManager<UserReceiveTypeMap> {
             );
             return;
         }
-        // Use sendRequest
-        this.sendRequest({
+
+        const submitMessage: SubmitMessage = {
             type: "SUBMIT",
             userId: userId,
             score: score,
             gameType: gameType,
-            requestId,
-        });
+            requestId: requestId,
+        };
+        this.sendRequest(submitMessage);
     }
 
     getUserNickname(): string {
