@@ -41,4 +41,6 @@ public interface RoomRedisRepository {
 	GameType getGame(String roomCode, int round);
 
 	void endGame(String roomCode);
+
+	Boolean hasPlayer(String roomCode, String userId);
 }
