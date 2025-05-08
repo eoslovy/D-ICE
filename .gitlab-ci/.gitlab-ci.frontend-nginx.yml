@@ -41,7 +41,13 @@ build_nginx:
   script:
     - docker images
     - echo "🔨 Docker 이미지 빌드 및 테스트 중..."
-    - docker build --build-arg FRONTEND_IMAGE=${DOCKERHUB_USERNAME}/$REGISTRY_PATH-${FRONT_NAME}:$IMAGE_TAG --build-arg SERVER_DOMAIN=$SERVER_DOMAIN --build-arg CERT_DOMAIN=$CERT_DOMAIN -t ${DOCKERHUB_USERNAME:-default}/$REGISTRY_PATH-${SERVICE_NAME}:$IMAGE_TAG $BUILD_CONTEXT
+    - docker build \
+      --build-arg FRONTEND_IMAGE="${DOCKERHUB_USERNAME}/${REGISTRY_PATH}-${FRONT_NAME}:${IMAGE_TAG}" \
+      --build-arg SERVER_DOMAIN="${SERVER_DOMAIN}" \
+      --build-arg CERT_DOMAIN="${CERT_DOMAIN}" \
+      -t "${DOCKERHUB_USERNAME:-default}/${REGISTRY_PATH}-${SERVICE_NAME}:${IMAGE_TAG}" \
+      "${BUILD_CONTEXT}"
+
 
 push_front:
   variables:
