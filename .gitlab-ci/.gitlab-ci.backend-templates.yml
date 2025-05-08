@@ -2,12 +2,14 @@ workflow:
   rules:
     - if: '$CI_COMMIT_BRANCH == "master" && $CI_PIPELINE_SOURCE == "push"'
       variables:
-        HOST_SERVER: $PROD_SERVER
-        HOST_KEY: $PROD_KEY
+        HOST_SERVER: d-ice.co.kr
+        SERVER_DOMAIN: d-ice.co.kr
+        CERT_DOMAIN: d-ice.co.kr bucket.d-ice.co.kr
     - when: always
       variables:
-        HOST_SERVER: $TEST_SERVER
-        HOST_KEY: $TEST_KEY
+        HOST_SERVER: test.d-ice.co.kr
+        SERVER_DOMAIN: test.d-ice.co.kr
+        CERT_DOMAIN: test.d-ice.co.kr bucket.test.d-ice.co.kr
 
 .backend-default-build:
   stage: build
@@ -45,6 +47,12 @@ workflow:
   stage: deploy
   before_script:
     - apk add --no-cache openssh gettext coreutils
+    - |
+      if [[ "$CI_COMMIT_BRANCH" == "master" ]]; then
+      export HOST_KEY=$PROD_KEY
+      else
+      export HOST_KEY=$TEST_KEY
+      fi
   script:
     # 1️⃣ SSH Key 설정
     #- apt-get update && apt-get install -y openssh-client basez
