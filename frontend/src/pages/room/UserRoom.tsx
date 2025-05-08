@@ -7,11 +7,6 @@ import GameCard from "../../components/GameCard";
 import RoomCode from "../../components/RoomCode";
 import { Clock } from "lucide-react";
 
-interface UserJoinedMessage {
-    roomId: string;
-    userId: string;
-}
-
 export default function UserRoom() {
     const navigate = useNavigate();
 

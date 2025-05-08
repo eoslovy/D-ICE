@@ -10,11 +10,6 @@ import RoomCode from "../../components/RoomCode";
 import DarkModeToggle from "../../components/DarkModeToggle";
 import { Users, Play } from "lucide-react";
 
-interface UserJoinedAdminMessage {
-    nickname: string;
-    userCount: number;
-}
-
 export default function AdminRoom() {
     const navigate = useNavigate();
     const [userNickname, setUserNickname] = useState<string[]>([]);
@@ -95,7 +90,7 @@ export default function AdminRoom() {
                     )}
 
                     {latestNickname && (
-                        <div className="text-center mb-4 p-2 bg-green-100 dark:bg-green-900 rounded-lg animate-pulse">
+                        <div className="text-center mb-4 p-2 bg-green-100 dark:bg-green-900 text-[#1e1e1e] dark:text-[#1e1e1e] rounded-lg animate-pulse">
                             <p className="font-medium">
                                 {latestNickname}님이 입장했습니다!
                             </p>
