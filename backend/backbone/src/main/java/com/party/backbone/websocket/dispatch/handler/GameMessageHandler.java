@@ -10,6 +10,7 @@ import com.party.backbone.websocket.dispatch.repository.IdempotencyRedisReposito
 import com.party.backbone.websocket.message.GameMessage;
 import com.party.backbone.websocket.message.IdempotentMessage;
 import com.party.backbone.websocket.message.admin.AdminMessage;
+import com.party.backbone.websocket.message.user.UserMessage;
 import com.sun.jdi.request.DuplicateRequestException;
 
 public abstract class GameMessageHandler<T extends GameMessage> {
@@ -25,6 +26,7 @@ public abstract class GameMessageHandler<T extends GameMessage> {
 	public final void handle(T message, String roomCode, WebSocketSession session) throws IOException {
 		checkIdempotencyBefore(message, roomCode);
 		validateAdministrator(message, roomCode);
+		validateUser(message, roomCode);
 		doHandle(message, roomCode, session);
 		markProcessedAfter(message, roomCode);
 	}
@@ -37,6 +39,17 @@ public abstract class GameMessageHandler<T extends GameMessage> {
 		if (!Objects.equals(expectedId, adminMessage.getAdministratorId())) {
 			throw new IllegalArgumentException(
 				"[validateAdministrator] Wrong administratorId : " + adminMessage.getAdministratorId() + " for room : "
+					+ roomCode);
+		}
+	}
+
+	private void validateUser(T message, String roomCode) {
+		if (!(message instanceof UserMessage userMessage)) {
+			return;
+		}
+		if (Boolean.FALSE.equals(roomRepository.hasPlayer(roomCode, userMessage.getUserId()))) {
+			throw new IllegalArgumentException(
+				"[validateUser] Wrong userId : " + userMessage.getUserId() + " for room : "
 					+ roomCode);
 		}
 	}
