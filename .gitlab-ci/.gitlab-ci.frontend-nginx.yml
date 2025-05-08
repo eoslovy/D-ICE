@@ -29,7 +29,7 @@ build_nginx:
     FRONT_NAME: front-service
     BUILD_CONTEXT: ./infra/nginx
     K8S_PATH: ./infra/k8s/infras/nginx-frontend.yml
-    FRONTEND_IMAGE: ${DOCKERHUB_USERNAME:-default}/$REGISTRY_PATH-${FRONT_NAME}:$IMAGE_TAG ${BUILD_CONTEXT}
+    FRONTEND_IMAGE: ${DOCKERHUB_USERNAME:-default}/$REGISTRY_PATH-${FRONT_NAME}:$IMAGE_TAG
     NGINX_CONF: nginx.conf
   rules:
     - changes:
