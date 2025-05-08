@@ -9,11 +9,6 @@ import GameCard from "../../components/GameCard";
 import RoomCode from "../../components/RoomCode";
 import { Users, Play } from "lucide-react";
 
-interface UserJoinedAdminMessage {
-    nickname: string;
-    userCount: number;
-}
-
 export default function AdminRoom() {
     const navigate = useNavigate();
     const [userNickname, setUserNickname] = useState<string[]>([]);

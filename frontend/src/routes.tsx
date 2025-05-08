@@ -7,7 +7,7 @@ import UserRoom from './pages/room/UserRoom';
 import BroadcastRoom from './pages/room/BroadcastRoom';
 import Set from './pages/set';
 import Lobby from './pages/lobby';
-import Join from './pages/join/join';
+import Join from './pages/join/Join'
 import NotFound from './pages/error/NotFound';
 
 export const router = createBrowserRouter([
