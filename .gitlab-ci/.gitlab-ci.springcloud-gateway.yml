@@ -18,6 +18,14 @@ push_springcloud-gateway:
   extends: .backend-default-push
   needs: [build_springcloud-gateway]
   rules:
+    - if: '$CI_COMMIT_BRANCH == "dev" && $CI_PIPELINE_SOURCE == "push"'
+      changes:
+        - infra/springcloud-gateway/**/*
+      when: always
+    - if: '$CI_COMMIT_BRANCH == "dev" && $CI_PIPELINE_SOURCE == "web"' # 수동 실행도 허용하려면
+      changes:
+        - infra/springcloud-gateway/**/*
+      when: manual
     - if: '$CI_COMMIT_BRANCH == "master" && $CI_PIPELINE_SOURCE == "push"'
       changes:
         - infra/springcloud-gateway/**/*
@@ -36,6 +44,14 @@ deploy_springcloud-gateway:
   extends: .backend-default-deploy
   needs: [push_springcloud-gateway]
   rules:
+    - if: '$CI_COMMIT_BRANCH == "dev" && $CI_PIPELINE_SOURCE == "push"'
+      changes:
+        - infra/springcloud-gateway/**/*
+      when: always
+    - if: '$CI_COMMIT_BRANCH == "dev" && $CI_PIPELINE_SOURCE == "web"' # 수동 실행도 허용하려면
+      changes:
+        - infra/springcloud-gateway/**/*
+      when: manual
     - if: '$CI_COMMIT_BRANCH == "master" && $CI_PIPELINE_SOURCE == "push"'
       changes:
         - infra/springcloud-gateway/**/*

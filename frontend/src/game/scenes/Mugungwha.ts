@@ -22,6 +22,7 @@ export class Mugungwha extends Scene {
     private background: Phaser.GameObjects.TileSprite;
     private player: Phaser.GameObjects.Sprite;
     private gameButton: Phaser.GameObjects.Sprite;
+    private gameButtonText: Phaser.GameObjects.Text;
     private textPool: Phaser.GameObjects.Group;
     private watchingCounter: number;
     private isWatching: boolean;
@@ -33,6 +34,8 @@ export class Mugungwha extends Scene {
     private mugungwha_bgm: Phaser.Sound.BaseSound;
 
     private alerLevel: number = 0;
+
+    private btn_tween: Phaser.Tweens.Tween;
 
     constructor() {
         super('Mugungwha');
@@ -130,7 +133,7 @@ export class Mugungwha extends Scene {
         this.mugungwha_02 = this.sound.add('mugungwha_02', { loop: false });
         this.mugungwha_03 = this.sound.add('mugungwha_03', { loop: false });
         this.mugungwha_bgm = this.sound.add('mugungwha_bgm', { loop: true });
-        this.mugungwha_bgm.play();
+        this.mugungwha_bgm?.play();
 
         this.events.on('countdownFinished', () => {
             this.startGame();
@@ -156,7 +159,7 @@ export class Mugungwha extends Scene {
             'btn_green'
         ).setOrigin(0.5, 0.5).setInteractive().on('pointerdown', () => {
             if (this.isWatching) {
-                this.mugungwha_fail.play();
+                this.mugungwha_fail?.play();
                 this.popupText.popupText('앗!', this.cameras.main.centerX, this.cameras.main.centerY, 2000, {
                     fontSize: '128px',
                     color: '#ff0000',
@@ -164,7 +167,7 @@ export class Mugungwha extends Scene {
                 this.endGame();
                 return;
             }
-            this.mugungwha_pop.play();
+            this.mugungwha_pop?.play();
             this.player.anims.play('mugungwha_player', true);
             this.distanceMoved += 1; // Simulate distance moved
             const randomX = Phaser.Math.Between(0, this.cameras.main.width);
@@ -187,14 +190,40 @@ export class Mugungwha extends Scene {
                     }
                 }
             });
+
+            if (!this.btn_tween || !this.btn_tween.isPlaying()) {
+                this.btn_tween = this.tweens.add({
+                    targets: this.gameButton,
+                    scaleX: 1.2,
+                    scaleY: 1.2,
+                    duration: 100,
+                    ease: 'Power1',
+                    yoyo: true,
+                    repeat: 1,
+                    onComplete: () => {
+                        this.gameButton.setScale(1);
+                        this.btn_tween.remove();
+                    }
+                });
+            }
         });
+        this.gameButtonText = this.add.text(buttonX, buttonY, 'Go!', {
+            fontSize: '128px',
+            fontFamily: 'Arial',
+            color: '#ffffff',
+            align: 'center',
+            fontStyle: 'bold',
+            stroke: '#000000',
+            strokeThickness: 2,
+        }).setOrigin(0.5, 0.5);
 
         this.isWatching = false;
     }
 
     endGame() {
-        this.mugungwha_bgm.stop();
+        this.mugungwha_bgm?.stop();
         this.gameButton.destroy();
+        this.gameButtonText.destroy();
         this.timer.stopTimer(true);
         this.time.removeAllEvents();
         this.time.addEvent({
@@ -240,7 +269,7 @@ export class Mugungwha extends Scene {
             this.watchingCounter += Phaser.Math.Between(0, 2);
             if (this.watchingCounter > 250 && this.alerLevel < 1) {
                 this.alerLevel = 1;
-                this.mugungwha_01.play();
+                this.mugungwha_01?.play();
 
                 this.popupText.popupText('무궁화...', this.cameras.main.centerX, this.cameras.main.centerY - 500, 500, {
                     fontSize: '128px',
@@ -253,7 +282,7 @@ export class Mugungwha extends Scene {
 
             if (this.watchingCounter > 500 && this.alerLevel < 2) {
                 this.alerLevel = 2;
-                this.mugungwha_02.play();
+                this.mugungwha_02?.play();
 
                 this.popupText.popupText('꽃이...', this.cameras.main.centerX, this.cameras.main.centerY - 500, 1000, {
                     fontSize: '128px',
@@ -268,7 +297,7 @@ export class Mugungwha extends Scene {
                 this.isWatching = true;
                 this.gameButton.tint = 0xff0000;
                 this.alerLevel = 3;
-                this.mugungwha_03.play();
+                this.mugungwha_03?.play();
 
                 this.popupText.popupText('피었습니다!', this.cameras.main.centerX, this.cameras.main.centerY - 500, 1000, {
                     fontSize: '128px',
