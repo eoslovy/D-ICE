@@ -8,7 +8,7 @@ interface AdminState {
   userCount: number | null; 
   totalRound: number | null; 
   setStatus: (status: "INGAME" | "WAITING") => void; 
-  setadministratorId: (userId: string) => void;
+  setAdministratorId: (userId: string) => void;
   setRoomCode: (roomCode: string) => void;
   setUserCount: (userCount: number) => void;
   setTotalRound: (totalRound: number) => void;
@@ -24,7 +24,7 @@ export const adminStore = create<AdminState>()(
       userCount: null,
       totalRound: null,
       setStatus: (status: "INGAME" | "WAITING") => set({ status }), 
-      setadministratorId: (administratorId: string) => set({ administratorId }),
+      setAdministratorId: (administratorId: string) => set({ administratorId }),
       setRoomCode: (roomCode: string) => set({ roomCode }),
       setUserCount: (userCount: number) => set({ userCount }),
       setTotalRound: (totalRound: number) => set({ totalRound }),
