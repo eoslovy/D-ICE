@@ -3,7 +3,7 @@ interface SendMessage {
 }
 
 interface UserSendMessage extends SendMessage {
-    type: "USER_JOIN" | "SUBMIT";
+    type: "USER_JOIN" | "SUBMIT" | "USER_RECONNECT" | "BROADCAST_REQUEST";
 }
 
 interface UserJoinMessage extends UserSendMessage {
@@ -19,8 +19,19 @@ interface SubmitMessage extends UserSendMessage {
     gameType: string;
 }
 
+interface UserReconnectMessage extends UserSendMessage {
+    type: "USER_RECONNECT";
+    userId: string;
+}
+
+interface BroadcastRequestMessage extends UserSendMessage {
+    type: "BROADCAST_REQUEST";
+    userId: string;
+    payload: string;
+}
+
 interface AdminSendMessage extends SendMessage {
-    type: "ADMIN_JOIN" | "INIT" | "START_GAME";
+    type: "ADMIN_JOIN" | "INIT" | "START_GAME" | "RECONNECT_ADMIN";
     administratorId: string;
 }
 
