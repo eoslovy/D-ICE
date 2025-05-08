@@ -70,14 +70,6 @@ services:
       - "8080:8080"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
-    depends_on:
-      - backbone-service
-      - gamekjh-service
-      - gamecjm-service
-      - gamekyh-service
-      - gamelsr-service
-      - gameojs-service
-      - gameydg-service
 
   frontend-nginx:
     container_name: nginx
