@@ -18,6 +18,14 @@ push_gamekjh_service:
   extends: .backend-default-push
   needs: [build_gamekjh_service]
   rules:
+    - if: '$CI_COMMIT_BRANCH == "dev" && $CI_PIPELINE_SOURCE == "push"'
+      changes:
+        - backend/game-KJH/**/*
+      when: always
+    - if: '$CI_COMMIT_BRANCH == "dev" && $CI_PIPELINE_SOURCE == "web"' # 수동 실행도 허용하려면
+      changes:
+        - backend/game-KJH/**/*
+      when: manual
     - if: '$CI_COMMIT_BRANCH == "master" && $CI_PIPELINE_SOURCE == "push"'
       changes:
         - backend/game-KJH/**/*
@@ -36,6 +44,14 @@ deploy_gamekjh_service:
   extends: .backend-default-deploy
   needs: [push_gamekjh_service]
   rules:
+    - if: '$CI_COMMIT_BRANCH == "dev" && $CI_PIPELINE_SOURCE == "push"'
+      changes:
+        - backend/game-KJH/**/*
+      when: always
+    - if: '$CI_COMMIT_BRANCH == "dev" && $CI_PIPELINE_SOURCE == "web"' # 수동 실행도 허용하려면
+      changes:
+        - backend/game-KJH/**/*
+      when: manual
     - if: '$CI_COMMIT_BRANCH == "master" && $CI_PIPELINE_SOURCE == "push"'
       changes:
         - backend/game-KJH/**/*
