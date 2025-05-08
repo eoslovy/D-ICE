@@ -15,7 +15,7 @@ interface GameInfo {
 export class Preloader extends Phaser.Scene {
   private waitingText?: Phaser.GameObjects.Text;
   private readyToStart: boolean = false;
-  private mockNextGame: string = "PerfectCircleGame";
+  private mockNextGame: string = "Dye";
   private mockGameInfo: GameInfo = {
     nextGame: 'PerfectCircleGame',
     rouletteGames: [
@@ -32,6 +32,7 @@ export class Preloader extends Phaser.Scene {
       { name: '무궁화', key: 'Mugungwha', color: 0xff6348 },
       { name: '줄타기', key: 'Wirewalk', color: 0x1dd1a1 },
       { name: '요세푸스', key: 'Josephus', color: 0xff6b81 },
+      { name: '염색', key: 'Dye', color: 0xff9f43 },
     ]
   };
 
