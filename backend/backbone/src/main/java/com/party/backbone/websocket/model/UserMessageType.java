@@ -9,6 +9,7 @@ import com.party.backbone.websocket.message.GameMessage;
 import com.party.backbone.websocket.message.user.BroadcastRequestMessage;
 import com.party.backbone.websocket.message.user.SubmitMessage;
 import com.party.backbone.websocket.message.user.UserJoinMessage;
+import com.party.backbone.websocket.message.user.UserReconnectMessage;
 
 import lombok.Getter;
 
@@ -17,6 +18,7 @@ public enum UserMessageType implements MessageType {
 	JOIN(UserJoinMessage.class),
 	SUBMIT(SubmitMessage.class),
 	BROADCAST_REQUEST(BroadcastRequestMessage.class),
+	USER_RECONNECT(UserReconnectMessage.class),
 	;
 	private final Class<? extends GameMessage> messageClass;
 

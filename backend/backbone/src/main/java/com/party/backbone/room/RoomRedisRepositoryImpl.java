@@ -178,6 +178,11 @@ public class RoomRedisRepositoryImpl implements RoomRedisRepository {
 	}
 
 	@Override
+	public Boolean hasPlayer(String roomCode, String userId) {
+		return redisTemplate.opsForSet().isMember(getPlayerIdsKey(roomCode), userId);
+	}
+
+	@Override
 	public Set<String> getDueRooms(long currentTimeMillis, int limit) {
 		var rooms = redisTemplate.opsForZSet()
 			.rangeByScoreWithScores(PENDING_AGGREGATION_KEY, 0, currentTimeMillis, 0, limit);

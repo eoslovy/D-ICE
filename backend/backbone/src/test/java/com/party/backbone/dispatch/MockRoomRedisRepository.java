@@ -62,6 +62,11 @@ public class MockRoomRedisRepository implements RoomRedisRepository {
 	}
 
 	@Override
+	public Boolean hasPlayer(String roomCode, String userId) {
+		return null;
+	}
+
+	@Override
 	public void endGame(String roomCode) {
 
 	}
@@ -93,7 +98,7 @@ public class MockRoomRedisRepository implements RoomRedisRepository {
 
 	@Override
 	public void updateScore(String roomCode, String userId, int score) {
-		
+
 	}
 
 	public void setUserIds(List<String> userIds) {
