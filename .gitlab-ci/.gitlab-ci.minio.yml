@@ -1,0 +1,68 @@
+variables:
+  SERVICE_NAME: minio-bucket
+  BUILD_CONTEXT: ./infra/minio
+  K8S_PATH: ./infra/k8s/infras/gateway.yml
+build_minio-bucket:
+  extends: .backend-default-build
+  rules:
+    - changes:
+        - infra/minio/**/*
+      when: always
+    - when: never
+
+push_minio-bucket:
+  variables:
+    SERVICE_NAME: minio-bucket
+    BUILD_CONTEXT: ./infra/minio
+    K8S_PATH: ./infra/k8s/infras/gateway.yml
+  extends: .backend-default-push
+  needs: [build_minio-bucket]
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "dev" && $CI_PIPELINE_SOURCE == "push"'
+      changes:
+        - infra/minio/**/*
+      when: always
+    - if: '$CI_COMMIT_BRANCH == "dev" && $CI_PIPELINE_SOURCE == "web"' # 수동 실행도 허용하려면
+      changes:
+        - infra/minio/**/*
+      when: manual
+    - if: '$CI_COMMIT_BRANCH == "master" && $CI_PIPELINE_SOURCE == "push"'
+      changes:
+        - infra/minio/**/*
+      when: always
+    - if: '$CI_COMMIT_BRANCH == "master" && $CI_PIPELINE_SOURCE == "web"' # 수동 실행도 허용하려면
+      changes:
+        - infra/minio/**/*
+      when: manual
+    - when: never
+
+deploy_minio-bucket:
+  variables:
+    SERVICE_NAME: minio-bucket
+    BUILD_CONTEXT: ./infra/minio
+    K8S_PATH: ./infra/k8s/infras/gateway.yml
+  extends: .backend-default-deploy
+  needs: [push_minio-bucket]
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "dev" && $CI_PIPELINE_SOURCE == "push"'
+      changes:
+        - infra/minio/**/*
+      when: always
+    - if: '$CI_COMMIT_BRANCH == "dev" && $CI_PIPELINE_SOURCE == "web"' # 수동 실행도 허용하려면
+      changes:
+        - infra/minio/**/*
+      when: manual
+    - if: '$CI_COMMIT_BRANCH == "master" && $CI_PIPELINE_SOURCE == "push"'
+      changes:
+        - infra/minio/**/*
+      when: always
+    - if: '$CI_COMMIT_BRANCH == "master" && $CI_PIPELINE_SOURCE == "web"' # 수동 실행도 허용하려면
+      changes:
+        - infra/minio/**/*
+      when: manual
+    - when: never
+#test_include_trigger:
+# tags:
+#  - $GITLAB_USER_EMAIL
+#script:
+#  - echo "CI 정상 작동 여부 확인" sda
