@@ -1,11 +1,19 @@
 import { useState, useEffect, useRef } from "react"
 import { Trophy, Medal, Frown, ChevronDown, ChevronUp, Play, ArrowRight } from "lucide-react"
 interface ResultProps {
-  data: AggregatedAdminMessage
-  onContinue?: () => void
+  data: AggregatedAdminMessage | null;
+  onContinue?: () => void;
 }
 
 export default function Result({ data, onContinue }: ResultProps) {
+  if (!data) {
+    return (
+      <div className="error-message">
+        <p>데이터를 가져오는 데 실패했습니다. 잠시 후 다시 시도해주세요.</p>
+      </div>
+    )
+  }
+  
   const [expandedRankings, setExpandedRankings] = useState(false)
   const [activeVideo, setActiveVideo] = useState<"first" | "last" | null>("first") // 기본값을 "first"로 설정
   const [videoEnded, setVideoEnded] = useState(false)
@@ -112,7 +120,7 @@ export default function Result({ data, onContinue }: ResultProps) {
 
           {/* 순위표 섹션 (모바일에서 영상이 끝난 후에만 표시) */}
           {videoEnded && (
-            <div className="rankings-container">
+            <div className="animate-fadeIn">
               <div className="rankings-table">
                 <div className="rankings-header">순위표</div>
 
