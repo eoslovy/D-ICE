@@ -17,10 +17,25 @@ export default function WrapperLayout() {
   const [modalRoomCode, setModalRoomCode] = useState<string | null>(null);
   const [hasNavigated, setHasNavigated] = useState(false);
   const [navigateTo, setNavigateTo] = useState("/");
+  const [isReady, setIsReady] = useState(false);
 
-  const ROUTES = ['/tkfkdgody','/dlrjfckwdk', '/select', '/lobby', '/roomSettings'];
+  const ROUTES = [
+    '/tkfkdgody',
+    '/dlrjfckwdk',
+    '/select',
+    '/lobby',
+    '/roomSettings',
+    /^\/join\/\d{6}$/, // /join/:roomCode 6자리 숫자를 매칭하는 정규식
+  ];
   const path = window.location.pathname;
-  const isCreatingOrJoiningRoom = ROUTES.includes(path);
+  const isCreatingOrJoiningRoom = ROUTES.some((route) => {
+    if (typeof route === 'string') {
+      return route === path; // 문자열 비교
+    } else if (route instanceof RegExp) {
+      return route.test(path); // 정규식 매칭
+    }
+    return false;
+  });
   
   const setModal = (type: "user" | "admin", Code: string) => {
     setModalType(type);
@@ -30,7 +45,8 @@ export default function WrapperLayout() {
   // 웹소켓 연결 실패 시
   const handleWebSocketError = () => {
     console.error("WebSocket 연결 실패");
-    localStorage.clear(); // localStorage 초기화
+    localStorage.removeItem("userStore");
+    localStorage.removeItem("adminStore");
     navigate("/select", { replace: true });
   };
 
@@ -115,7 +131,10 @@ export default function WrapperLayout() {
   }
 
   const RedirectNavigation = () => { 
-    localStorage.clear(); // localStorage 초기화
+    localStorage.removeItem("userStore");
+    localStorage.removeItem("adminStore");
+    console.log('path:',path);
+    console.log('isCreatingOrJoiningRoom:', isCreatingOrJoiningRoom);
     if (isCreatingOrJoiningRoom || hasNavigated) {
       navigate(path, { replace: true }); // 그대로 현재 경로로 이동
     } else {
@@ -134,7 +153,8 @@ export default function WrapperLayout() {
       console.log('Both userStore and adminStore exist. Resetting...');
       userStore.getState().reset();
       adminStore.getState().reset();
-      localStorage.clear();
+      localStorage.removeItem("userStore");
+      localStorage.removeItem("adminStore");
       navigate('/select', { replace: true });
       return;
     }
@@ -185,6 +205,8 @@ export default function WrapperLayout() {
     const darkModeMediaQuery = window.matchMedia("(prefers-color-scheme: dark)")
     darkModeMediaQuery.addEventListener("change", applyDarkMode)
 
+    setIsReady(true);
+
     return () => {
       darkModeMediaQuery.removeEventListener("change", applyDarkMode)
     }
@@ -194,7 +216,7 @@ export default function WrapperLayout() {
   return (
     <div id='app' className="min-h-screen">
       <DarkModeToggle />
-      {!isModalOpen && <Outlet />}
+      {(isReady && !isModalOpen) && <Outlet />}
       {/* 모달 창 */}
       {isModalOpen && (
         <div className="modal flex items-center justify-center min-h-screen">

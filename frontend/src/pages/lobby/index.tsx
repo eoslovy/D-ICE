@@ -10,7 +10,7 @@ import { LogIn, Loader } from "lucide-react"
 
 export default function Lobby() {
     const roomCode = localStorage.getItem("roomCode") || "000000";
-    const [roomCodeInput, setroomCodeInput] = useState("");
+    const [roomCodeInput, setroomCodeInput] = useState(roomCode === "000000" ? "" : roomCode);
     const [nicknameInput, setnicknameInput] = useState("");
     const [errorMessage, setErrorMessage] = useState("");
     const [isJoining, setIsJoining] = useState(false)
@@ -20,6 +20,8 @@ export default function Lobby() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+
+
 
         if (!nicknameInput) {
             setErrorMessage("닉네임을 입력하세요.");
@@ -34,6 +36,7 @@ export default function Lobby() {
 
         try {
             setIsJoining(true);
+
             const USER_WS_URL = `ws://${
                 import.meta.env.VITE_API_URL || "localhost:8080"
             }/ws/game/user/${roomCodeInput}`;
@@ -49,6 +52,8 @@ export default function Lobby() {
                     userStore.getState().setUserId(payload.userId);
                     userStore.getState().setRoomCode(roomCodeInput);
                     userStore.getState().setNickname(nicknameInput);
+
+                    localStorage.removeItem('roomCode');
 
                     // 방 코드, 닉네임 저장 및 페이지 이동
                     // localStorage.setItem("roomCode", roomCodeInput);
