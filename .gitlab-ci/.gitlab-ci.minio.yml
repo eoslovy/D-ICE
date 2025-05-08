@@ -2,8 +2,13 @@ variables:
   SERVICE_NAME: minio-bucket
   BUILD_CONTEXT: ./infra/minio
   K8S_PATH: ./infra/k8s/infras/gateway.yml
+
 build_minio-bucket:
   extends: .backend-default-build
+  variables:
+    SERVICE_NAME: minio-bucket
+    BUILD_CONTEXT: ./infra/minio
+    K8S_PATH: ./infra/k8s/infras/gateway.yml
   rules:
     - changes:
         - infra/minio/**/*
