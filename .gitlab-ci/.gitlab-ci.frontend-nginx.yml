@@ -44,10 +44,10 @@ build_nginx:
     - echo "$BUILD_CONTEXT"
     - ls -al "$BUILD_CONTEXT"
     - docker build \
+      -t "${DOCKERHUB_USERNAME:-default}/${REGISTRY_PATH}-${SERVICE_NAME}:${IMAGE_TAG}" \
       --build-arg FRONTEND_IMAGE="${DOCKERHUB_USERNAME}/${REGISTRY_PATH}-${FRONT_NAME}:${IMAGE_TAG}" \
       --build-arg SERVER_DOMAIN="${SERVER_DOMAIN}" \
       --build-arg CERT_DOMAIN="${CERT_DOMAIN}" \
-      -t "${DOCKERHUB_USERNAME:-default}/${REGISTRY_PATH}-${SERVICE_NAME}:${IMAGE_TAG}" \
       "$BUILD_CONTEXT"
 
 
