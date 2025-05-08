@@ -9,6 +9,15 @@ class AdminWebSocketManager extends WebSocketManager<AdminReceiveTypeMap> {
         this.setUpOnMessage();
     }
 
+    sendAdminReconnect(requestId: string, administratorId: string): void {
+        const adminReconnectMessage: AdminReconnectMessage = {
+            type: "ADMIN_RECONNECT",
+            administratorId: administratorId,
+            requestId: requestId,
+        }
+        this.sendRequest(adminReconnectMessage);
+    }
+
     sendAdminJoin(requestId: string): void {
         const administratorId = adminStore.getState().administratorId;
         if (!administratorId) {

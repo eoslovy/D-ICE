@@ -7,7 +7,7 @@ import { useWebSocket } from '../modules/WebSocketContext.tsx';
 import adminWebSocketManager from '../modules/AdminWebSocketManager';
 import userWebSocketManager from '../modules/UserWebSocketManager.ts';
 import DarkModeToggle from '../components/DarkModeToggle.tsx';
-
+import { v7 as uuidv7 } from "uuid";
 
 export default function WrapperLayout() {
   const navigate = useNavigate();
@@ -18,6 +18,7 @@ export default function WrapperLayout() {
   const [hasNavigated, setHasNavigated] = useState(false);
   const [navigateTo, setNavigateTo] = useState("/");
   const [isReady, setIsReady] = useState(false);
+  let requestId = uuidv7();
 
   const ROUTES = [
     '/tkfkdgody',
@@ -66,10 +67,27 @@ export default function WrapperLayout() {
 
       userWebSocketManager.on("connect", () => {
         console.log("User WebSocket 연결 성공");
-        setHasNavigated(true); // 상태 업데이트
-        navigate(navigateTo, { replace: true });
+        handleUserReJoin();
       });
     };
+
+    const handleUserReJoin = () => {
+      try {
+        userWebSocketManager.sendUserReconnect(requestId, userStore.getState().userId);
+
+        userWebSocketManager.on("USER_RECONNECTED", () => {
+          console.log("User Reconnect 성공");
+          setHasNavigated(true); // 상태 업데이트
+          navigate(navigateTo, { replace: true });
+        });
+
+      } catch (error) {
+        console.error("User Reconnect 오류:", error);
+      } finally{
+        requestId = uuidv7();
+      }
+    }
+    
 
     const handleModalClose = (confirm: boolean) => {
       setIsModalOpen(false);
@@ -102,10 +120,25 @@ export default function WrapperLayout() {
 
       adminWebSocketManager.on("connect", () => {
         console.log("Admin WebSocket 연결 성공");
-        setHasNavigated(true); // 상태 업데이트
-        navigate(navigateTo, { replace: true });
+        handleAdminReJoin();
       });
     };
+    const handleAdminReJoin = () => {
+      try {
+        adminWebSocketManager.sendAdminReconnect(requestId, adminStore.getState().administratorId);
+
+        adminWebSocketManager.on("ADMIN_RECONNECTED", () => {
+          console.log("Admin Reconnect 성공");
+          setHasNavigated(true); // 상태 업데이트
+          navigate(navigateTo, { replace: true });
+        });
+
+      } catch (error) {
+        console.error("Admin Reconnect 오류:", error);
+      } finally{
+        requestId = uuidv7();
+      }
+    }
 
     const handleModalClose = (confirm: boolean) => {
       setIsModalOpen(false);
