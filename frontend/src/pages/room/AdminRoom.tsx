@@ -7,7 +7,6 @@ import { v7 } from "uuid";
 import BackgroundAnimation from "../../components/BackgroundAnimation";
 import GameCard from "../../components/GameCard";
 import RoomCode from "../../components/RoomCode";
-import DarkModeToggle from "../../components/DarkModeToggle";
 import { Users, Play } from "lucide-react";
 
 interface UserJoinedAdminMessage {
@@ -50,8 +49,9 @@ export default function AdminRoom() {
     const initGame = async () => {
         try {
             // 임시로 라운드 수 1로 고정
-            adminWebSocketManager.sendSessionInit(requestId, 1);
+            adminWebSocketManager.sendSessionInit(requestId, adminStore.getState().totalRound);
             // 게임 중계 방으로 이동
+            adminStore.getState().setStatus("INGAME");
             navigate(`/broadcast/${roomCode}`);
         } catch (error) {
             console.error("게임 시작 중 오류:", error);
@@ -63,7 +63,6 @@ export default function AdminRoom() {
     return (
         <div className="game-container">
             <BackgroundAnimation />
-            <DarkModeToggle />
 
             <GameCard>
                 {/* <h1 className="game-title">게임명</h1> */}

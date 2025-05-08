@@ -5,7 +5,6 @@ import { useWebSocket } from "../../modules/WebSocketContext";
 import { v7 as uuidv7 } from "uuid";
 import { userStore } from "../../stores/userStore";
 import BackgroundAnimation from "../../components/BackgroundAnimation";
-import DarkModeToggle from "../../components/DarkModeToggle";
 import GameCard from "../../components/GameCard"
 import { LogIn, Loader } from "lucide-react"
 
@@ -46,6 +45,7 @@ export default function Lobby() {
                     console.log("유저 입장 성공:", payload);
 
                     // zustand에 상태 저장
+                    userStore.getState().setStatus("WAITING");
                     userStore.getState().setUserId(payload.userId);
                     userStore.getState().setRoomCode(roomCodeInput);
                     userStore.getState().setNickname(nicknameInput);
@@ -75,7 +75,6 @@ export default function Lobby() {
     return (
         <div className="game-container">
           <BackgroundAnimation />
-          <DarkModeToggle />
     
           <GameCard>
             <h1 className="game-title">Join Game</h1>

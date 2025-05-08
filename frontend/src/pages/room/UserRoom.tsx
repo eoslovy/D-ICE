@@ -6,6 +6,7 @@ import BackgroundAnimation from "../../components/BackgroundAnimation";
 import GameCard from "../../components/GameCard";
 import RoomCode from "../../components/RoomCode";
 import { Clock } from "lucide-react";
+import { userStore } from "../../stores/userStore";
 
 interface UserJoinedMessage {
     roomId: string;
@@ -22,6 +23,7 @@ export default function UserRoom() {
         console.log("ENTER_GAME 이벤트 리스너 등록");
         userWebSocketManager.on("ENTER_GAME", (payload: UserJoinedMessage) => {
             console.log("게임 세션 입장:", payload);
+            userStore.getState().setStatus("INGAME");
             navigate(`/game`);
         });
         return () => {
