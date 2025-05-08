@@ -1,5 +1,3 @@
-"use client";
-
 import { useState } from "react";
 import BackgroundAnimation from "../../components/BackgroundAnimation";
 import GameCard from "../../components/GameCard";

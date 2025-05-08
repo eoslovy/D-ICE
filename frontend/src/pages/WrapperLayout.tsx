@@ -1,13 +1,27 @@
-"use client";
+// "use client";
 
 import { useEffect } from 'react';
 import { useNavigate, Outlet } from 'react-router-dom';
+import DarkModeToggle from '../components/DarkModeToggle';
 
 export default function WrapperLayout() {
   const navigate = useNavigate();
 
+  const applyDarkMode = () => {
+    const prefersDarkMode = window.matchMedia("(prefers-color-scheme: dark)").matches // 시스템 다크 모드 여부 확인
+    if (prefersDarkMode) {
+      document.documentElement.classList.add("dark") // html 태그에 dark 클래스 추가하기
+    } else {
+      document.documentElement.classList.remove("dark") // dark 클래스 제거
+    }
+  }
+
   useEffect(() => {
     applyDarkMode();
+
+    const darkModeMediaQuery = window.matchMedia("(prefers-color-scheme: dark)")
+    darkModeMediaQuery.addEventListener("change", applyDarkMode)
+
 
     const ROUTES = ['/select', '/lobby', '/roomSettings'];
     const path = window.location.pathname;
@@ -92,6 +106,7 @@ export default function WrapperLayout() {
 
   return (
     <div id='app' className="min-h-screen">
+      <DarkModeToggle/>
       <Outlet />
     </div>
   );
