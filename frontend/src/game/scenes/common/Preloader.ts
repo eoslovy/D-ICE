@@ -30,6 +30,8 @@ export class Preloader extends Phaser.Scene {
       { name: '색상 맞추기', key: 'Color', color: 0x7bed9f },
       { name: '숫자 게임', key: 'Number', color: 0xfed330 },
       { name: '무궁화', key: 'Mugungwha', color: 0xff6348 },
+      { name: '줄타기', key: 'Wirewalk', color: 0x1dd1a1 },
+      { name: '요세푸스', key: 'Josephus', color: 0xff6b81 },
     ]
   };
 
