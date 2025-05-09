@@ -122,7 +122,7 @@ type AdminReceiveTypeMap = {
 };
 
 type UserReceiveTypeMap = {
-    USER_JOINED: UserJoinMessage;
+    USER_JOINED: UserJoinedMessage;
     USER_RECONNECTED: UserReconnectedMessage;
     WAIT: WaitMessage;
     ENTER_GAME: EnterGameMessage;
