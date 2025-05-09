@@ -102,7 +102,7 @@ export default function TestModules(props: TestModulesProps) {
   // --- WebSocket Handlers ---
   const handleConnect = () => {
     const id = uuid();
-    const url = `ws://${baseUrlInput}/ws/game/user/${roomId}`;
+    const url = `${import.meta.env.VITE_WEBSOCKET_URL}/ws/game/user/${roomId}`;
     userWebSocketManager.setServerURL(url);
     userWebSocketManager.connect();
   };
