@@ -17,17 +17,15 @@ import io.minio.errors.InvalidResponseException;
 import io.minio.errors.ServerException;
 import io.minio.errors.XmlParserException;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 @RestController
 @RequiredArgsConstructor
-@Slf4j
 public class Controller {
 
 	private final MinioClientUtil minioClientUtil;
 
-	@GetMapping("put")
-	public ResponseEntity<String> providePostPresignedUrl() throws
+	@GetMapping("post")
+	public ResponseEntity<String> hello() throws
 		ServerException,
 		InsufficientDataException,
 		ErrorResponseException,
@@ -37,13 +35,13 @@ public class Controller {
 		InvalidResponseException,
 		XmlParserException,
 		InternalException {
-		log.info("PresignedUrl: put 요청 들어왔음");
+		System.out.println("post 요청 들어왔음");
 
-		return ResponseEntity.ok(minioClientUtil.replaceUrl(minioClientUtil.newPutPresignedUrl(1,11, 111)));
+		return ResponseEntity.ok(minioClientUtil.replaceUrl(minioClientUtil.newPostPresignedUrl(1,11, 111)));
 	}
 
 	@GetMapping("get")
-	public ResponseEntity<String> provideGetPresignedUrl() throws
+	public ResponseEntity<String> gethello() throws
 		ServerException,
 		InsufficientDataException,
 		ErrorResponseException,
@@ -53,7 +51,7 @@ public class Controller {
 		InvalidResponseException,
 		XmlParserException,
 		InternalException {
-		log.info("PresignedUrl: get 요청 들어왔음");
+		System.out.println("get 요청 들어왔음");
 		return ResponseEntity.ok(minioClientUtil.replaceUrl(minioClientUtil.newGetPresignedUrl(1,11,111)));
 	}
 }
