@@ -10,20 +10,6 @@ interface GameOverSceneData {
   gameType?: string;
 }
 
-interface BackendResponse {
-  type: "AGGREGATED_USER";
-  requestId: string; //UUIDv7
-  currentRound: number; // 현재 round
-  totalRound: number; // 전체 round
-  gameType: string; //게임이름
-  currentScore: number; // int 이번 round 점수
-  totalScore: number;
-  rankRecord: string; // 구분자 | 라운드별 순위 기록
-  roundRank: number;
-  overallRank: number;
-  videoUploadUrl: string; // s3 presigned url POST|PUT용
-}
-
 export class GameOver extends Phaser.Scene {
   private roundScore: number = 0;
   private gameType: string = '';
