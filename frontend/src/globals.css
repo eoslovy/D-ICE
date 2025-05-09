@@ -5,7 +5,7 @@
 /* 색상 변수 정의 - tertiary는 글자색입니다 */
 :root {
   --primary-color: #42cafd;
-  --secondary-color: #ebebd3;
+  --secondary-color: #FFFFAA;
   --tertiary-color: #1e1e1e;
   --quaternary-color: #fbfff1;
   --quinary-color: #ffa69e;
