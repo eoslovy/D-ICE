@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import GenerateQrCode from "../../components/QRcode";
 import adminWebSocketManager from "../../modules/AdminWebSocketManager";
-// import { WebSocketAdmin } from "../../assets/websocket";
+import { adminStore } from "../../stores/adminStore";
 import { v7 } from "uuid";
 import GameCard from "../../components/GameCard";
 import RoomCode from "../../components/RoomCode";
@@ -14,8 +14,7 @@ export default function AdminRoom() {
     const [latestNickname, setLatestNickname] = useState<string | null>(null);
     const [userCount, setUserCount] = useState<number | null>(null);
     let requestId = v7();
-    const roomCode = localStorage.getItem("roomCode") || "000000";
-
+    const roomCode = adminStore.getState().roomCode;
     useEffect(() => {
         console.log("USER_JOINED_ADMIN 이벤트 리스너 등록");
         adminWebSocketManager.on(
@@ -35,23 +34,18 @@ export default function AdminRoom() {
         );
 
         return () => {
-            adminWebSocketManager.off(
-                "USER_JOINED_ADMIN",
-                (payload: UserJoinedAdminMessage) => {
-                    console.log(
-                        "USER_JOINED_ADMIN 이벤트 리스너 해제:",
-                        payload
-                    );
-                }
-            );
+            adminWebSocketManager.off("USER_JOINED_ADMIN", (payload: UserJoinedAdminMessage) => {
+                console.log("USER_JOINED_ADMIN 이벤트 리스너 해제:", payload);
+            });
         };
     }, []);
 
     const initGame = async () => {
         try {
             // 임시로 라운드 수 1로 고정
-            adminWebSocketManager.sendSessionInit(requestId, 3);
+            adminWebSocketManager.sendSessionInit(requestId, adminStore.getState().totalRound);
             // 게임 중계 방으로 이동
+            adminStore.getState().setStatus("INGAME");
             navigate(`/broadcast/${roomCode}`);
         } catch (error) {
             console.error("게임 시작 중 오류:", error);
@@ -68,10 +62,10 @@ export default function AdminRoom() {
                     <h2 className="game-subtitle">유저 입장 대기중...</h2>
                 </div>
 
-                <RoomCode code={roomCode} />
+                <RoomCode code={String(roomCode)} />
 
                 <div className="mb-6 flex items-center justify-center">
-                    <GenerateQrCode roomCode={roomCode} />
+                    <GenerateQrCode roomCode={String(roomCode)} />
                 </div>
 
                 <div className="mb-6 items-center">
