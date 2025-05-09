@@ -83,22 +83,6 @@ services:
     ports:
       - "18087:8080"
 
-  frontend-react:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-      args:
-        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
-        NEXT_PUBLIC_CREDIT_WEBSOCKET_URL: ${NEXT_PUBLIC_CREDIT_WEBSOCKET_URL}
-
-    image: ${DOCKERHUB_USERNAME:-recreatekang}/d-ice-frontend:${IMAGE_TAG:-latest}
-    env_file:
-      - .env
-    profiles:
-      - build-only
-    ports:
-      - "80:80"
-
   springcloud-gateway:
     container_name: springcloud-gateway
     build:
@@ -127,7 +111,6 @@ services:
       context: ./infra/nginx
       dockerfile: Dockerfile
       args:
-        FRONTEND_IMAGE: ${DOCKERHUB_USERNAME:-recreatekang}/d-ice-frontend:${IMAGE_TAG:-latest}
         NGINX: local_nginx.conf
     image: ${DOCKERHUB_USERNAME:-recreatekang}/d-ice-nginx:${IMAGE_TAG:-latest}
     restart: always
