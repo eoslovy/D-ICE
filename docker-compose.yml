@@ -4,7 +4,6 @@ services:
     build:
       context: ./backend/backbone
       dockerfile: Dockerfile
-    image: ${DOCKERHUB_USERNAME:-recreatekang}/d-ice-backbone-service:${IMAGE_TAG:-latest}
     restart: always
     env_file:
       - .env
@@ -15,7 +14,6 @@ services:
     build:
       context: ./backend/game-KJH
       dockerfile: Dockerfile
-    image: ${DOCKERHUB_USERNAME:-recreatekang}/d-ice-gamekjh-service:${IMAGE_TAG:-latest}
     restart: always
     env_file:
       - .env
@@ -28,7 +26,6 @@ services:
     build:
       context: ./backend/game-CJM
       dockerfile: Dockerfile
-    image: ${DOCKERHUB_USERNAME:-recreatekang}/d-ice-gamecjm-service:${IMAGE_TAG:-latest}
     restart: always
     env_file:
       - .env
@@ -40,7 +37,6 @@ services:
     build:
       context: ./backend/game-KYH
       dockerfile: Dockerfile
-    image: ${DOCKERHUB_USERNAME:-recreatekang}/d-ice-gamekyh-service:${IMAGE_TAG:-latest}
     restart: always
     env_file:
       - .env
@@ -52,7 +48,6 @@ services:
     build:
       context: ./backend/game-LSR
       dockerfile: Dockerfile
-    image: ${DOCKERHUB_USERNAME:-recreatekang}/d-ice-gamelsr-service:${IMAGE_TAG:-latest}
     restart: always
     env_file:
       - .env
@@ -64,7 +59,6 @@ services:
     build:
       context: ./backend/game-OJS
       dockerfile: Dockerfile
-    image: ${DOCKERHUB_USERNAME:-recreatekang}/d-ice-gameojs-service:${IMAGE_TAG:-latest}
     restart: always
     env_file:
       - .env
@@ -76,7 +70,6 @@ services:
     build:
       context: ./backend/game-YDG
       dockerfile: Dockerfile
-    image: ${DOCKERHUB_USERNAME:-recreatekang}/d-ice-gameydg-service:${IMAGE_TAG:-latest}
     restart: always
     env_file:
       - .env
@@ -88,7 +81,6 @@ services:
     build:
       context: ./infra/springcloud-gateway
       dockerfile: Dockerfile
-    image: ${DOCKERHUB_USERNAME:-recreatekang}/d-ice-springcloud-gateway:${IMAGE_TAG:-latest}
     restart: always
     env_file:
       - .env
@@ -112,7 +104,6 @@ services:
       dockerfile: Dockerfile
       args:
         NGINX: local_nginx.conf
-    image: ${DOCKERHUB_USERNAME:-recreatekang}/d-ice-nginx:${IMAGE_TAG:-latest}
     restart: always
     env_file:
       - .env
@@ -130,7 +121,6 @@ services:
       dockerfile: Dockerfile
     env_file:
       - .env
-    image: ${DOCKERHUB_USERNAME:-recreatekang}/d-ice-redis:${IMAGE_TAG:-latest}
     restart: always
     ports:
       - "6379:6379"
@@ -138,7 +128,7 @@ services:
     build:
       context: ./infra/minio
       dockerfile: Dockerfile
-    container_name: minio
+    container_name: minio-bucket
     ports:
       - "9000:9000"      # API 포트
       - "9001:9001"      # 웹 콘솔 포트
