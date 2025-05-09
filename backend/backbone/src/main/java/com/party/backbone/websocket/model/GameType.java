@@ -8,9 +8,9 @@ import lombok.Getter;
 
 @Getter
 public enum GameType {
-	Reaction(60000),
-	Clicker(60000),
-	PerfectCircle(30000),
+	RSP(10000),
+	TEST(10000),
+	ABC(10000),
 	;
 	private static final GameType[] GAME_TYPES = values();
 
