@@ -6,11 +6,12 @@ import RoomCode from "../../components/RoomCode";
 import Result from "../../components/Result";
 import FinalResult from "../../components/FinalResult";
 import { Users, Play, Clock } from "lucide-react";
+import { adminStore } from "../../stores/adminStore";
 
 export default function BroadcastRoom() {
-    const roomCode = localStorage.getItem("roomCode") || "000000";
-    const userCount = localStorage.getItem("userCount") || "0";
-    const totalRound = localStorage.getItem("totalRound") || "1";
+    const roomCode = adminStore.getState().roomCode;
+    const userCount = adminStore.getState().userCount;
+    const totalRound = adminStore.getState().totalRound;
     const [currentRound, setCurrentRound] = useState(1);
     const [nextGame, setNextGame] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);

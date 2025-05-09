@@ -29,15 +29,12 @@ function GenerateQrCode({ roomCode, isDarkMode = false }: GenerateQrCodeProps) {
     if (!roomCode) return;
     
     const origin = window.location.origin;
-    const joinUrl = `${origin}/userroom/${roomCode}`;
-    localStorage.setItem("roomCode", roomCode);
-    localStorage.setItem("isQRCode", true.toString());
+    const joinUrl = `${origin}/join/${roomCode}`;
     setUrl(joinUrl);
   }, [roomCode]);
 
   if (!roomCode) return <div>Loading...</div>;
 
-  if (!roomCode) return <div>Loading...</div>;
   if (!url) return <div>Generating QR Code...</div>;
 
   return (

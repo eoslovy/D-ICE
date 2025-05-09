@@ -99,7 +99,7 @@ export class Reaction extends Phaser.Scene {
     
     // 클릭 시 GameOver 씬으로 이동
     this.input.once('pointerdown', () => {
-      this.scene.start('GameOver', {score : score});
+      this.scene.start('GameOver', {score : score, gameType: 'Reaction'});
     });
   }
 

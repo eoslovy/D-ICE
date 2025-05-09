@@ -15,13 +15,13 @@ interface GameInfo {
 export class Preloader extends Phaser.Scene {
   private waitingText?: Phaser.GameObjects.Text;
   private readyToStart: boolean = false;
-  private mockNextGame: string = "PerfectCircleGame";
+  private mockNextGame: string = "Dye";
   private mockGameInfo: GameInfo = {
-    nextGame: 'PerfectCircleGame',
+    nextGame: 'PerfectCircle',
     rouletteGames: [
       { name: '반응속도 게임', key: 'Reaction', color: 0x2ed573 },
       { name: '클리커 게임', key: 'Clicker', color: 0xff4757 },
-      { name: '원 그리기 게임', key: 'PerfectCircleGame', color: 0x1e90ff },
+      { name: '원 그리기 게임', key: 'PerfectCircle', color: 0x1e90ff },
       { name: '퍼즐 게임', key: 'Puzzle', color: 0xffa502 },
       { name: '리듬 게임', key: 'Rhythm', color: 0xe84393 },
       { name: '타이핑 게임', key: 'Typing', color: 0xa8e6cf },
@@ -32,6 +32,7 @@ export class Preloader extends Phaser.Scene {
       { name: '무궁화', key: 'Mugungwha', color: 0xff6348 },
       { name: '줄타기', key: 'Wirewalk', color: 0x1dd1a1 },
       { name: '요세푸스', key: 'Josephus', color: 0xff6b81 },
+      { name: '염색', key: 'Dye', color: 0xff9f43 },
     ]
   };
 
@@ -120,17 +121,11 @@ export class Preloader extends Phaser.Scene {
       console.log("WAIT 응답 성공:", payload);
       this.readyToStart = true;
       if (payload) {
-        this.mockGameInfo.nextGame = this.mockNextGame;
+        //this.mockGameInfo.nextGame = this.mockNextGame;
+        this.mockGameInfo.nextGame = payload.gameType;
       }
       this.moveToRoulette();
     });
-  
-    // userWebSocketManager.on('error', (error) => {
-    //   console.error('WebSocket Error:', error);
-    //   if (this.waitingText) {
-    //     this.waitingText.setText('서버 연결 오류가 발생했습니다');
-    //   }
-    // });
   
   }
 }
