@@ -116,7 +116,7 @@ export class Preloader extends Phaser.Scene {
 
   create() {
     // 메시지 타입별 리스너 등록
-  
+    console.log("WAIT 이벤트 리스너 등록");
     userWebSocketManager.on("WAIT", (payload: WaitMessage) => {
       console.log("WAIT 응답 성공:", payload);
       this.readyToStart = true;
@@ -128,4 +128,5 @@ export class Preloader extends Phaser.Scene {
     });
   
   }
+
 }
