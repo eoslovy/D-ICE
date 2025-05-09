@@ -9,18 +9,13 @@ export default function Result({ data, onContinue }: ResultProps) {
     if (!data) {
         return (
             <div className="error-message">
-                <p>
-                    데이터를 가져오는 데 실패했습니다. 잠시 후 다시
-                    시도해주세요.
-                </p>
+                <p>데이터를 가져오는 데 실패했습니다. 잠시 후 다시 시도해주세요.</p>
             </div>
         );
     }
 
     const [expandedRankings, setExpandedRankings] = useState(false);
-    const [activeVideo, setActiveVideo] = useState<"first" | "last" | null>(
-        "first"
-    ); // 기본값을 "first"로 설정
+    const [activeVideo, setActiveVideo] = useState<"first" | "last" | null>(null);
     const [videoEnded, setVideoEnded] = useState(false);
     const [isMobile, setIsMobile] = useState(false);
     const videoRef = useRef<HTMLVideoElement>(null);
@@ -30,12 +25,19 @@ export default function Result({ data, onContinue }: ResultProps) {
     const lastVideoUrl = data.lastPlace?.videoUrl || null;
     const hasAnyVideo = !!(firstVideoUrl || lastVideoUrl);
 
-    // 비디오가 없으면 바로 순위표 보여주기
+    // 비디오가 있으면 첫번째 비디오(우승자)를 기본으로 설정
     useEffect(() => {
+        if (firstVideoUrl) {
+            setActiveVideo("first");
+        } else if (lastVideoUrl) {
+            setActiveVideo("last");
+        }
+        
+        // 비디오가 없으면 바로 순위표 보여주기
         if (!hasAnyVideo) {
             setVideoEnded(true);
         }
-    }, [hasAnyVideo]);
+    }, [hasAnyVideo, firstVideoUrl, lastVideoUrl]);
 
     // 모바일 여부 확인
     useEffect(() => {
@@ -53,17 +55,12 @@ export default function Result({ data, onContinue }: ResultProps) {
 
     // 비디오 자동 재생 처리
     useEffect(() => {
-        let shouldPlay = false;
-        if (videoRef.current && hasAnyVideo) {
-            shouldPlay = true;
-        }
-
-        if (shouldPlay) {
+        if (videoRef.current && activeVideo) {
             videoRef.current?.play().catch((err) => {
                 console.log("비디오 자동 재생 실패:", err);
             });
         }
-    }, [activeVideo, hasAnyVideo]);
+    }, [activeVideo]);
 
     const handleVideoEnded = () => {
         setVideoEnded(true);
@@ -110,31 +107,16 @@ export default function Result({ data, onContinue }: ResultProps) {
             {isMobile ? (
                 <div className="flex flex-col">
                     {/* 비디오 섹션 (모바일에서 영상이 끝나기 전까지만 표시) */}
-                    {!videoEnded && hasAnyVideo && (
+                    {!videoEnded && hasAnyVideo && currentVideoUrl && (
                         <div className="video-container">
                             <div className="video-wrapper">
-                                {currentVideoUrl ? (
-                                    <video
-                                        ref={videoRef}
-                                        src={currentVideoUrl}
-                                        className="w-full h-full object-cover"
-                                        controls
-                                        onEnded={handleVideoEnded}
-                                    />
-                                ) : (
-                                    <div className="flex flex-col items-center justify-center h-full bg-gray-800">
-                                        <p className="text-white mb-4">
-                                            선택한 비디오가 없습니다
-                                        </p>
-                                        <button
-                                            onClick={handleShowRankings}
-                                            className="px-4 py-2 bg-blue-500 text-white rounded-md"
-                                        >
-                                            순위표 보기
-                                        </button>
-                                    </div>
-                                )}
-
+                                <video
+                                    ref={videoRef}
+                                    src={currentVideoUrl}
+                                    className="w-full h-full object-cover"
+                                    controls
+                                    onEnded={handleVideoEnded}
+                                />
                                 <div className="video-badge">
                                     {activeVideo === "first"
                                         ? "🏆 우승자 플레이"
@@ -168,11 +150,6 @@ export default function Result({ data, onContinue }: ResultProps) {
                                 >
                                     <Trophy size={18} />
                                     <span>1등 영상</span>
-                                    {!firstVideoUrl && (
-                                        <span className="text-xs ml-1">
-                                            (없음)
-                                        </span>
-                                    )}
                                 </button>
                                 <button
                                     onClick={() => setActiveVideo("last")}
@@ -189,11 +166,6 @@ export default function Result({ data, onContinue }: ResultProps) {
                                 >
                                     <Frown size={18} />
                                     <span>꼴등 영상</span>
-                                    {!lastVideoUrl && (
-                                        <span className="text-xs ml-1">
-                                            (없음)
-                                        </span>
-                                    )}
                                 </button>
                             </div>
                         </div>
@@ -365,7 +337,7 @@ export default function Result({ data, onContinue }: ResultProps) {
                             </div>
 
                             {/* 비디오 다시 보기 버튼 (비디오가 있을 때만 표시) */}
-                            {hasAnyVideo && (
+                            {hasAnyVideo && activeVideo && (
                                 <button
                                     onClick={() => setVideoEnded(false)}
                                     className="video-button mt-4"
@@ -382,77 +354,62 @@ export default function Result({ data, onContinue }: ResultProps) {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {/* 비디오 섹션 */}
                     <div className="flex flex-col">
-                        <div className="video-wrapper mb-4">
-                            {currentVideoUrl ? (
-                                <video
-                                    ref={videoRef}
-                                    src={currentVideoUrl}
-                                    className="w-full h-full object-cover"
-                                    controls
-                                />
-                            ) : (
-                                <div className="flex flex-col items-center justify-center h-full bg-gray-800">
-                                    <p className="text-white mb-4">
-                                        선택한 비디오가 없습니다
-                                    </p>
-                                    {!videoEnded && (
-                                        <button
-                                            onClick={handleShowRankings}
-                                            className="px-4 py-2 bg-blue-500 text-white rounded-md"
-                                        >
-                                            순위표 보기
-                                        </button>
-                                    )}
+                        {hasAnyVideo && currentVideoUrl ? (
+                            <>
+                                <div className="video-wrapper mb-4">
+                                    <video
+                                        ref={videoRef}
+                                        src={currentVideoUrl}
+                                        className="w-full h-full object-cover"
+                                        controls
+                                    />
+                                    <div className="video-badge">
+                                        {activeVideo === "first"
+                                            ? "🏆 우승자 플레이"
+                                            : "😅 꼴등 플레이"}
+                                    </div>
                                 </div>
-                            )}
 
-                            <div className="video-badge">
-                                {activeVideo === "first"
-                                    ? "🏆 우승자 플레이"
-                                    : "😅 꼴등 플레이"}
+                                <div className="flex gap-2 mb-6">
+                                    <button
+                                        onClick={() => setActiveVideo("first")}
+                                        disabled={!firstVideoUrl}
+                                        className={`video-toggle-button ${
+                                            activeVideo === "first"
+                                                ? "video-toggle-active"
+                                                : "video-toggle-inactive"
+                                        } ${
+                                            !firstVideoUrl
+                                                ? "opacity-50 cursor-not-allowed"
+                                                : ""
+                                        }`}
+                                    >
+                                        <Trophy size={18} />
+                                        <span>1등 영상</span>
+                                    </button>
+                                    <button
+                                        onClick={() => setActiveVideo("last")}
+                                        disabled={!lastVideoUrl}
+                                        className={`video-toggle-button ${
+                                            activeVideo === "last"
+                                                ? "video-toggle-active"
+                                                : "video-toggle-inactive"
+                                        } ${
+                                            !lastVideoUrl
+                                                ? "opacity-50 cursor-not-allowed"
+                                                : ""
+                                        }`}
+                                    >
+                                        <Frown size={18} />
+                                        <span>꼴등 영상</span>
+                                    </button>
+                                </div>
+                            </>
+                        ) : (
+                            <div className="mb-4 h-48 flex items-center justify-center">
+                                <div className="rankings-header w-full text-center">순위표</div>
                             </div>
-                        </div>
-
-                        <div className="flex gap-2 mb-6">
-                            <button
-                                onClick={() => setActiveVideo("first")}
-                                disabled={!firstVideoUrl}
-                                className={`video-toggle-button ${
-                                    activeVideo === "first"
-                                        ? "video-toggle-active"
-                                        : "video-toggle-inactive"
-                                } ${
-                                    !firstVideoUrl
-                                        ? "opacity-50 cursor-not-allowed"
-                                        : ""
-                                }`}
-                            >
-                                <Trophy size={18} />
-                                <span>1등 영상</span>
-                                {!firstVideoUrl && (
-                                    <span className="text-xs ml-1">(없음)</span>
-                                )}
-                            </button>
-                            <button
-                                onClick={() => setActiveVideo("last")}
-                                disabled={!lastVideoUrl}
-                                className={`video-toggle-button ${
-                                    activeVideo === "last"
-                                        ? "video-toggle-active"
-                                        : "video-toggle-inactive"
-                                } ${
-                                    !lastVideoUrl
-                                        ? "opacity-50 cursor-not-allowed"
-                                        : ""
-                                }`}
-                            >
-                                <Frown size={18} />
-                                <span>꼴등 영상</span>
-                                {!lastVideoUrl && (
-                                    <span className="text-xs ml-1">(없음)</span>
-                                )}
-                            </button>
-                        </div>
+                        )}
                     </div>
 
                     {/* 순위표 섹션 */}
@@ -618,7 +575,7 @@ export default function Result({ data, onContinue }: ResultProps) {
                         className="btn btn-primary inline-flex items-center"
                     >
                         <Play size={20} className="mr-2" />
-                        {isFinalRound ? "새 게임 시작하기" : "다음 게임으로"}
+                        {isFinalRound ? "최종 결과 확인하기" : "다음 게임으로"}
                     </button>
                 </div>
             )}
