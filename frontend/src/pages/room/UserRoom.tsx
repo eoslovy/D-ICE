@@ -2,7 +2,6 @@ import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import GenerateQrCode from "../../components/QRcode";
 import userWebSocketManager from "../../modules/UserWebSocketManager";
-import BackgroundAnimation from "../../components/BackgroundAnimation";
 import GameCard from "../../components/GameCard";
 import RoomCode from "../../components/RoomCode";
 import { Clock } from "lucide-react";
@@ -31,11 +30,7 @@ export default function UserRoom() {
 
     return (
         <div className="game-container">
-            <BackgroundAnimation />
-
             <GameCard>
-                {/* <h1 className="game-title">입장 성공!</h1> */}
-
                 <div className="animate-pulse mb-6">
                     <div className="flex items-center justify-center">
                         <Clock className="mr-2" size={24} />

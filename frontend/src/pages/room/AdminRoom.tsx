@@ -4,10 +4,8 @@ import GenerateQrCode from "../../components/QRcode";
 import adminWebSocketManager from "../../modules/AdminWebSocketManager";
 // import { WebSocketAdmin } from "../../assets/websocket";
 import { v7 } from "uuid";
-import BackgroundAnimation from "../../components/BackgroundAnimation";
 import GameCard from "../../components/GameCard";
 import RoomCode from "../../components/RoomCode";
-import DarkModeToggle from "../../components/DarkModeToggle";
 import { Users, Play } from "lucide-react";
 
 export default function AdminRoom() {
@@ -52,7 +50,7 @@ export default function AdminRoom() {
     const initGame = async () => {
         try {
             // 임시로 라운드 수 1로 고정
-            adminWebSocketManager.sendSessionInit(requestId, 1);
+            adminWebSocketManager.sendSessionInit(requestId, 3);
             // 게임 중계 방으로 이동
             navigate(`/broadcast/${roomCode}`);
         } catch (error) {
@@ -64,9 +62,6 @@ export default function AdminRoom() {
 
     return (
         <div className="game-container">
-            <BackgroundAnimation />
-            <DarkModeToggle />
-
             <GameCard>
                 {/* <h1 className="game-title">게임명</h1> */}
                 <div className="animate-pulse mb-6">
