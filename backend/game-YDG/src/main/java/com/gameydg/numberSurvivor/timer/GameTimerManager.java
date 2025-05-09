@@ -5,6 +5,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.List;
+import java.util.ArrayList;
 
 import org.springframework.stereotype.Component;
 
@@ -148,6 +150,9 @@ public class GameTimerManager {
         
         scheduler.scheduleAtFixedRate(() -> {
             try {
+                // 제거할 방 ID를 저장할 리스트
+                List<String> emptyRooms = new ArrayList<>();
+                
                 // 모든 방 순회하며 상태 업데이트
                 for (Map.Entry<String, RoomTimerDto> entry : roomTimers.entrySet()) {
                     String roomId = entry.getKey();
@@ -157,6 +162,9 @@ public class GameTimerManager {
                         // 게임 종료 여부 확인 - WebSocket이 모두 닫힌 방은 타이머 처리 중단
                         if (sessionRegistry.isRoomEmpty(roomId)) {
                             log.info("방에 연결된 WebSocket이 없음 [방ID: {}] - 타이머 처리 중단", roomId);
+                            
+                            // 바로 삭제하지 않고 나중에 삭제하기 위해 리스트에 추가
+                            emptyRooms.add(roomId);
                             continue;
                         }
                         
@@ -217,6 +225,14 @@ public class GameTimerManager {
                     } catch (Exception e) {
                         log.error("방 타이머 처리 중 오류 [방ID: {}]", roomId, e);
                     }
+                }
+                
+                // 제거할 방 ID를 실제로 제거
+                for (String emptyRoom : emptyRooms) {
+                    removeRoomTimer(emptyRoom);
+                    gameStates.remove(emptyRoom);
+                    gameStarted.remove(emptyRoom);
+                    log.info("빈 방 관련 모든 데이터 제거 완료 [방ID: {}]", emptyRoom);
                 }
             } catch (Exception e) {
                 log.error("게임 루프 처리 중 오류", e);

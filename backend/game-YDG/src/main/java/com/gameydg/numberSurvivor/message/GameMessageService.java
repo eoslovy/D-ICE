@@ -202,13 +202,15 @@ public class GameMessageService {
     /**
      * 게임 오버 메시지 전송
      * @param roomId 방 ID
+     * @param isTimeLimit 시간 제한으로 인한 종료 여부
      * @throws IOException 메시지 전송 실패시
      */
-    public void sendGameOverMessage(String roomId) throws IOException {
+    public void sendGameOverMessage(String roomId, boolean isTimeLimit) throws IOException {
         List<PlayerDto> winners = gameManager.getWinners(roomId);
-        log.info("게임 우승자 [방ID: {}, 우승자: {}]", 
+        log.info("게임 우승자 [방ID: {}, 우승자: {}, 시간제한종료: {}]", 
                 roomId, 
-                winners.stream().map(PlayerDto::getNickname).collect(Collectors.joining(", ")));
+                winners.stream().map(PlayerDto::getNickname).collect(Collectors.joining(", ")),
+                isTimeLimit);
         
         // 로컬스토리지 초기화 플래그와 웹소켓 연결 종료 신호를 포함하여 게임 오버 메시지 전송
         Map<String, Object> gameOverMessage = new HashMap<>();
@@ -216,16 +218,27 @@ public class GameMessageService {
         gameOverMessage.put("winners", winners);
         gameOverMessage.put("resetLocalStorage", true);
         gameOverMessage.put("closeConnection", true);  // 클라이언트가 웹소켓 연결을 종료하도록 신호
+        gameOverMessage.put("isTimeLimit", isTimeLimit);  // 시간 제한으로 인한 종료 여부
         
         // 비동기로 메시지 전송
         executorService.submit(() -> {
             try {
-                log.info("게임 종료 메시지 비동기 전송 [방ID: {}, 스레드: {}]", roomId, Thread.currentThread().getName());
+                log.info("게임 종료 메시지 비동기 전송 [방ID: {}, 스레드: {}, 시간제한종료: {}]", 
+                        roomId, Thread.currentThread().getName(), isTimeLimit);
                 sessionRegistry.broadcastMessage(roomId, gameOverMessage);
             } catch (Exception e) {
                 log.error("게임 종료 메시지 전송 중 오류 [방ID: {}]", roomId, e);
             }
         });
+    }
+    
+    /**
+     * 게임 오버 메시지 전송 (기존 메서드와의 호환성을 위한 오버로딩)
+     * @param roomId 방 ID
+     * @throws IOException 메시지 전송 실패시
+     */
+    public void sendGameOverMessage(String roomId) throws IOException {
+        sendGameOverMessage(roomId, false);
     }
     
     /**

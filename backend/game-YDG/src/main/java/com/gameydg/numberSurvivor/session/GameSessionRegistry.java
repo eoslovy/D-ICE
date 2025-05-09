@@ -176,7 +176,7 @@ public class GameSessionRegistry {
     }
     
     /**
-     * 방 상태를 로깅
+     * 방의 상태를 로깅
      * @param roomId 방 ID
      */
     public void logRoomStatus(String roomId) {
@@ -185,11 +185,89 @@ public class GameSessionRegistry {
             return;
         }
         
-        int playerCount = gameManager.getRooms().get(roomId).size();
-        String players = gameManager.getRooms().get(roomId).stream()
-                .map(p -> String.format("%s(%s)", p.getNickname(), p.getUserId()))
-                .collect(Collectors.joining(", "));
+        // 해당 방에 있는 세션 찾기
+        Set<String> roomPlayerIds = gameManager.getRooms().get(roomId).stream()
+                .map(PlayerDto::getUserId)
+                .collect(Collectors.toSet());
         
-        log.info("방 상태 [방ID: {}, 플레이어 수: {}, 현재 참가자: {}]", roomId, playerCount, players);
+        // 해당 방 플레이어의 세션 정보
+        Map<String, WebSocketSession> roomSessions = sessions.entrySet().stream()
+                .filter(entry -> roomPlayerIds.contains(entry.getKey()))
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+        
+        // 방의 플레이어 정보와 세션 정보 조합
+        StringBuilder playerStatus = new StringBuilder();
+        for (String userId : roomSessions.keySet()) {
+            WebSocketSession session = roomSessions.get(userId);
+            String sessionId = session != null ? session.getId().substring(0, Math.min(4, session.getId().length())) : "none";
+            playerStatus.append(userId).append("(").append(sessionId).append("), ");
+        }
+        
+        String status = playerStatus.length() > 0 
+                ? playerStatus.substring(0, playerStatus.length() - 2)
+                : "없음";
+        
+        log.info("방 상태 [방ID: {}, 플레이어 수: {}, 세션 수: {}, 현재 참가자: {}]", 
+                roomId, roomPlayerIds.size(), roomSessions.size(), status);
+        
+        // 세션 상태 확인
+        long openSessionCount = roomSessions.values().stream()
+                .filter(session -> session != null && session.isOpen())
+                .count();
+        
+        log.debug("방 세션 상태 [방ID: {}, 활성세션: {}개, 총세션: {}개]", 
+                roomId, openSessionCount, roomSessions.size());
+        
+        // 개별 세션 상태
+        for (Map.Entry<String, WebSocketSession> entry : roomSessions.entrySet()) {
+            WebSocketSession session = entry.getValue();
+            if (session != null) {
+                log.debug("개별 세션 상태 [방ID: {}, 사용자ID: {}, 세션ID: {}, 열림: {}]", 
+                        roomId, entry.getKey(), session.getId(), session.isOpen());
+            } else {
+                log.debug("개별 세션 상태 [방ID: {}, 사용자ID: {}, 세션: null]", roomId, entry.getKey());
+            }
+        }
+    }
+    
+    /**
+     * 세션 ID로 사용자 ID 찾기
+     * @param sessionId 세션 ID
+     * @return 사용자 ID 또는 null
+     */
+    public String getUserIdBySessionId(String sessionId) {
+        return sessions.entrySet().stream()
+                .filter(entry -> entry.getValue().getId().equals(sessionId))
+                .map(Map.Entry::getKey)
+                .findFirst()
+                .orElse(null);
+    }
+    
+    /**
+     * 사용자 ID로 방 ID 찾기
+     * @param userId 사용자 ID
+     * @return 방 ID 또는 null
+     */
+    public String getRoomIdByUserId(String userId) {
+        for (Map.Entry<String, Set<PlayerDto>> entry : gameManager.getRooms().entrySet()) {
+            boolean exists = entry.getValue().stream()
+                    .anyMatch(player -> player.getUserId().equals(userId));
+            if (exists) {
+                return entry.getKey();
+            }
+        }
+        return null;
+    }
+
+    /**
+     * 세션 해제 (userId와 sessionId를 모두 받는 버전)
+     * @param userId 사용자 ID
+     * @param sessionId 세션 ID
+     */
+    public void unregisterSession(String userId, String sessionId) {
+        WebSocketSession removed = sessions.remove(userId);
+        if (removed != null) {
+            log.info("세션 해제 [사용자ID: {}, 세션ID: {}]", userId, sessionId);
+        }
     }
 } 

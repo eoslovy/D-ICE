@@ -1,10 +1,14 @@
 package com.gameydg.numberSurvivor.game;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.HashSet;
 
 import org.springframework.stereotype.Component;
 
@@ -33,6 +37,12 @@ public class NumberSurvivorGameLogic {
     
     // 비동기 작업을 위한 실행기 - 게임 로직용
     private final ScheduledExecutorService executorService = Executors.newScheduledThreadPool(5);
+    
+    // 라운드 최소 필요 시간 (15초 = 15,000ms)
+    private static final long MIN_TIME_FOR_NEXT_ROUND = 15000;
+    
+    // 라운드 시간 제한 (12초 = 12,000ms)
+    private static final long ROUND_TIME_LIMIT = 12000;
     
     // 리소스 정리
     @PreDestroy
@@ -73,6 +83,12 @@ public class NumberSurvivorGameLogic {
             
             // 게임 시작 메시지 전송
             messageService.broadcastMessageAsync(roomId, messageService.createGameStartMessage(roomId));
+            
+            // 첫 라운드 시작 시간 기록
+            gameManager.setRoundStartTime(roomId);
+            
+            // 라운드 타임아웃 타이머 시작
+            scheduleRoundTimeoutCheck(roomId);
         }
     }
     
@@ -126,9 +142,27 @@ public class NumberSurvivorGameLogic {
      * 라운드 처리 (비동기)
      * @param roomId 방 ID
      */
-    private void processRoundAsync(String roomId) {
+    public void processRoundAsync(String roomId) {
         try {
+            // 시간 초과로 탈락한 플레이어들 정보 기록
+            List<PlayerDto> timeoutPlayers = gameManager.getRooms().get(roomId).stream()
+                    .filter(p -> !p.isAlive() && p.getSelectedNumber() == null)
+                    .collect(Collectors.toList());
+            
+            if (!timeoutPlayers.isEmpty()) {
+                log.info("시간 초과로 탈락한 플레이어 [방ID: {}, 인원: {}명, 플레이어: {}]", 
+                        roomId, 
+                        timeoutPlayers.size(),
+                        timeoutPlayers.stream().map(PlayerDto::getNickname).collect(Collectors.joining(", ")));
+            }
+            
+            // 라운드 결과 처리
             RoundResultDto result = gameManager.processRound(roomId);
+            
+            // 시간 초과로 탈락한 플레이어들도 탈락자 목록에 추가
+            if (!timeoutPlayers.isEmpty()) {
+                result.getEliminated().addAll(timeoutPlayers);
+            }
             
             // 라운드 결과 먼저 전송
             messageService.broadcastMessageAsync(roomId, result);
@@ -155,6 +189,12 @@ public class NumberSurvivorGameLogic {
                     try {
                         log.info("전원 탈락 후 새 라운드 시작 [방ID: {}]", roomId);
                         messageService.sendAllPlayersRevivedMessage(roomId);
+                        
+                        // 새 라운드 시작 시간 기록
+                        gameManager.setRoundStartTime(roomId);
+                        
+                        // 라운드 타임아웃 타이머 시작
+                        scheduleRoundTimeoutCheck(roomId);
                     } catch (Exception e) {
                         log.error("새 라운드 시작 중 오류 [방ID: {}]", roomId, e);
                     }
@@ -166,8 +206,20 @@ public class NumberSurvivorGameLogic {
             if (gameManager.isGameOver(roomId)) {
                 // 게임 종료 처리
                 log.info("게임 종료 [방ID: {}]", roomId);
-                finishGame(roomId);
+                finishGame(roomId, false);
             } else {
+                // 다음 라운드를 위한 충분한 시간이 있는지 확인
+                long remainingTime = gameManager.getRemainingGameTime(roomId);
+                log.info("다음 라운드 진행 가능 여부 확인 [방ID: {}, 남은시간: {}ms, 필요시간: {}ms]", 
+                        roomId, remainingTime, MIN_TIME_FOR_NEXT_ROUND);
+                
+                if (remainingTime < MIN_TIME_FOR_NEXT_ROUND) {
+                    // 시간 부족으로 게임 종료
+                    log.info("남은 시간 부족으로 게임 종료 [방ID: {}, 남은시간: {}ms]", roomId, remainingTime);
+                    finishGameWithTimeLimit(roomId);
+                    return;
+                }
+                
                 // 다음 라운드 시작 전 플레이어 상태 초기화
                 resetPlayersForNewRound(roomId);
                 
@@ -178,6 +230,12 @@ public class NumberSurvivorGameLogic {
                         // 다음 라운드 시작
                         log.info("지연 후 다음 라운드 시작 [방ID: {}, 라운드: {}]", roomId, gameManager.getCurrentRounds().get(roomId));
                         messageService.broadcastMessageAsync(roomId, messageService.createGameStartMessage(roomId));
+                        
+                        // 새 라운드 시작 시간 기록
+                        gameManager.setRoundStartTime(roomId);
+                        
+                        // 라운드 타임아웃 타이머 시작
+                        scheduleRoundTimeoutCheck(roomId);
                     } catch (Exception e) {
                         log.error("다음 라운드 시작 중 오류 [방ID: {}]", roomId, e);
                     }
@@ -189,17 +247,28 @@ public class NumberSurvivorGameLogic {
     }
     
     /**
-     * 게임 종료 처리
+     * 시간 제한으로 인한 게임 종료 처리
      * @param roomId 방 ID
      * @throws IOException 메시지 전송 실패시
      */
-    private void finishGame(String roomId) throws IOException {
+    private void finishGameWithTimeLimit(String roomId) throws IOException {
+        log.info("시간 제한으로 게임 종료 [방ID: {}]", roomId);
+        finishGame(roomId, true);
+    }
+    
+    /**
+     * 게임 종료 처리
+     * @param roomId 방 ID
+     * @param isTimeLimit 시간 제한으로 인한 종료 여부
+     * @throws IOException 메시지 전송 실패시
+     */
+    public void finishGame(String roomId, boolean isTimeLimit) throws IOException {
         // 상태 변경 먼저 진행
         timerManager.setGameStarted(roomId, false);
         timerManager.setGameState(roomId, GameState.WAITING);
         
         // 게임 종료 메시지 전송 (비동기)
-        messageService.sendGameOverMessage(roomId);
+        messageService.sendGameOverMessage(roomId, isTimeLimit);
         
         // 다음 게임을 위한 상태 초기화는 약간의 딜레이 후 실행
         executorService.schedule(() -> {
@@ -273,8 +342,133 @@ public class NumberSurvivorGameLogic {
      * @return 모든 생존 플레이어가 선택했으면 true
      */
     private boolean isAllPlayersSelected(String roomId) {
-        return gameManager.getRooms().get(roomId).stream()
+        // 라운드 시작 후 12초가 지나면 선택하지 않은 플레이어 자동 탈락 처리
+        long elapsedTime = gameManager.getCurrentRoundElapsedTime(roomId);
+        long roundStartTime = gameManager.getRoundStartTimes().getOrDefault(roomId, 0L);
+        
+        log.info("라운드 선택 체크 [방ID: {}, 시작시간: {}, 현재시간: {}, 경과시간: {}ms, 제한시간: {}ms]", 
+                roomId, roundStartTime, System.currentTimeMillis(), elapsedTime, ROUND_TIME_LIMIT);
+        
+        // 선택하지 않은 살아있는 플레이어 목록 (로깅용)
+        List<PlayerDto> notSelectedPlayers = gameManager.getRooms().get(roomId).stream()
+            .filter(PlayerDto::isAlive)
+            .filter(p -> p.getSelectedNumber() == null)
+            .collect(Collectors.toList());
+        
+        if (!notSelectedPlayers.isEmpty()) {
+            log.info("현재 선택하지 않은 생존 플레이어 [방ID: {}, 경과시간: {}ms, 인원: {}명, 플레이어: {}]", 
+                    roomId, 
+                    elapsedTime,
+                    notSelectedPlayers.size(),
+                    notSelectedPlayers.stream().map(PlayerDto::getNickname).collect(Collectors.joining(", ")));
+        }
+        
+        // 12초 이상 지났으면 선택하지 않은 플레이어 탈락 처리
+        if (roundStartTime > 0 && elapsedTime > ROUND_TIME_LIMIT) {
+            log.info("시간 초과! 선택하지 않은 플레이어 자동 탈락 처리 [방ID: {}, 경과시간: {}ms]", roomId, elapsedTime);
+            
+            // 모든 생존자 중 선택하지 않은 플레이어 탈락 처리
+            int eliminatedCount = 0;
+            List<String> eliminatedPlayers = new ArrayList<>();
+            
+            for (PlayerDto player : gameManager.getRooms().get(roomId)) {
+                if (player.isAlive() && player.getSelectedNumber() == null) {
+                    player.setAlive(false);
+                    eliminatedCount++;
+                    eliminatedPlayers.add(player.getNickname());
+                    log.info("시간 초과로 자동 탈락 [방ID: {}, 플레이어: {}, UserId: {}]", 
+                            roomId, player.getNickname(), player.getUserId());
+                }
+            }
+            
+            log.info("시간 초과 탈락 처리 결과 [방ID: {}, 탈락인원: {}명, 플레이어: {}]", 
+                    roomId, eliminatedCount, String.join(", ", eliminatedPlayers));
+            
+            // 자동 탈락 처리 후 모든 플레이어가 선택한 것으로 간주
+            return true;
+        }
+        
+        // 일반적인 로직 - 모든 생존 플레이어가 선택했는지 확인
+        boolean allSelected = gameManager.getRooms().get(roomId).stream()
                 .filter(PlayerDto::isAlive)
                 .allMatch(player -> player.getSelectedNumber() != null);
+        
+        log.debug("선택 확인 결과 [방ID: {}, 모두 선택 완료: {}, 경과시간: {}ms]", roomId, allSelected, elapsedTime);
+        
+        return allSelected;
+    }
+
+    /**
+     * 라운드 시작 후 타임아웃 체크 타이머 스케줄링
+     * @param roomId 방 ID
+     */
+    private void scheduleRoundTimeoutCheck(String roomId) {
+        log.info("라운드 타임아웃 체크 스케줄링 [방ID: {}, 타임아웃: {}ms]", roomId, ROUND_TIME_LIMIT);
+        
+        executorService.schedule(() -> {
+            try {
+                // 현재 라운드 경과 시간
+                long elapsedTime = gameManager.getCurrentRoundElapsedTime(roomId);
+                log.info("강제 타임아웃 체크 [방ID: {}, 경과시간: {}ms, 제한시간: {}ms]", 
+                        roomId, elapsedTime, ROUND_TIME_LIMIT);
+                
+                // 아직 게임이 진행 중인지 확인
+                if (timerManager.getGameStates().get(roomId) == GameState.PLAYING && 
+                    timerManager.getGameStarted().getOrDefault(roomId, false)) {
+                    
+                    // 현재 방에 있는 플레이어 수 확인
+                    int playerCount = gameManager.getRooms().getOrDefault(roomId, new HashSet<>()).size();
+                    log.info("타임아웃 체크 시 방의 플레이어 상태 [방ID: {}, 플레이어 수: {}]", roomId, playerCount);
+                    
+                    // 선택하지 않은 생존 플레이어 목록 (로깅용)
+                    List<PlayerDto> unselectedPlayers = gameManager.getRooms().get(roomId).stream()
+                            .filter(p -> p.isAlive() && p.getSelectedNumber() == null)
+                            .collect(Collectors.toList());
+                    
+                    // 선택하지 않은 생존 플레이어가 있는지 확인
+                    boolean hasUnselectedPlayers = !unselectedPlayers.isEmpty();
+                    
+                    log.info("타임아웃 체크 상세 [방ID: {}, 선택 안한 플레이어: {}, 경과시간: {}ms]", 
+                            roomId, hasUnselectedPlayers ? unselectedPlayers.size() : 0, elapsedTime);
+                    
+                    // 모든 플레이어가 이미 선택했거나 라운드가 진행 중이 아니면 타이머 취소
+                    if (!hasUnselectedPlayers) {
+                        log.info("모든 플레이어가 이미 선택 완료했거나 게임 진행 중이 아님 [방ID: {}]", roomId);
+                        return;
+                    }
+                    
+                    // 경과 시간이 실제로 ROUND_TIME_LIMIT을 초과했는지 확인
+                    if (elapsedTime >= ROUND_TIME_LIMIT) {
+                        log.info("강제 타임아웃 발동 - 선택하지 않은 플레이어 자동 탈락 처리 [방ID: {}]", roomId);
+                        
+                        // 선택하지 않은 플레이어 탈락 처리
+                        for (PlayerDto player : unselectedPlayers) {
+                            player.setAlive(false);
+                            log.info("강제 타임아웃으로 자동 탈락 [방ID: {}, 플레이어: {}, UserId: {}]", 
+                                    roomId, player.getNickname(), player.getUserId());
+                        }
+                        
+                        // 라운드 결과 처리 - 타임아웃 발생했으므로 강제로 라운드 진행
+                        log.info("타임아웃으로 라운드 강제 진행 [방ID: {}]", roomId);
+                        processRoundAsync(roomId);
+                    } else {
+                        // 아직 시간이 충분히 지나지 않았다면 다시 체크 스케줄링 (1초 후)
+                        log.info("타임아웃 시간이 아직 도달하지 않음. 1초 후 다시 체크 [방ID: {}, 현재경과: {}ms]", roomId, elapsedTime);
+                        executorService.schedule(() -> {
+                            try {
+                                scheduleRoundTimeoutCheck(roomId);
+                            } catch (Exception e) {
+                                log.error("타임아웃 재스케줄링 중 오류 [방ID: {}]", roomId, e);
+                            }
+                        }, 1, TimeUnit.SECONDS);
+                    }
+                } else {
+                    log.info("타임아웃 체크 무시: 게임이 진행 중이 아님 [방ID: {}, 게임상태: {}, 게임시작여부: {}]",
+                            roomId, timerManager.getGameStates().get(roomId), timerManager.getGameStarted().getOrDefault(roomId, false));
+                }
+            } catch (Exception e) {
+                log.error("타임아웃 체크 중 오류 [방ID: {}]", roomId, e);
+            }
+        }, ROUND_TIME_LIMIT, TimeUnit.MILLISECONDS);
     }
 } 

@@ -47,7 +47,7 @@ public interface NumberSurvivorService {
     
     /**
      * 연결 종료 처리
-     * @param session 종료된 웹소켓 세션
+     * @param sessionId 종료된 세션 ID
      */
-    void handleDisconnect(WebSocketSession session);
+    void handleDisconnect(String sessionId);
 }

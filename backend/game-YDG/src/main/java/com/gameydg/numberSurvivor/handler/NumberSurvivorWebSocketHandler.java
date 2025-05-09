@@ -59,15 +59,10 @@ public class NumberSurvivorWebSocketHandler extends TextWebSocketHandler {
     }
 
     @Override
-    public void afterConnectionClosed(WebSocketSession session, CloseStatus status) {
-        String sessionId = session.getId();
-        log.info("웹소켓 연결 종료: {}, 상태: {}", sessionId, status);
+    public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
+        log.info("웹소켓 연결 종료: {}, 상태: {}", session.getId(), status);
         
-        // 서비스 레이어에 세션 종료 알림
-        try {
-            numberSurvivorService.handleDisconnect(session);
-        } catch (Exception e) {
-            log.error("서비스 레이어 연결 종료 처리 실패: {}", e.getMessage(), e);
-        }
+        // 서비스 레이어에서 연결 종료 처리
+        numberSurvivorService.handleDisconnect(session.getId());
     }
 }
