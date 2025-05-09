@@ -15,7 +15,7 @@ public class CorsConfig {
 	public CorsConfigurationSource corsConfigurationSource() {
 		CorsConfiguration config = new CorsConfiguration();
 		config.setAllowedOrigins(
-			Arrays.asList("http://localhost:3000", "http://localhost", "https://localhost", "https://j12a608.p.ssafy.io"));
+			Arrays.asList("http://localhost:3000", "http://localhost", "https://localhost", "https://test.d-ice.co.kr", "https://d-ice.co.kr"));
 		config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
 		config.setAllowedHeaders(Arrays.asList("*"));
 		config.setAllowCredentials(true);
