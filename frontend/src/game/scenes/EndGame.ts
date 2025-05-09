@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { userStore } from '../../stores/userStore';
 
 interface EndGameSceneData {
     totalScore: number;
@@ -145,7 +146,10 @@ export class EndGame extends Phaser.Scene {
         button.setInteractive();
 
         // 임시로 '/select'로 이동하도록 설정
+        
         button.on('pointerup', () => {
+            userStore.getState().reset(); // zustand 상태 초기화
+            localStorage.removeItem('userStore'); // userStore 제거
             window.location.href = '/select';
         });
     }

@@ -11,23 +11,23 @@ interface GameOverSceneData {
 }
 
 interface BackendResponse {
-  type: string;
-  requestId: string;
-  currentRound: number;
-  totalRound: number;
-  gameType: string;
-  currentScore: number;
+  type: "AGGREGATED_USER";
+  requestId: string; //UUIDv7
+  currentRound: number; // 현재 round
+  totalRound: number; // 전체 round
+  gameType: string; //게임이름
+  currentScore: number; // int 이번 round 점수
   totalScore: number;
-  rankRecord: string;
+  rankRecord: string; // 구분자 | 라운드별 순위 기록
   roundRank: number;
   overallRank: number;
-  videoUploadUrl: string;
+  videoUploadUrl: string; // s3 presigned url POST|PUT용
 }
 
 export class GameOver extends Phaser.Scene {
-  private finalScore: number = 0;
+  private roundScore: number = 0;
   private gameType: string = '';
-  private backendResponse: BackendResponse | null = null;
+  private backendResponse: AggregatedUserMessage | null = null;
   private loadingText: Phaser.GameObjects.Text | null = null;
   private uploadStatus: Phaser.GameObjects.Text | null = null;
   
@@ -36,30 +36,33 @@ export class GameOver extends Phaser.Scene {
   }
   
   init(data: GameOverSceneData) {
-    this.finalScore = data.score || 0;
+    this.roundScore = data.score || 0;
     this.gameType = data.gameType || '';
     
     console.log('[GameOver] Scene initialized with data:', {
-      score: this.finalScore,
+      score: this.roundScore,
       gameType: this.gameType
     });
-
-    // Get user data from store
-    const { userId, roomCode } = userStore.getState();
     
     // 초기 화면 표시
     this.showInitialScreen();
     
+    // Get user data from store
+    const userId = userStore.getState().userId;
+    const roomCode = userStore.getState().roomCode;
+    console.log('[GameOver] User ID:', userId);
+    console.log('[GameOver] Room Code:', roomCode);
+
     // Send score to backend
     this.sendScoreToBackend(userId, roomCode);
 
     // WebSocket 응답 리스너 설정
-    userWebSocketManager.on('AGGREGATED_USER', (message: BackendResponse) => {
-      this.backendResponse = message;
+    userWebSocketManager.on('AGGREGATED_USER', (payload: AggregatedUserMessage) => {
+      this.backendResponse = payload;
       this.updateUI();
       this.handleVideoUpload();
-      // 나중에 시간 지나면 자동으로 넘어가는 로직 안에 넣기
-      if(this.backendResponse.currentRound == this.backendResponse.totalRound){
+      
+      if(payload.currentRound == payload.totalRound){
         this.EndGame();
       }
     });
@@ -85,7 +88,7 @@ export class GameOver extends Phaser.Scene {
 
     // 최종 점수
     this.add.text(width / 2, height * 0.4, 
-      `최종 점수: ${this.finalScore}`, 
+      `최종 점수: ${this.roundScore}`, 
       {
         fontSize: '32px',
         color: '#ffffff',
@@ -440,8 +443,8 @@ export class GameOver extends Phaser.Scene {
     });
 }
   
-  private sendScoreToBackend(userId: string, roomCode: string) {
-    if (!userId || !roomCode) {
+  private sendScoreToBackend(userId: string | null, roomCode: string | null) {
+    if (userId==null || roomCode==null) {
       console.error('[GameOver] Missing userId or roomCode from store');
       return;
     }
@@ -450,7 +453,7 @@ export class GameOver extends Phaser.Scene {
       type: 'SUBMIT',
       requestId: uuidv7(),
       userId,
-      score: this.finalScore,
+      score: this.roundScore,
       gameType: this.gameType
     };
 
