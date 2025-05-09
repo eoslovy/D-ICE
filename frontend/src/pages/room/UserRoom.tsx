@@ -15,13 +15,13 @@ export default function UserRoom() {
 
     useEffect(() => {
         console.log("ENTER_GAME 이벤트 리스너 등록");
-        userWebSocketManager.on("ENTER_GAME", (payload: UserJoinedMessage) => {
+        userWebSocketManager.on("ENTER_GAME", (payload: EnterGameMessage) => {
             console.log("게임 세션 입장:", payload);
             userStore.getState().setStatus("INGAME");
             navigate(`/game`);
         });
         return () => {
-            userWebSocketManager.off("ENTER_GAME", (payload: UserJoinedMessage) => {
+            userWebSocketManager.off("ENTER_GAME", (payload: EnterGameMessage) => {
                     console.log("ENTER_GAME 이벤트 리스너 해제:", payload);
                 }
             );

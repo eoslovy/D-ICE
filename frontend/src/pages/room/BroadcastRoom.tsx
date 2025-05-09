@@ -18,6 +18,7 @@ export default function BroadcastRoom() {
 
     //현재 추가된 결과 통신
     const [data, setData] = useState<AggregatedAdminMessage | null>(null);
+    const [finalData, setFinalData] = useState<EndMessage | null>(null);
     const [showResults, setShowResults] = useState(false);
     const [showFinalResult, setShowFinalResult] = useState(false);
 
@@ -54,19 +55,12 @@ export default function BroadcastRoom() {
 
         adminWebSocketManager.on(
             "END",
-            (payload: AggregatedAdminMessage) => {
+            (payload: EndMessage) => {
                 console.log("게임 결과 수신:", payload);
-                setData({
-                    currentRound: payload.currentRound,
-                    gameType: payload.gameType,
-                    roundRanking: payload.roundRanking,
-                    overallRanking: payload.overallRanking,
-                    firstPlace: payload.firstPlace,
-                    lastPlace: payload.lastPlace,
-                    totalRound: payload.totalRound,
-                    type: payload.type,             
-                    requestId: payload.requestId,   
-                  });
+                setFinalData({
+                    type: "END",
+                    overallRanking : payload.overallRanking
+                })
                 setShowResults(true);
             }
         );
@@ -110,7 +104,7 @@ export default function BroadcastRoom() {
             {showResults ? (
                 <div className="relative z-10 w-full max-w-4xl p-6 mx-auto rounded-2xl shadow-lg bg-opacity-95 backdrop-blur-sm bg-quaternary">
                     <Result data={data} onContinue={handleContinue} />
-                    {showFinalResult && <FinalResult data={data} onContinue={handleContinue} />}
+                    {showFinalResult && <FinalResult finalData={finalData} onContinue={handleContinue} />}
                 </div>
             ) : (
                 <GameCard>
