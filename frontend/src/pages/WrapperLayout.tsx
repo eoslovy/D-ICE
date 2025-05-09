@@ -56,9 +56,7 @@ export default function WrapperLayout() {
   const userConnectAndNavigate = (roomCode: string) => {
 
     const handleUserConnect = () => {
-      const USER_WS_URL = `ws://${
-        import.meta.env.VITE_API_URL || "localhost:8080"
-      }/ws/game/user/${roomCode}`;
+      const USER_WS_URL = `${import.meta.env.VITE_WEBSOCKET_URL}/ws/game/user/${roomCode}`;
       connectWebSocket("user", USER_WS_URL);
 
       userWebSocketManager.on("reconnect_failed", () => {
@@ -109,9 +107,7 @@ export default function WrapperLayout() {
     setIsModalOpen(true);
 
     const handleAdminConnect = () => {
-      const ADMIN_WS_URL = `ws://${
-        import.meta.env.VITE_API_URL || "localhost:8080"
-      }/ws/game/admin/${roomCode}`;
+      const ADMIN_WS_URL = `${import.meta.env.VITE_WEBSOCKET_URL}/ws/game/admin/${roomCode}`;
       connectWebSocket("admin", ADMIN_WS_URL);
 
       adminWebSocketManager.on("reconnect_failed", () => {

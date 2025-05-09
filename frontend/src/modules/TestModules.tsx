@@ -105,7 +105,7 @@ export default function TestModules(props: TestModulesProps) {
   // --- WebSocket Handlers ---
   const handleConnect = () => {
     const id = uuid();
-    const url = `ws://${baseUrlInput}/ws/game/user/${roomId}`;
+    const url = `${import.meta.env.VITE_WEBSOCKET_URL}/ws/game/user/${roomId}`;
     userWebSocketManager.setServerURL(url);
     userWebSocketManager.connect();
   };
@@ -205,7 +205,10 @@ export default function TestModules(props: TestModulesProps) {
   const testStartGame = () => {
     const testData = {
       type: 'WAIT',
-      gameType: testGameTypeInput,
+      gameType: 'Clicker',
+      startAt : 1745382394207, // long epoch ms 게임 시작 시각
+      duration: 10000, // long ms 게임 지속시간 
+      currentMs: 1745382384207, // long epoch ms 현재 시각 유저와 시간 align 용
     };
   
     // WebSocket 이벤트 에뮬레이션
