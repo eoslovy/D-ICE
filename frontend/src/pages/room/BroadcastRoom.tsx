@@ -52,6 +52,25 @@ export default function BroadcastRoom() {
             }
         );
 
+        adminWebSocketManager.on(
+            "END",
+            (payload: AggregatedAdminMessage) => {
+                console.log("게임 결과 수신:", payload);
+                setData({
+                    currentRound: payload.currentRound,
+                    gameType: payload.gameType,
+                    roundRanking: payload.roundRanking,
+                    overallRanking: payload.overallRanking,
+                    firstPlace: payload.firstPlace,
+                    lastPlace: payload.lastPlace,
+                    totalRound: payload.totalRound,
+                    type: payload.type,             
+                    requestId: payload.requestId,   
+                  });
+                setShowResults(true);
+            }
+        );
+
         return () => {
             adminWebSocketManager.off(
                 "NEXT_GAME",
