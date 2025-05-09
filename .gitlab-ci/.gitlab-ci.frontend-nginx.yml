@@ -19,7 +19,7 @@ build_front:
     - $GITLAB_USER_EMAIL
   script:
     - echo "🔨 Docker 이미지 빌드 및 테스트 중..."
-    - docker build -t ${DOCKERHUB_USERNAME:-default}/$REGISTRY_PATH-${SERVICE_NAME}:$CI_COMMIT_SHORT_SHA  ${BUILD_CONTEXT}
+    - docker build --platform ${BUILD_ARCHITECTURE} -t ${DOCKERHUB_USERNAME:-default}/$REGISTRY_PATH-${SERVICE_NAME}:$CI_COMMIT_SHORT_SHA  ${BUILD_CONTEXT}
     - docker images
     #- echo "✅ 빌드 완료: $IMAGE_NAME:$CI_COMMIT_SHORT_SHA
 
@@ -44,7 +44,7 @@ build_nginx:
     - echo "🔨 Docker 이미지 빌드 및 테스트 중..."
     - echo "$BUILD_CONTEXT"
     - ls -al "$BUILD_CONTEXT"
-    - docker buildx build --load --build-arg FRONTEND_IMAGE="${DOCKERHUB_USERNAME}/${REGISTRY_PATH}-${FRONT_NAME}:${IMAGE_TAG}" --build-arg SERVER_DOMAIN="${SERVER_DOMAIN}" --build-arg NGINX="${NGINX_CONF}" --build-arg BUCKET_DOMAIN="${BUCKET_DOMAIN}" --build-arg CERT_DOMAIN="${CERT_DOMAIN}" -t "${DOCKERHUB_USERNAME:-default}/${REGISTRY_PATH}-${SERVICE_NAME}:${IMAGE_TAG}" "$BUILD_CONTEXT"
+    - docker buildx build --load --platform ${BUILD_ARCHITECTURE} --build-arg FRONTEND_IMAGE="${DOCKERHUB_USERNAME}/${REGISTRY_PATH}-${FRONT_NAME}:${IMAGE_TAG}" --build-arg SERVER_DOMAIN="${SERVER_DOMAIN}" --build-arg NGINX="${NGINX_CONF}" --build-arg BUCKET_DOMAIN="${BUCKET_DOMAIN}" --build-arg CERT_DOMAIN="${CERT_DOMAIN}" -t "${DOCKERHUB_USERNAME:-default}/${REGISTRY_PATH}-${SERVICE_NAME}:${IMAGE_TAG}" "$BUILD_CONTEXT"
 
 
 
