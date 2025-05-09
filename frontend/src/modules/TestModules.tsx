@@ -38,6 +38,9 @@ export default function TestModules(props: TestModulesProps) {
   const [rawMessage, setRawMessage] = useState<string>('{\n  "type": "your_message_type",\n  "payload": {}\n}');
   const [rawMessageError, setRawMessageError] = useState<string | null>(null);
 
+  // --- State for Test Game Start ---
+  const [testGameTypeInput, setTestGameTypeInput] = useState<string>("Dye");
+
   // --- POTG Event Listeners ---
   useEffect(() => {
     const handleRecordingStarted = () => {
@@ -198,16 +201,16 @@ export default function TestModules(props: TestModulesProps) {
       setRawMessageError(`Invalid JSON: ${error.message}`);
     }
   };
+
   const testStartGame = () => {
     const testData = {
       type: 'WAIT',
-      gameType: 'Clicker',
+      gameType: testGameTypeInput,
     };
   
     // WebSocket 이벤트 에뮬레이션
     userWebSocketManager.emit('WAIT', testData);
   };
-  
 
   // --- Styles ---
   const consoleStyle: React.CSSProperties = {
@@ -379,9 +382,21 @@ export default function TestModules(props: TestModulesProps) {
           {/* 게임 시작 테스트 버튼 추가 */}
           <div style={sectionStyle}>
             <h3>Game Start Test</h3>
+            <div style={{ marginBottom: '10px' }}>
+              <label htmlFor="testGameTypeInput" style={{ fontWeight: 'bold', marginRight: '10px', display: 'inline-block', minWidth: '80px' }}>Game Type:</label>
+              <input
+                id="testGameTypeInput"
+                type="text"
+                value={testGameTypeInput}
+                onChange={(e) => setTestGameTypeInput(e.target.value)}
+                style={inputStyle}
+                placeholder="e.g., Dye, Clicker"
+              />
+            </div>
             <button 
               onClick={testStartGame}
-              style={buttonStyle}
+              style={testGameTypeInput.trim() ? buttonStyle : disabledButtonStyle}
+              disabled={!testGameTypeInput.trim()}
             >
               Test Game Start
             </button>

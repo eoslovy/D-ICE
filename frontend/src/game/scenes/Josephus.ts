@@ -1,9 +1,9 @@
-import { Scene } from 'phaser';
-import { LoadManifestFromJSON } from '../../modules/gameutils/LoadSpritesManifest';
-import { PopupSprite } from '../../modules/gameutils/PopupSptire';
-import { PopupText } from '../../modules/gameutils/PopupText';
-import { UITimer } from '../../modules/gameutils/UITimer';
-import { UICountdown } from '../../modules/gameutils/UICountdown';
+import { Scene } from "phaser";
+import { LoadManifestFromJSON } from "../../modules/gameutils/LoadSpritesManifest";
+import { PopupSprite } from "../../modules/gameutils/PopupSptire";
+import { PopupText } from "../../modules/gameutils/PopupText";
+import { UITimer } from "../../modules/gameutils/UITimer";
+import { UICountdown } from "../../modules/gameutils/UICountdown";
 
 export class Josephus extends Scene {
     // Common settings
@@ -23,6 +23,7 @@ export class Josephus extends Scene {
     private josephusIndex: number;
     private josephusList: Phaser.GameObjects.Sprite[];
     private josephusSet: Set<number>;
+    private gameText: Phaser.GameObjects.Text;
 
     private josephus_alive: Phaser.Sound.BaseSound;
     private josephus_doomed: Phaser.Sound.BaseSound;
@@ -30,7 +31,7 @@ export class Josephus extends Scene {
     private josephus_bgm: Phaser.Sound.BaseSound;
 
     constructor() {
-        super('Josephus');
+        super("Josephus");
     }
 
     init() {
@@ -41,15 +42,24 @@ export class Josephus extends Scene {
         this.maxJosephusCount = 8;
         this.josephusList = [];
         this.josephusSet = new Set<number>();
-        // this.gameMustEndTime = data.gameMustEndTime + this.gameDuration * 1000; // Convert to milliseconds   
+        // this.gameMustEndTime = data.gameMustEndTime + this.gameDuration * 1000; // Convert to milliseconds
     }
 
     preload() {
-        this.load.image('josephus', 'assets/josephus/josephus.png');
-        this.load.audio('josephus_alive', 'assets/josephus/VOCALCUTECallHappy01.wav');
-        this.load.audio('josephus_doomed', 'assets/josephus/VOCALCUTEDistressPainShort12.wav');
-        this.load.audio('josephus_select', 'assets/josephus/VOCALCUTECallAffection07.wav');
-        this.load.audio('josephus_bgm', 'assets/josephus/josephus_bgm.mp3');
+        this.load.image("josephus", "assets/josephus/josephus.png");
+        this.load.audio(
+            "josephus_alive",
+            "assets/josephus/VOCALCUTECallHappy01.wav"
+        );
+        this.load.audio(
+            "josephus_doomed",
+            "assets/josephus/VOCALCUTEDistressPainShort12.wav"
+        );
+        this.load.audio(
+            "josephus_select",
+            "assets/josephus/VOCALCUTECallAffection07.wav"
+        );
+        this.load.audio("josephus_bgm", "assets/josephus/josephus_bgm.mp3");
         this.load.start();
     }
 
@@ -60,20 +70,21 @@ export class Josephus extends Scene {
         this.popupSprite = new PopupSprite(this);
 
         this.josephusCount = this.maxJosephusCount;
-        this.add.graphics()
-            .fillGradientStyle(0xffa69e, 0xffa69e, 0xffffff, 0xffffff, 1)
+        this.add
+            .graphics()
+            .fillStyle(0xffa69e)
             .fillRect(0, 0, this.cameras.main.width, this.cameras.main.height);
 
-        this.josephus_alive = this.sound.add('josephus_alive');
-        this.josephus_doomed = this.sound.add('josephus_doomed');
-        this.josephus_select = this.sound.add('josephus_select');
-        this.josephus_bgm = this.sound.add('josephus_bgm');
+        this.josephus_alive = this.sound.add("josephus_alive");
+        this.josephus_doomed = this.sound.add("josephus_doomed");
+        this.josephus_select = this.sound.add("josephus_select");
+        this.josephus_bgm = this.sound.add("josephus_bgm");
 
-        this.events.on('countdownFinished', () => {
+        this.events.on("countdownFinished", () => {
             this.startGame();
         });
 
-        this.events.on('timerFinished', () => {
+        this.events.on("timerFinished", () => {
             this.endGame();
         });
 
@@ -92,14 +103,14 @@ export class Josephus extends Scene {
         const radius = this.cameras.main.width / 2 - 75;
         for (let i = 0; i < this.josephusCount; i++) {
             const angle = (i / this.josephusCount) * Math.PI * 2;
-            const x = this.cameras.main.centerX + Math.cos(angle) * radius
+            const x = this.cameras.main.centerX + Math.cos(angle) * radius;
             const y = this.cameras.main.centerY + Math.sin(angle) * radius;
 
-            const sprite = this.add.sprite(x, y, 'josephus');
+            const sprite = this.add.sprite(x, y, "josephus");
             sprite.setOrigin(0.5, 0.5);
             sprite.setScale(0.3);
 
-            sprite.setInteractive().on('pointerdown', () => {
+            sprite.setInteractive().on("pointerdown", () => {
                 // if the game is not started or ended, do nothing
                 if (this.josephusIndex !== -1) {
                     return;
@@ -112,21 +123,47 @@ export class Josephus extends Scene {
                 this.tweens.add({
                     targets: sprite,
                     duration: 500,
-                    ease: 'Power1',
+                    ease: "Power1",
                     yoyo: true,
-                    repeat: -1.
+                    repeat: -1,
                 });
 
                 this.time.addEvent({
                     delay: 2000,
                     callbackScope: this,
-                    callback: this.josephusDoomed
+                    callback: this.josephusDoomed,
                 });
             });
 
             this.josephusSet.add(i);
             this.josephusList.push(sprite);
         }
+
+        this.gameText = this.add
+            .text(
+                this.cameras.main.centerX,
+                (this.cameras.main.height * 4) / 5,
+                "최후의 생존자는 누구?",
+                {
+                    fontFamily: "Arial",
+                    fontSize: "72px",
+                    color: "#ffffff",
+                    align: "center",
+                    stroke: "#000000",
+                    strokeThickness: 2,
+                    fontStyle: "bold",
+                }
+            )
+            .setOrigin(0.5);
+
+        this.add.tween({
+            targets: this.gameText,
+            scaley: 1.2,
+            duration: 1000,
+            ease: "Cubic",
+            yoyo: true,
+            repeat: -1,
+        });
 
         this.anthorJosephusRound(-1);
     }
@@ -142,17 +179,23 @@ export class Josephus extends Scene {
         this.time.addEvent({
             delay: 1000,
             callback: () => {
-                this.popupText.popupText('Game Over', this.cameras.main.centerX, this.cameras.main.centerY, 2000, {
-                    fontSize: '128px',
-                    color: '#ffffff',
-                    stroke: '#000000',
-                    strokeThickness: 2,
-                    align: 'center',
-                    fontFamily: 'Arial',
-                    fontStyle: 'bold',
-                });
+                this.popupText.popupText(
+                    "Game Over",
+                    this.cameras.main.centerX,
+                    this.cameras.main.centerY,
+                    2000,
+                    {
+                        fontSize: "128px",
+                        color: "#ffffff",
+                        stroke: "#000000",
+                        strokeThickness: 2,
+                        align: "center",
+                        fontFamily: "Arial",
+                        fontStyle: "bold",
+                    }
+                );
                 this.result();
-            }
+            },
         });
     }
 
@@ -160,7 +203,11 @@ export class Josephus extends Scene {
         // Max Score is 100 points
         const elapsedTime = Date.now() - this.gameStartedTime;
         // Killed Josephus count is the score
-        const score = Math.min(100, (this.maxJosephusCount - this.josephusCount) + 1 / this.maxJosephusCount * 100);
+        const score = Math.min(
+            100,
+            ((this.maxJosephusCount - this.josephusCount) * 100) /
+                (this.maxJosephusCount - 1)
+        );
         return Math.floor(score);
     }
 
@@ -168,15 +215,28 @@ export class Josephus extends Scene {
         const elapsedTime = Date.now() - this.gameStartedTime;
         const finalScore = this.getFinalScore();
 
+        this.popupText.popupText(
+            `Score: ${finalScore}`,
+            this.cameras.main.centerX,
+            this.cameras.main.centerY + 100,
+            3000,
+            {
+                fontSize: "80px",
+                color: "#ffffff",
+                stroke: "#000000",
+                strokeThickness: 2,
+                align: "center",
+                fontFamily: "Arial",
+                fontStyle: "bold",
+            }
+        );
         // pop up result modal
-
     }
 
     update(time: number, delta: number) {
         if (!this.gameStarted || this.gameEnded) {
             return;
         }
-
     }
 
     anthorJosephusRound(loserIndex: number) {
@@ -201,19 +261,12 @@ export class Josephus extends Scene {
             this.tweens.add({
                 targets: winner,
                 duration: 100,
-                ease: 'Cubic',
+                ease: "Cubic",
                 yoyo: true,
-                repeat: -1
+                repeat: -1,
             });
-            this.popupText.popupText('우승!!', this.cameras.main.centerX, this.cameras.main.centerY, 1000, {
-                fontSize: '128px',
-                color: '#00ff00',
-                stroke: '#000000',
-                strokeThickness: 2,
-                align: 'center',
-                fontFamily: 'Arial',
-                fontStyle: 'bold',
-            });
+
+            this.gameText.setText("우승!!");
 
             this.endGame();
             return;
@@ -228,9 +281,9 @@ export class Josephus extends Scene {
                 targets: sprite,
                 y: sprite.y - 20,
                 duration: 1000,
-                ease: 'Cubic',
+                ease: "Cubic",
                 yoyo: true,
-                repeat: -1
+                repeat: -1,
             });
         }
     }
@@ -243,7 +296,9 @@ export class Josephus extends Scene {
         this.tweens.killAll();
 
         // select randomly a Josephus and kill him
-        const loserIndex = Array.from(this.josephusSet)[Math.floor(Math.random() * this.josephusSet.size)];
+        const loserIndex = Array.from(this.josephusSet)[
+            Math.floor(Math.random() * this.josephusSet.size)
+        ];
 
         const remainingJosephus = Array.from(this.josephusSet);
         for (let k = 0; k < this.josephusCount; k++) {
@@ -253,12 +308,11 @@ export class Josephus extends Scene {
                     targets: this.josephusList[i],
                     y: this.josephusList[i].y - 20,
                     duration: 100,
-                    ease: 'Cubic',
+                    ease: "Cubic",
                     yoyo: true,
-                    repeat: -1
+                    repeat: -1,
                 });
-            }
-            else {
+            } else {
                 // 90 degree rotation to radian
                 this.josephusList[i].setAngle(90);
                 this.josephusList[i].tint = 0xff0000; // Change color to red
@@ -266,22 +320,31 @@ export class Josephus extends Scene {
                     targets: this.josephusList[i],
                     y: this.josephusList[i].y - 20,
                     duration: 50,
-                    ease: 'Cubic',
+                    ease: "Cubic",
                     yoyo: true,
-                    repeat: -1
+                    repeat: -1,
                 });
 
                 if (loserIndex === this.josephusIndex) {
                     this.josephus_doomed?.play();
-                    this.popupText.popupText('앗!', this.cameras.main.centerX, this.cameras.main.centerY, 1000, {
-                        fontSize: '128px',
-                        color: '#ff0000',
-                        stroke: '#000000',
-                        strokeThickness: 2,
-                        align: 'center',
-                        fontFamily: 'Arial',
-                        fontStyle: 'bold',
-                    });
+                    this.popupText.popupText(
+                        "앗!",
+                        this.cameras.main.centerX,
+                        this.cameras.main.centerY,
+                        1000,
+                        {
+                            fontSize: "128px",
+                            color: "#ff0000",
+                            stroke: "#000000",
+                            strokeThickness: 2,
+                            align: "center",
+                            fontFamily: "Arial",
+                            fontStyle: "bold",
+                        }
+                    );
+
+                    this.gameText.setText("살아남지 못했다...");
+
                     this.endGame();
                     return;
                 }
@@ -289,22 +352,29 @@ export class Josephus extends Scene {
         }
 
         this.josephus_alive?.play();
-        this.popupText.popupText('생존!!', this.cameras.main.centerX, this.cameras.main.centerY, 1000, {
-            fontSize: '128px',
-            color: '#00ff00',
-            stroke: '#000000',
-            strokeThickness: 2,
-            align: 'center',
-            fontFamily: 'Arial',
-            fontStyle: 'bold',
-        });
+        this.popupText.popupText(
+            "생존!!",
+            this.cameras.main.centerX,
+            this.cameras.main.centerY,
+            1000,
+            {
+                fontSize: "128px",
+                color: "#00ff00",
+                stroke: "#000000",
+                strokeThickness: 2,
+                align: "center",
+                fontFamily: "Arial",
+                fontStyle: "bold",
+            }
+        );
 
         this.time.addEvent({
             delay: 2000,
             callbackScope: this,
             callback: () => {
                 this.anthorJosephusRound(loserIndex);
-            }
+            },
         });
     }
 }
+
