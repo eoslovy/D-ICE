@@ -31,7 +31,7 @@ export class MainMenu extends Phaser.Scene {
     });
 
     this.startButton = this.createButton(width / 2, height * 0.7, '원 그리기 게임', () => {
-      this.scene.start('PerfectCircleGame')
+      this.scene.start('PerfectCircle')
     });
 
     // Add title text

@@ -4,18 +4,13 @@ import adminWebSocketManager from "../../modules/AdminWebSocketManager";
 import BackgroundAnimation from "../../components/BackgroundAnimation";
 import GameCard from "../../components/GameCard";
 import RoomCode from "../../components/RoomCode";
-import DarkModeToggle from "../../components/DarkModeToggle"
 import { Users, Play, Clock } from "lucide-react";
-
-interface NextGameMessage {
-    currentRound: number;
-    gameType: string;
-}
+import { adminStore } from "../../stores/adminStore";
 
 export default function BroadcastRoom() {
-    const roomCode = localStorage.getItem("roomCode") || "000000";
-    const userCount = localStorage.getItem("userCount") || "0";
-    const totalRound = localStorage.getItem("totalRound") || "1";
+    const roomCode = adminStore.getState().roomCode;
+    const userCount = adminStore.getState().userCount;
+    const totalRound = adminStore.getState().totalRound;
     const [currentRound, setCurrentRound] = useState(1);
     const [nextGame, setNextGame] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
@@ -55,12 +50,11 @@ export default function BroadcastRoom() {
     return (
         <div className="game-container">
             <BackgroundAnimation />
-            <DarkModeToggle />
 
             <GameCard>
                 <h1 className="game-title">D-Ice Game</h1>
 
-                <RoomCode code={roomCode} />
+                <RoomCode code={String(roomCode)} />
 
                 <div className="game-info mb-6">
                     <div className="flex items-center">

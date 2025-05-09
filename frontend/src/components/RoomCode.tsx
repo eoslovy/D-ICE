@@ -1,5 +1,5 @@
 interface RoomCodeProps {
-    code: string
+    code: string;
   }
   
   export default function RoomCode({ code }: RoomCodeProps) {

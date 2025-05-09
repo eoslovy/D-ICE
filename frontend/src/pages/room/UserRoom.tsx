@@ -6,28 +6,23 @@ import BackgroundAnimation from "../../components/BackgroundAnimation";
 import GameCard from "../../components/GameCard";
 import RoomCode from "../../components/RoomCode";
 import { Clock } from "lucide-react";
-
-interface UserJoinedMessage {
-    roomId: string;
-    userId: string;
-}
+import { userStore } from "../../stores/userStore";
 
 export default function UserRoom() {
     const navigate = useNavigate();
 
-    const roomCode = localStorage.getItem("roomCode") || "000000";
-    const nickname = localStorage.getItem("nickname") || null;
+    const roomCode = userStore.getState().roomCode;
+    const nickname = userStore.getState().nickname;
 
     useEffect(() => {
         console.log("ENTER_GAME 이벤트 리스너 등록");
         userWebSocketManager.on("ENTER_GAME", (payload: UserJoinedMessage) => {
             console.log("게임 세션 입장:", payload);
+            userStore.getState().setStatus("INGAME");
             navigate(`/game`);
         });
         return () => {
-            userWebSocketManager.off(
-                "ENTER_GAME",
-                (payload: UserJoinedMessage) => {
+            userWebSocketManager.off("ENTER_GAME", (payload: UserJoinedMessage) => {
                     console.log("ENTER_GAME 이벤트 리스너 해제:", payload);
                 }
             );
@@ -50,7 +45,7 @@ export default function UserRoom() {
                     </div>
                 </div>
 
-                <RoomCode code={roomCode} />
+                <RoomCode code={String(roomCode)} />
 
                 {nickname && (
                     <div className="mb-6 text-center">
@@ -64,7 +59,7 @@ export default function UserRoom() {
                 )}
 
                 <div className="mb-6 flex flex-col items-center justify-center">
-                    <GenerateQrCode roomCode={roomCode} />
+                    <GenerateQrCode roomCode={String(roomCode)} />
                 </div>
                 <p className="text-sm mt-2 text-center">주변의 미참여자에게 코드를 공유해주세요!</p>
             </GameCard>
