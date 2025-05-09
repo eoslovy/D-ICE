@@ -3,11 +3,3 @@ server:
 spring:
   application:
     name: game-KJH
-logging:
-  level:
-    root: INFO
-    org.springframework.web: DEBUG
-    org.springframework.web.servlet: DEBUG
-    org.springframework.boot.autoconfigure: DEBUG
-    org.springframework.http: DEBUG
-    org.apache.coyote.http11: DEBUG

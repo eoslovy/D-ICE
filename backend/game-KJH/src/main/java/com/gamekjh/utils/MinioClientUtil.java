@@ -5,6 +5,7 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.concurrent.TimeUnit;
 
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import io.minio.BucketExistsArgs;
@@ -19,16 +20,21 @@ import io.minio.errors.ServerException;
 import io.minio.errors.XmlParserException;
 import io.minio.http.Method;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 @Component
-@RequiredArgsConstructor
-@Slf4j
 public class MinioClientUtil {
 
-	//Bucket의 min String length는 3임
 	private final MinioClient minioInternalClient;
-	
+	private final MinioClient minioExternalClient;
+
+	public MinioClientUtil(
+		@Qualifier("internalMinio") MinioClient minioInternalClient,
+		@Qualifier("externalMinio") MinioClient minioExternalClient
+	) {
+		this.minioInternalClient = minioInternalClient;
+		this.minioExternalClient = minioExternalClient;
+	}
+
 	public GetPresignedObjectUrlArgs getPresignedObjectUrlArgs(String bucket, String round, String userId, Method httpMethod) {
 		return GetPresignedObjectUrlArgs.builder()
 			.bucket("room"+bucket)
@@ -38,7 +44,7 @@ public class MinioClientUtil {
 			.build();
 	}
 
-	public String newPutPresignedUrl(Integer roomId, Integer roundNum, Integer userId) throws
+	public String newPostPresignedUrl(Integer roomId, Integer roundNum, Integer userId) throws
 		ServerException,
 		InsufficientDataException,
 		ErrorResponseException,
@@ -48,14 +54,16 @@ public class MinioClientUtil {
 		InvalidResponseException,
 		XmlParserException,
 		InternalException {
+
 		BucketExistsArgs bucketExistsArgs = BucketExistsArgs.builder().bucket("room"+roomId.toString()).build();
 		
 		if (!minioInternalClient.bucketExists(bucketExistsArgs)) {
 			minioInternalClient.makeBucket(MakeBucketArgs.builder().bucket("room"+roomId.toString()).build());
 		}
-		String pUrl = minioInternalClient.getPresignedObjectUrl(
+		System.out.println("여까지됨");
+		String pUrl = minioExternalClient.getPresignedObjectUrl(
 			getPresignedObjectUrlArgs(roomId.toString(), roundNum.toString(), userId.toString(), Method.PUT));
-		log.info("pUrl발급"+pUrl);
+		System.out.println("pUrl발급"+pUrl);
 		return pUrl;
 	}
 
@@ -70,20 +78,21 @@ public class MinioClientUtil {
 		XmlParserException,
 		InternalException {
 
-		BucketExistsArgs bucketExistsArgs = BucketExistsArgs.builder().bucket("room"+roomId.toString()).build();
+		BucketExistsArgs bucketExistsArgs = BucketExistsArgs.builder().bucket(roomId.toString()).build();
 
 		if (!minioInternalClient.bucketExists(bucketExistsArgs)) {
-			minioInternalClient.makeBucket(MakeBucketArgs.builder().bucket("room"+roomId.toString()).build());
+			minioInternalClient.makeBucket(MakeBucketArgs.builder().bucket(roomId.toString()).build());
 		}
-		String gUrl = minioInternalClient.getPresignedObjectUrl(
+		String gUrl = minioExternalClient.getPresignedObjectUrl(
 			getPresignedObjectUrlArgs(roomId.toString(), roundNum.toString(), userId.toString(), Method.GET));
-		log.info("gUrl:"+gUrl);
+		System.out.println("gUrl:"+gUrl);
 		return gUrl;
 	}
 
 	public String replaceUrl(String url){
 
-		//replacement를 bucket api로 변경
-		return url.replace("http://minio-bucket:9000","https://localhost/bucket");
+		//return url;
+		//System.out.println("url:"+url);
+		return url.replace("http://localhost:9000","https://localhost/bucket");
 	}
 }

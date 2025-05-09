@@ -6,7 +6,7 @@ interface AdminState {
   administratorId: string;
   roomCode: string;
   userCount: number; 
-  totalRound: number; 
+  totalRound: number;
   setStatus: (status: "INGAME" | "WAITING") => void; 
   setAdministratorId: (userId: string) => void;
   setRoomCode: (roomCode: string) => void;

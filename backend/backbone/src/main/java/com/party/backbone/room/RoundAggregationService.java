@@ -1,8 +1,8 @@
 package com.party.backbone.room;
 
-import static com.party.backbone.room.util.RankingUtils.*;
-
 import java.io.IOException;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -28,34 +28,24 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 @RequiredArgsConstructor
 public class RoundAggregationService {
-	final RoomRedisRepository roomRepository;
-	final SessionRegistry sessionRegistry;
-	final ObjectMapper objectMapper;
-	final int DEFAULT_RANKING_COUNT = 3;
+	private final RoomRedisRepository roomRepository;
+	private final SessionRegistry sessionRegistry;
+	private final ObjectMapper objectMapper;
 
 	public void aggregateRound(String roomCode) throws IOException {
 		ScoreAggregationResult aggregation = roomRepository.aggregateScores(roomCode);
 		if (aggregation == null)
 			return;
 
-		List<Map.Entry<String, ? extends Number>> sortedRound = getSortedScoreEntries(aggregation.roundScoreMap());
-		List<Map.Entry<String, ? extends Number>> sortedOverall = getSortedScoreEntries(aggregation.totalScoreMap());
+		Map<String, Integer> roundRanks = calculateRanks(aggregation.roundScoreMap());
+		Map<String, Integer> overallRanks = calculateRanks(aggregation.totalScoreMap());
 
-		Map<String, Integer> roundRanks = calculateRanks(sortedRound);
-		Map<String, Integer> overallRanks = calculateRanks(sortedOverall);
-		Map<String, String> nicknameMap = aggregation.nicknameMap();
-
-		List<RankingInfo> roundTop3 = buildTopK(sortedRound, roundRanks, nicknameMap, DEFAULT_RANKING_COUNT);
-		List<RankingInfo> overallTop3 = buildTopK(sortedOverall, overallRanks, nicknameMap, DEFAULT_RANKING_COUNT);
-
-		sendUserMessages(roomCode, aggregation, roundRanks, overallRanks, roundTop3, overallTop3);
-		sendAdminMessages(roomCode, aggregation, sortedRound, sortedOverall, roundRanks, overallRanks, roundTop3,
-			overallTop3);
+		sendUserMessages(roomCode, aggregation, roundRanks, overallRanks);
+		sendAdminMessages(roomCode, aggregation, roundRanks, overallRanks);
 	}
 
 	private void sendUserMessages(String roomCode, ScoreAggregationResult aggregation,
-		Map<String, Integer> roundRanks, Map<String, Integer> overallRanks, List<RankingInfo> roundTop3,
-		List<RankingInfo> overallTop3) throws IOException {
+		Map<String, Integer> roundRanks, Map<String, Integer> overallRanks) throws IOException {
 		int currentRound = aggregation.currentRound();
 		int totalRound = aggregation.totalRound();
 
@@ -70,8 +60,7 @@ public class RoundAggregationService {
 			AggregatedUserMessage message = new AggregatedUserMessage(
 				currentRound, totalRound,
 				aggregation.gameType(), currentScore,
-				totalScore, rankRecord, roundRank, overallRank,
-				roundTop3, overallTop3, ""
+				totalScore, rankRecord, roundRank, overallRank, ""
 			);
 
 			WebSocketSession session = sessionRegistry.get(userId);
@@ -86,20 +75,17 @@ public class RoundAggregationService {
 	}
 
 	private void sendAdminMessages(String roomCode, ScoreAggregationResult aggregation,
-		List<Map.Entry<String, ? extends Number>> sortedRound,
-		List<Map.Entry<String, ? extends Number>> sortedOverall,
-		Map<String, Integer> roundRanks, Map<String, Integer> overallRanks, List<RankingInfo> roundTop3,
-		List<RankingInfo> overallTop3) throws IOException {
+		Map<String, Integer> roundRanks, Map<String, Integer> overallRanks) throws IOException {
 		int currentRound = aggregation.currentRound();
 		int totalRound = aggregation.totalRound();
-		Map<String, String> nicknameMap = aggregation.nicknameMap();
 
-		String firstPlaceId = getFirstByRank(roundRanks);
-		String lastPlaceId = getLastByRank(roundRanks);
+		List<RankingInfo> roundTop3 = buildTop3(aggregation.roundScoreMap(), roundRanks, aggregation.nicknameMap());
+		List<RankingInfo> overallTop3 = buildTop3(aggregation.totalScoreMap(), overallRanks, aggregation.nicknameMap());
+		String firstPlaceId = getFirstByRank(overallRanks);
+		String lastPlaceId = getLastByRank(overallRanks);
 
-		// TODO: videoUrl 로직 구현 필요
-		PlaceInfo firstPlaceInfo = new PlaceInfo(firstPlaceId, nicknameMap.get(firstPlaceId), "");
-		PlaceInfo lastPlaceInfo = new PlaceInfo(lastPlaceId, nicknameMap.get(lastPlaceId), "");
+		PlaceInfo firstPlaceInfo = new PlaceInfo(firstPlaceId, aggregation.nicknameMap().get(firstPlaceId), "");
+		PlaceInfo lastPlaceInfo = new PlaceInfo(lastPlaceId, aggregation.nicknameMap().get(lastPlaceId), "");
 
 		AggregatedAdminMessage aggregatedAdminMessage = new AggregatedAdminMessage(
 			currentRound, totalRound,
@@ -120,8 +106,7 @@ public class RoundAggregationService {
 
 		if (currentRound == totalRound) {
 			roomRepository.endGame(roomCode);
-			EndMessage endMessage = new EndMessage(
-				buildAllRanking(sortedOverall, overallRanks, nicknameMap));
+			EndMessage endMessage = new EndMessage(overallTop3);
 			adminSession.sendMessage(new TextMessage(objectMapper.writeValueAsString(endMessage)));
 			log.info("[EndMessage] Sent EndMessage to admin {} of room {} — totalRound={} completed",
 				administratorId, roomCode, totalRound);
@@ -134,5 +119,55 @@ public class RoundAggregationService {
 		adminSession.sendMessage(new TextMessage(objectMapper.writeValueAsString(nextGameMessage)));
 		log.info("[NextGameMessage] Sent NextGameMessage to admin {} of room {} — nextRound={}, gameType={}",
 			administratorId, roomCode, nextRound, nextGame);
+	}
+
+	private Map<String, Integer> calculateRanks(Map<String, ? extends Number> scoreMap) {
+		var sorted = scoreMap.entrySet().stream()
+			.sorted((a, b) -> Double.compare(b.getValue().doubleValue(), a.getValue().doubleValue()))
+			.toList();
+
+		Map<String, Integer> result = new HashMap<>();
+		int rank = 1;
+		int count = 0;
+		double prevScore = Double.NaN;
+		for (Map.Entry<String, ? extends Number> entry : sorted) {
+			count++;
+			double score = entry.getValue().doubleValue();
+			if (Double.compare(score, prevScore) != 0) {
+				rank = count;
+				prevScore = score;
+			}
+			result.put(entry.getKey(), rank);
+		}
+		return result;
+	}
+
+	private List<RankingInfo> buildTop3(Map<String, ? extends Number> scoreMap,
+		Map<String, Integer> rankMap,
+		Map<String, String> nickMap) {
+		return scoreMap.entrySet().stream()
+			.sorted((a, b) -> Double.compare(b.getValue().doubleValue(), a.getValue().doubleValue()))
+			.limit(3)
+			.map(entry -> new RankingInfo(
+				entry.getKey(),
+				nickMap.get(entry.getKey()),
+				entry.getValue().intValue(),
+				rankMap.get(entry.getKey())
+			))
+			.toList();
+	}
+
+	private String getFirstByRank(Map<String, Integer> ranks) {
+		return ranks.entrySet().stream()
+			.min(Comparator.comparingInt(Map.Entry::getValue))
+			.map(Map.Entry::getKey)
+			.orElse(null);
+	}
+
+	private String getLastByRank(Map<String, Integer> ranks) {
+		return ranks.entrySet().stream()
+			.max(Comparator.comparingInt(Map.Entry::getValue))
+			.map(Map.Entry::getKey)
+			.orElse(null);
 	}
 }
