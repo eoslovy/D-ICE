@@ -423,9 +423,10 @@
     @apply absolute inset-0 overflow-hidden;
   }
 
-  /* .confetti-piece {
-    @apply absolute animate-confetti;
-  } */
+  .confetti-piece {
+    @apply absolute;
+    animation: confetti 5s ease-in-out forwards;
+  }
 
   /* 계속하기 버튼 스타일 */
   .continue-button {
@@ -492,7 +493,7 @@
   }
 }
 
-/* 애니메이션 클래스
+/* 애니메이션 클래스 */
 .animate-confetti {
   animation: confetti 5s ease-in-out forwards;
 }
@@ -503,7 +504,7 @@
 
 .animate-bounce {
   animation: bounce 1s infinite;
-} */
+}
 
 /* 다크 모드 오버라이드 */
 .dark .game-card {
