@@ -1,8 +1,5 @@
 package com.gameydg.numberSurvivor.handler;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
@@ -18,18 +15,20 @@ import com.gameydg.numberSurvivor.service.NumberSurvivorService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * 숫자 서바이버 웹소켓 핸들러 - 클라이언트 연결 및 메시지 라우팅 담당
+ */
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class NumberSurvivorWebSocketHandler extends TextWebSocketHandler {
     private final ObjectMapper objectMapper;
     private final NumberSurvivorService numberSurvivorService;
-    private final Map<String, WebSocketSession> sessions = new ConcurrentHashMap<>();
 
     @Override
     protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
         String payload = message.getPayload();
-        log.info("Received message: {}", payload);
+        log.info("메시지 수신: {}", payload);
         
         JsonNode jsonNode = objectMapper.readTree(payload);
         String type = jsonNode.get("type").asText();
@@ -38,8 +37,6 @@ public class NumberSurvivorWebSocketHandler extends TextWebSocketHandler {
             case "NUMBER_SURVIVOR_JOIN":
                 NumberSurvivorJoinDto joinDto = objectMapper.treeToValue(jsonNode, NumberSurvivorJoinDto.class);
                 numberSurvivorService.handleJoin(session, joinDto);
-                // 대기 메시지 전송
-                sendWaitingMessage(session, joinDto.getRoomId());
                 break;
             case "NUMBER_SURVIVOR_START":
                 String roomId = jsonNode.get("roomId").asText();
@@ -49,30 +46,28 @@ public class NumberSurvivorWebSocketHandler extends TextWebSocketHandler {
                 numberSurvivorService.handleSelect(session, objectMapper.treeToValue(jsonNode, NumberSurvivorSelectDto.class));
                 break;
             default:
-                log.warn("Unknown message type: {}", type);
+                log.warn("알 수 없는 메시지 타입: {}", type);
         }
-    }
-
-    private void sendWaitingMessage(WebSocketSession session, String roomId) throws Exception {
-        Map<String, Object> message = Map.of(
-            "type", "WAITING",
-            "message", "다른 플레이어를 기다리는 중...",
-            "currentPlayers", numberSurvivorService.getCurrentPlayerCount(roomId)
-        );
-        session.sendMessage(new TextMessage(objectMapper.writeValueAsString(message)));
     }
 
     @Override
     public void afterConnectionEstablished(WebSocketSession session) {
         String sessionId = session.getId();
-        sessions.put(sessionId, session);
-        log.info("New connection established: {}", sessionId);
+        // 웹소켓 세션 ID는 실제 사용자 ID와 매핑될 때까지 임시로 보관
+        // 실제 사용자 ID 등록은 JOIN 메시지를 받은 후 서비스 레이어에서 처리
+        log.info("새 웹소켓 연결 수립: {}", sessionId);
     }
 
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) {
         String sessionId = session.getId();
-        sessions.remove(sessionId);
-        log.info("Connection closed: {}, status: {}", sessionId, status);
+        log.info("웹소켓 연결 종료: {}, 상태: {}", sessionId, status);
+        
+        // 서비스 레이어에 세션 종료 알림
+        try {
+            numberSurvivorService.handleDisconnect(session);
+        } catch (Exception e) {
+            log.error("서비스 레이어 연결 종료 처리 실패: {}", e.getMessage(), e);
+        }
     }
 }

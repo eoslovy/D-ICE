@@ -44,4 +44,10 @@ public interface NumberSurvivorService {
      * @return 최대 숫자
      */
     int getMaxNumber(String roomId);
+    
+    /**
+     * 연결 종료 처리
+     * @param session 종료된 웹소켓 세션
+     */
+    void handleDisconnect(WebSocketSession session);
 }
