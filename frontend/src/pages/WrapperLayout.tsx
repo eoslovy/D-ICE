@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react';
 import { useNavigate, Outlet } from 'react-router-dom';
+import BackgroundAnimation from '../components/BackgroundAnimation';
 import DarkModeToggle from '../components/DarkModeToggle';
 import '../globals.css';
 
@@ -107,7 +108,8 @@ export default function WrapperLayout() {
 
   return (
     <div id='app' className="min-h-screen">
-      <DarkModeToggle/>
+      <BackgroundAnimation />
+      <DarkModeToggle />
       <Outlet />
     </div>
   );

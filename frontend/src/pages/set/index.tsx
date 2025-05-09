@@ -4,9 +4,7 @@ import { API } from "../../assets/api";
 import { v7 as uuidv7 } from "uuid";
 import adminWebSocketManager from "../../modules/AdminWebSocketManager";
 import { useWebSocket } from "../../modules/WebSocketContext";
-import BackgroundAnimation from "../../components/BackgroundAnimation";
 import GameCard from "../../components/GameCard";
-import DarkModeToggle from "../../components/DarkModeToggle";
 import { Settings, Loader } from "lucide-react";
 
 interface AdminJoinedMessage {
@@ -61,9 +59,6 @@ export default function Set() {
 
     return (
         <div className="game-container">
-            <BackgroundAnimation />
-            <DarkModeToggle />
-
             <GameCard>
                 <h1 className="game-title">
                     <Settings className="inline-flex mr-2" size={28} />

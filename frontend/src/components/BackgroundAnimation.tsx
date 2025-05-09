@@ -1,24 +1,42 @@
 import { useEffect, useRef } from "react"
 
 interface BackgroundAnimationProps {
-  count?: number;
-  shapes?: ("circle" | "square" | "triangle")[];
-  speed?: "slow" | "normal" | "fast";
+  count?: number
+  shapes?: ("circle" | "square")[]
+  speed?: "slow" | "normal" | "fast"
 }
 
 export default function BackgroundAnimation({
   count = 15,
-  shapes = ["circle", "square", "triangle"],
+  shapes = ["circle", "square"],
   speed = "normal",
 }: BackgroundAnimationProps) {
   const containerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    if (!containerRef.current) return;
+    if (!containerRef.current) return
 
-    const container = containerRef.current;
-    const shapesArray: HTMLDivElement[] = [];
-    const colors = ["#42CAFD", "#EBEBD3", "#FFA69E", "#2A9D8F", "#E84545"]
+    const container = containerRef.current
+    const shapesArray: HTMLDivElement[] = []
+
+    // 파랑~하얀색 계열의 아이스 테마 색상 팔레트
+    const colors = [
+      "#42CAFD", // 밝은 하늘색
+      "#E0FFFF", // 라이트 시안
+      "#B0E0E6", // 파우더 블루
+      "#ADD8E6", // 라이트 블루
+      "#87CEEB", // 스카이 블루
+      "#00BFFF", // 딥 스카이 블루
+      "#1E90FF", // 도저 블루
+      "#4682B4", // 스틸 블루
+      "#5F9EA0", // 카데트 블루
+      "#F0F8FF", // 앨리스 블루
+      "#F5FFFA", // 민트 크림
+      "#FFFFFF", // 순수한 흰색
+      "#F0FFFF", // 아주르
+      "#E6F7FF", // 매우 연한 하늘색
+      "#CCF2FF", // 연한 하늘색
+    ]
 
     // Speed multiplier
     const speedMultiplier = speed === "slow" ? 1.5 : speed === "fast" ? 0.7 : 1
@@ -39,27 +57,15 @@ export default function BackgroundAnimation({
       // Apply shape-specific styles
       if (shapeType === "square") {
         shape.style.borderRadius = "10px"
-        shape.style.transform = `rotate(${Math.random() * 45}deg)`
-      } else if (shapeType === "triangle") {
-        shape.style.width = "0"
-        shape.style.height = "0"
-        shape.style.backgroundColor = "transparent"
-        shape.style.borderLeft = `${size / 2}px solid transparent`
-        shape.style.borderRight = `${size / 2}px solid transparent`
-        shape.style.borderBottom = `${size}px solid ${color}`
       } else {
         // Circle is default
         shape.style.borderRadius = "50%"
-        shape.style.backgroundColor = color
       }
 
       // Common styles
-      if (shapeType !== "triangle") {
-        shape.style.width = `${size}px`
-        shape.style.height = `${size}px`
-        shape.style.backgroundColor = color
-      }
-
+      shape.style.width = `${size}px`
+      shape.style.height = `${size}px`
+      shape.style.backgroundColor = color
       shape.style.left = `${Math.random() * 100}%`
       shape.style.top = `${Math.random() * 100}%`
       shape.style.opacity = `${0.2 + Math.random() * 0.5}`
@@ -68,7 +74,7 @@ export default function BackgroundAnimation({
 
       // 회전 애니메이션 적용
       const rotationAmount = Math.random() * 360
-      shape.style.transform = `${shape.style.transform || ""} rotate(${rotationAmount}deg)`
+      shape.style.transform = `rotate(${rotationAmount}deg)`
       shape.style.animationName = "float, rotate"
       shape.style.animationTimingFunction = "ease-in-out, linear"
       shape.style.animationIterationCount = "infinite, infinite"

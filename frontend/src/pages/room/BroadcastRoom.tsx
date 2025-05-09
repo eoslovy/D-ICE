@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { v7 as uuidv7 } from "uuid";
 import adminWebSocketManager from "../../modules/AdminWebSocketManager";
-import BackgroundAnimation from "../../components/BackgroundAnimation";
 import GameCard from "../../components/GameCard";
 import RoomCode from "../../components/RoomCode";
 import Result from "../../components/Result";
@@ -19,6 +18,7 @@ export default function BroadcastRoom() {
     //현재 추가된 결과 통신
     const [data, setData] = useState<AggregatedAdminMessage | null>(null);
     const [showResults, setShowResults] = useState(false);
+    const [showFinalResult, setShowFinalResult] = useState(false);
 
     let requestId = uuidv7();
 
@@ -76,7 +76,9 @@ export default function BroadcastRoom() {
 
     const handleContinue = () => {
         setShowResults(false);
-        // 필요한 경우 다음 게임으로 진행하는 로직 추가
+        if (isFinalResult) {
+            setShowFinalResult(true);  // FinalResult를 보여주도록 설정
+        }
     };
 
     const isFinalResult =
@@ -85,15 +87,10 @@ export default function BroadcastRoom() {
 
     return (
         <div className="game-container">
-            <BackgroundAnimation />
-
             {showResults ? (
                 <div className="relative z-10 w-full max-w-4xl p-6 mx-auto rounded-2xl shadow-lg bg-opacity-95 backdrop-blur-sm bg-quaternary">
-                    {isFinalResult ? (
-                        <FinalResult data={data} onContinue={handleContinue} />
-                    ) : (
-                        <Result data={data} onContinue={handleContinue} />
-                    )}
+                    <Result data={data} onContinue={handleContinue} />
+                    {showFinalResult && <FinalResult data={data} onContinue={handleContinue} />}
                 </div>
             ) : (
                 <GameCard>

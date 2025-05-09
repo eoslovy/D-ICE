@@ -21,6 +21,11 @@
   --warning-color: #ff6b6b;
 }
 
+#app {
+  font-family: "Fredoka", "Jua", sans-serif;
+}
+
+
 @layer base {
   html {
     font-size: 16px;
@@ -197,8 +202,9 @@
   }
 
   .rankings-header {
-    @apply p-4 text-white dark:text-tertiary font-bold;
+    @apply p-4 text-white font-bold;
     background-color: var(--primary-color);
+    color: var(--tertiary-color);
   }
 
   .rankings-body {
@@ -417,9 +423,9 @@
     @apply absolute inset-0 overflow-hidden;
   }
 
-  .confetti-piece {
+  /* .confetti-piece {
     @apply absolute animate-confetti;
-  }
+  } */
 
   /* 계속하기 버튼 스타일 */
   .continue-button {
@@ -486,7 +492,7 @@
   }
 }
 
-/* 애니메이션 클래스 */
+/* 애니메이션 클래스
 .animate-confetti {
   animation: confetti 5s ease-in-out forwards;
 }
@@ -497,7 +503,7 @@
 
 .animate-bounce {
   animation: bounce 1s infinite;
-}
+} */
 
 /* 다크 모드 오버라이드 */
 .dark .game-card {
