@@ -1,6 +1,7 @@
 @import url("https://fonts.googleapis.com/css2?family=Fredoka:wght@300;400;500;600;700&display=swap");
 @import url("https://fonts.googleapis.com/css2?family=Jua&display=swap");
 @import "tailwindcss";
+
 /* 색상 변수 정의 - tertiary는 글자색입니다 */
 :root {
   --primary-color: #42cafd;
@@ -18,10 +19,6 @@
   --quaternary-color: #2b2e4a; /* Dark background for cards in dark mode */
   --quinary-color: #2a9d8f;
   --warning-color: #ff6b6b;
-}
-
-#app {
-  font-family: "Fredoka", "Jua", sans-serif;
 }
 
 @layer base {
@@ -192,7 +189,7 @@
 
   /* 순위표 관련 스타일 */
   .rankings-container {
-    @apply animate-fadeIn;
+    @apply transition-opacity duration-500 opacity-100;
   }
 
   .rankings-table {
@@ -200,7 +197,8 @@
   }
 
   .rankings-header {
-    @apply p-4 bg-primary text-white dark:text-tertiary font-bold;
+    @apply p-4 text-white dark:text-tertiary font-bold;
+    background-color: var(--primary-color);
   }
 
   .rankings-body {
@@ -491,10 +489,6 @@
 /* 애니메이션 클래스 */
 .animate-confetti {
   animation: confetti 5s ease-in-out forwards;
-}
-
-.animate-fadeIn {
-  animation: fadeIn 0.5s ease-out forwards;
 }
 
 .animate-pulse {

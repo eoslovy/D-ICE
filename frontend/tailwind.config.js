@@ -6,6 +6,7 @@ export default {
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
+  safelist: ['text-tertiary', 'dark:text-tertiary'],
   theme: {
     extend: {
       colors: {

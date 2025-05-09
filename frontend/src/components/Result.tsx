@@ -55,6 +55,9 @@ export default function Result({ data, onContinue }: ResultProps) {
   const currentVideoUrl =
     activeVideo === "first" ? data.firstPlace?.videoUrl : activeVideo === "last" ? data.lastPlace?.videoUrl : null
 
+  const fadeInStyle = {
+    animation: "fadeIn 0.5s ease-out forwards",
+  }
   // 현재 라운드가 마지막 라운드인지 확인
   const isFinalRound = data.currentRound === data.totalRound
 
@@ -120,7 +123,7 @@ export default function Result({ data, onContinue }: ResultProps) {
 
           {/* 순위표 섹션 (모바일에서 영상이 끝난 후에만 표시) */}
           {videoEnded && (
-            <div className="animate-fadeIn">
+            <div style={fadeInStyle}>
               <div className="rankings-table">
                 <div className="rankings-header">순위표</div>
 

@@ -75,7 +75,10 @@ export default function FinalResult({ data, onContinue }: FinalResultProps) {
 
   // 1등 플레이어의 비디오 URL
   const firstPlaceVideoUrl = data?.firstPlace.videoUrl || null
-
+  const fadeInStyle = {
+    animation: "fadeIn 0.5s ease-out forwards",
+  }
+  
   return (
     <div className="result-container">
       {showConfetti && (
@@ -145,7 +148,7 @@ export default function FinalResult({ data, onContinue }: FinalResultProps) {
 
           {/* 순위표 섹션 (모바일에서 영상이 끝난 후에만 표시) */}
           {(videoEnded || !firstPlaceVideoUrl) && (
-            <div className="animate-fadeIn">
+            <div style={fadeInStyle}>
               {/* 상위 3명 포디움 */}
               <div className="podium-container">
                 <h3 className="podium-title">🏆 우승자 🏆</h3>
