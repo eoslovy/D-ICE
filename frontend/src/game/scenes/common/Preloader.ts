@@ -14,7 +14,6 @@ interface GameInfo {
 export class Preloader extends Phaser.Scene {
     private waitingText?: Phaser.GameObjects.Text;
     private readyToStart: boolean = false;
-    private mockNextGame: string = "Clicker";
     private mockGameInfo: GameInfo = {
         nextGame: "PerfectCircle",
         rouletteGames: [
