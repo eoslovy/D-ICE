@@ -79,8 +79,8 @@ export default function AdminRoom() {
                     )}
 
                     {latestNickname && (
-                        <div className="text-center mb-4 p-2 bg-green-100 dark:bg-green-900 text-[#1e1e1e] dark:text-[#1e1e1e] rounded-lg animate-pulse">
-                            <p className="font-medium">
+                        <div className="text-center mb-4 p-2 bg-green-100 dark:bg-green-900 rounded-lg animate-pulse">
+                            <p className="game-enter">
                                 {latestNickname}님이 입장했습니다!
                             </p>
                         </div>
