@@ -5,7 +5,7 @@
 /* 색상 변수 정의 - tertiary는 글자색입니다 */
 :root {
   --primary-color: #42cafd;
-  --secondary-color: #ebebd3;
+  --secondary-color: #FFFFAA;
   --tertiary-color: #1e1e1e;
   --quaternary-color: #fbfff1;
   --quinary-color: #ffa69e;
@@ -108,21 +108,25 @@
 
   /* 입력 필드 */
   .input-field {
-    @apply w-full px-4 py-3 mb-4 border-2 rounded-lg focus:outline-none /*focus:opacity-50*/ focus:ring-3 focus:ring-blue-300;
-    border-color: var(--secondary-color);
+    @apply w-full px-4 py-3 mb-4 border-2 rounded-lg focus:outline-none focus:ring-3;
+    border-color: var(--quinary-color);
     background-color: white;
     color: var(--tertiary-color);
+  
+    --tw-ring-color: var(--quinary-color); /* focus:ring 색상 커스텀 */
   }
-
+  
   .input-field:disabled {
-    @apply w-full px-4 py-3 mb-4 border-2 rounded-lg bg-gray-200 opacity-50 ring-3 ring-blue-300 cursor-not-allowed;
-    border-color: var(--secondary-color);
+    @apply w-full px-4 py-3 mb-4 border-2 rounded-lg bg-gray-200 opacity-50 ring-3 cursor-not-allowed;
+    border-color: var(--quinary-color);
     color: var(--tertiary-color);
+  
+    --tw-ring-color: var(--quinary-color); /* 비활성 상태에서도 같은 ring 색상 사용 */
   }
 
   .select-field {
-    @apply w-full px-4 py-3 mb-4 border-2 rounded-lg focus:outline-none focus:ring-2 focus:opacity-50 focus:ring-blue-300 appearance-none;
-    border-color: var(--secondary-color);
+    @apply w-full px-4 py-3 mb-4 border-2 rounded-lg focus:outline-none focus:ring-2 focus:opacity-50 appearance-none;
+    border-color: var(--quinary-color);
     background-color: white;
     color: #1e1e1e; /* Always dark text on light background for inputs */
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%232B2E4A'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
@@ -130,6 +134,7 @@
     background-position: right 1rem center;
     background-size: 1.5em;
     padding-right: 2.5rem;
+    --tw-ring-color: var(--quinary-color);
   }
 
   /* 룸 코드 및 사용자 배지 */
@@ -541,8 +546,18 @@
 .dark .select-field,
 .dark .input-field {
   background-color: rgba(255, 255, 255, 0.9);
-  border-color: #e84545;
+  border-color: var(--quinary-color);
+  --tw-ring-color: var(--quinary-color);
   color: #1e1e1e; /* 입력 필드는 항상 어두운 텍스트 사용 */
+}
+
+.dark .input-field:disabled
+{
+  @apply w-full px-4 py-3 mb-4 border-2 rounded-lg bg-gray-200 opacity-50 ring-3 cursor-not-allowed;
+  border-color: var(--quinary-color);
+  color: var(--tertiary-color);
+  
+  --tw-ring-color: var(--quinary-color);
 }
 
 .dark .room-code {
@@ -558,4 +573,14 @@
 .dark .game-info {
   background-color: #3a3f5d;
   border: 1px solid #e84545;
+}
+
+.game-enter {
+  font: medium;
+  color: var(--tertiary-color)
+}
+
+.dark .game-enter{
+  font: medium;
+  color: #1e1e1e;
 }
