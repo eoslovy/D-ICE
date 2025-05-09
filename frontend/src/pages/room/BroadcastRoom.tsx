@@ -7,6 +7,7 @@ import Result from "../../components/Result";
 import FinalResult from "../../components/FinalResult";
 import { Users, Play, Clock } from "lucide-react";
 import { adminStore } from "../../stores/adminStore";
+import { useNavigate } from "react-router-dom";
 
 export default function BroadcastRoom() {
     const roomCode = adminStore.getState().roomCode;
@@ -15,12 +16,12 @@ export default function BroadcastRoom() {
     const [currentRound, setCurrentRound] = useState(1);
     const [nextGame, setNextGame] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
-
-    //현재 추가된 결과 통신
     const [data, setData] = useState<AggregatedAdminMessage | null>(null);
     const [finalData, setFinalData] = useState<EndMessage | null>(null);
     const [showResults, setShowResults] = useState(false);
     const [showFinalResult, setShowFinalResult] = useState(false);
+
+    const navigate = useNavigate();
 
     let requestId = uuidv7();
 
@@ -61,7 +62,6 @@ export default function BroadcastRoom() {
                     type: "END",
                     overallRanking : payload.overallRanking
                 })
-                setShowResults(true);
             }
         );
 
@@ -95,16 +95,33 @@ export default function BroadcastRoom() {
         }
     };
 
+    const handleNewGame = () => {
+        localStorage.removeItem("adminStore");
+        localStorage.removeItem("isQRCode");
+        localStorage.removeItem("roomCode");
+        navigate('/set');
+    };
+
+    const handleGoLobby = () => {
+        localStorage.removeItem("adminStore");
+        localStorage.removeItem("isQRCode");
+        localStorage.removeItem("roomCode");
+        navigate('/select');
+    };
+
     const isFinalResult =
         currentRound ===
         parseInt(localStorage.getItem("totalRound") || "1", 10);
 
     return (
         <div className="game-container">
-            {showResults ? (
+            {showResults && !showFinalResult ? (
                 <div className="relative z-10 w-full max-w-4xl p-6 mx-auto rounded-2xl shadow-lg bg-opacity-95 backdrop-blur-sm bg-quaternary">
                     <Result data={data} onContinue={handleContinue} />
-                    {showFinalResult && <FinalResult finalData={finalData} onContinue={handleContinue} />}
+                </div>
+            ) : showFinalResult ? (
+                <div className="relative z-10 w-full max-w-4xl p-6 mx-auto rounded-2xl shadow-lg bg-opacity-95 backdrop-blur-sm bg-quaternary">
+                    <FinalResult finalData={finalData} newGame={handleNewGame} goLobby={handleGoLobby}/>
                 </div>
             ) : (
                 <GameCard>
