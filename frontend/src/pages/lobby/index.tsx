@@ -4,7 +4,6 @@ import userWebSocketManager from "../../modules/UserWebSocketManager";
 import { useWebSocket } from "../../modules/WebSocketContext";
 import { v7 as uuidv7 } from "uuid";
 import { userStore } from "../../stores/userStore";
-import BackgroundAnimation from "../../components/BackgroundAnimation";
 import GameCard from "../../components/GameCard"
 import { LogIn, Loader } from "lucide-react"
 
@@ -73,8 +72,6 @@ export default function Lobby() {
 
     return (
         <div className="game-container">
-          <BackgroundAnimation />
-    
           <GameCard>
             <h1 className="game-title">Join Game</h1>
     

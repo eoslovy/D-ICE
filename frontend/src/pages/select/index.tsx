@@ -1,4 +1,3 @@
-import BackgroundAnimation from "../../components/BackgroundAnimation";
 import GameCard from "../../components/GameCard";
 import { Users, Settings } from "lucide-react";
 
@@ -6,8 +5,6 @@ import { Users, Settings } from "lucide-react";
 export default function Select() {
     return (
         <div className="game-container">
-            <BackgroundAnimation />
-
             <GameCard>
                 <div>
                     <img

@@ -67,12 +67,15 @@ class AdminWebSocketManager extends WebSocketManager<AdminReceiveTypeMap> {
         });
     }
 
+
+
     private setUpOnMessage() {
         if (!this.ws) return;
         this.ws.onmessage = (event) => {
             let message: ReceiveMessage;
             try {
                 message = JSON.parse(event.data);
+                console.log(message);
                 // console.debug('[WebSocketManager] Message received:', message);
 
                 // 유저 입장 같은 메세지는 requestId를 체크할 수가 없음
