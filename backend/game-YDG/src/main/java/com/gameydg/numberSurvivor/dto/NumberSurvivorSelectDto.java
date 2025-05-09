@@ -11,5 +11,12 @@ public class NumberSurvivorSelectDto {
     private String type;
     private String userId;
     private String roomId;
-    private int selectedNumber;
+    private Integer selectedNumber;
+    
+    // 필요한 필드만으로 객체를 생성할 수 있는 생성자 추가
+    public NumberSurvivorSelectDto(String roomId, String userId, Integer selectedNumber) {
+        this.roomId = roomId;
+        this.userId = userId;
+        this.selectedNumber = selectedNumber;
+    }
 }
