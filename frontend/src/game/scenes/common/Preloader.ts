@@ -1,7 +1,7 @@
 import Phaser from "phaser";
 import userWebSocketManager from "../../../modules/UserWebSocketManager";
 import { LoadManifestFromJSON } from "../../../modules/gameutils/LoadSpritesManifest";
-
+import { DiceMiniGame } from "../Dice";
 interface GameInfo {
     nextGame: string;
     rouletteGames: {
@@ -12,6 +12,7 @@ interface GameInfo {
 }
 
 export class Preloader extends Phaser.Scene {
+    private diceMiniGame?: DiceMiniGame;
     private waitingText?: Phaser.GameObjects.Text;
     private readyToStart: boolean = false;
     private mockGameInfo: GameInfo = {
@@ -39,6 +40,9 @@ export class Preloader extends Phaser.Scene {
     }
 
     preload() {
+        this.load.image("dice-albedo", "assets/dice/dice-albedo.png");
+        this.load.obj("dice-obj", "assets/dice/dice.obj");
+
         const width = this.cameras.main.width;
         const height = this.cameras.main.height;
 
@@ -70,7 +74,7 @@ export class Preloader extends Phaser.Scene {
             progressBar.destroy();
             progressBox.destroy();
             loadingText.destroy();
-            this.showWaitingMessage();
+            this.showWaitingScene();
         });
 
         this.load.image("bg", "assets/bg.png");
@@ -79,14 +83,16 @@ export class Preloader extends Phaser.Scene {
         LoadManifestFromJSON(this, "assets/manifest.json");
     }
 
-    private showWaitingMessage() {
+    private showWaitingScene() {
         const { width, height } = this.cameras.main;
+        this.diceMiniGame = new DiceMiniGame(this);
+        this.diceMiniGame.create(width / 2, height / 2);
 
         this.waitingText = this.add
             .text(
                 width / 2,
-                height / 2 - 50,
-                "다른 유저를 기다리는 중입니다...",
+                height / 2 - 350,
+                "다음 게임을 기다리는 중...",
                 {
                     fontFamily: "Arial",
                     fontSize: "32px",
@@ -104,7 +110,7 @@ export class Preloader extends Phaser.Scene {
                 dots = dots.length >= 3 ? "" : dots + ".";
                 if (this.waitingText && !this.readyToStart) {
                     this.waitingText.setText(
-                        "다른 유저를 기다리는 중입니다" + dots
+                        "다음 게임을 기다리는 중" + dots
                     );
                 }
             },
@@ -115,6 +121,8 @@ export class Preloader extends Phaser.Scene {
     private moveToRoulette() {
         // 텍스트 제거
         this.waitingText?.destroy();
+        // 다이스 제거
+        this.diceMiniGame?.destroy();
 
         this.scene.start("Roulette", {
             games: this.mockGameInfo.rouletteGames,
@@ -127,6 +135,7 @@ export class Preloader extends Phaser.Scene {
     }
 
     create() {
+        this.cameras.main.setBackgroundColor('#2b87d1');
         // 메시지 타입별 리스너 등록
         console.log("WAIT 이벤트 리스너 등록");
         userWebSocketManager.on("WAIT", (payload: WaitMessage) => {

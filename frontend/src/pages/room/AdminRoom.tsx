@@ -23,6 +23,7 @@ export default function AdminRoom() {
                 console.log("새로운 유저 입장:", payload);
 
                 setUserCount(payload.userCount);
+                adminStore.getState().setUserCount(payload.userCount);
                 setLatestNickname(payload.nickname);
 
                 setUserNickname((prev) =>
@@ -42,7 +43,6 @@ export default function AdminRoom() {
 
     const initGame = async () => {
         try {
-            // 임시로 라운드 수 1로 고정
             adminWebSocketManager.sendSessionInit(requestId, adminStore.getState().totalRound);
             // 게임 중계 방으로 이동
             adminStore.getState().setStatus("INGAME");
