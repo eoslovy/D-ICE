@@ -27,7 +27,6 @@ abstract class WebSocketManager<
     private reconnectAttempts: number = 0;
     private maxReconnectAttempts: number = 5;
     private reconnectTimer: number | null = null; // Use number for browser setTimeout
-    protected pendingRequests: Map<string, any> = new Map(); // Store pending requests timeout
     private pendingMessages: Map<keyof M, any[]> = new Map(); // 각 type별 메시지 큐
 
     setServerURL(url: string): void {
@@ -101,11 +100,7 @@ abstract class WebSocketManager<
             );
             const wsInstance = this.ws; // Capture instance before clearing
             this.ws = null; // Clear the instance
-            // Consider clearing pending requests or using timeouts
-            this.pendingRequests.forEach((timeoutId) => {
-                clearTimeout(timeoutId); // Clear all pending timeouts
-            });
-            this.pendingRequests.clear(); // Clear the pending requests map
+            // Clear the pending requests map
             this.handleDisconnect(event);
             this.emit("disconnect", event); // Emit disconnect after handling
         };
@@ -116,7 +111,6 @@ abstract class WebSocketManager<
                 msg = JSON.parse(event.data);
                 console.log(`[WebSocketManager] 수신된 메시지: ${msg}`);
                 this.queueOrEmit(msg);
-                this.handleMessage(msg); // 🔥 하위 클래스가 구현
             } catch (e) {
                 console.error(
                     "[WebSocketManager] 메시지 파싱 실패:",
@@ -165,8 +159,6 @@ abstract class WebSocketManager<
 
         return this;
     }
-
-    protected abstract handleMessage(msg: ReceiveMessage): void;
 
     private handleDisconnect(event?: CloseEvent): void {
         // Optional: Implement automatic reconnection logic
@@ -230,18 +222,6 @@ abstract class WebSocketManager<
             this.ws?.send(JSON.stringify(message));
             // console.debug('[WebSocketManager] Request sent:', messageToSend);
 
-            // Optional: Implement request timeout logic here
-            if (this.hasRequestId(message)) {
-                this.pendingRequests.set(
-                    message.requestId,
-                    setTimeout(() => {
-                        console.warn(
-                            `[WebSocketManager] Request ${message.requestId} timed out.`
-                        );
-                        this.pendingRequests.delete(message.requestId); // Clean up pending request
-                    }, 5000)
-                ); // Example timeout of 5 seconds
-            }
             return true;
         } catch (error) {
             console.error(
