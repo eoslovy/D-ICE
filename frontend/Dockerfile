@@ -5,6 +5,7 @@ RUN npm install -g pnpm
 ARG NEXT_PUBLIC_API_URL
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 ARG NEXT_PUBLIC_CREDIT_WEBSOCKET_URL
+ARG DEPLOY_MODE
 ENV NEXT_PUBLIC_CREDIT_WEBSOCKET_URL=$NEXT_PUBLIC_CREDIT_WEBSOCKET_URL
 
 # 의존성 캐시를 위한 최소 COPY
@@ -17,7 +18,7 @@ COPY . .
 ##RUN npm format
 ##RUN npm lint
 
-RUN npm run build || (echo "❌ React build failed" && exit 1)
+RUN npm run ${DEPLOY_MODE} || (echo "❌ React build failed" && exit 1)
 FROM alpine AS react-static
 WORKDIR /dist
 COPY --from=builder /app/dist ./  
