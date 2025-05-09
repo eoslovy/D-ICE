@@ -7,6 +7,7 @@ workflow:
         BUCKET_DOMAIN: bucket.d-ice.co.kr
         CERT_DOMAIN: d-ice.co.kr
         BUILD_ARCHITECTURE: linux/arm64
+        DEPLOY_MODE: build
     - if: '$CI_COMMIT_BRANCH == "master" && $CI_PIPELINE_SOURCE == "web"'
       variables:
         HOST_SERVER: d-ice.co.kr
@@ -14,6 +15,7 @@ workflow:
         BUCKET_DOMAIN: bucket.d-ice.co.kr
         CERT_DOMAIN: d-ice.co.kr
         BUILD_ARCHITECTURE: linux/arm64
+        DEPLOY_MODE: build
     - when: always
       variables:
         HOST_SERVER: test.d-ice.co.kr
@@ -21,6 +23,7 @@ workflow:
         BUCKET_DOMAIN: bucket.test.d-ice.co.kr
         CERT_DOMAIN: test.d-ice.co.kr
         BUILD_ARCHITECTURE: linux/amd64
+        DEPLOY_MODE: build-test
 
 .backend-default-build:
   stage: build
