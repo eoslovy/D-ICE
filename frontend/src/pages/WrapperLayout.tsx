@@ -6,8 +6,9 @@ import { adminStore } from '../stores/adminStore';
 import { useWebSocket } from '../modules/WebSocketContext.tsx';
 import adminWebSocketManager from '../modules/AdminWebSocketManager';
 import userWebSocketManager from '../modules/UserWebSocketManager.ts';
-import DarkModeToggle from '../components/DarkModeToggle.tsx';
 import { v7 as uuidv7 } from "uuid";
+import BackgroundAnimation from '../components/BackgroundAnimation';
+import DarkModeToggle from '../components/DarkModeToggle';
 
 export default function WrapperLayout() {
   const navigate = useNavigate();
@@ -238,6 +239,7 @@ export default function WrapperLayout() {
     const darkModeMediaQuery = window.matchMedia("(prefers-color-scheme: dark)")
     darkModeMediaQuery.addEventListener("change", applyDarkMode)
 
+
     setIsReady(true);
 
     return () => {
@@ -248,6 +250,7 @@ export default function WrapperLayout() {
 
   return (
     <div id='app' className="min-h-screen">
+      <BackgroundAnimation />
       <DarkModeToggle />
       {(isReady && !isModalOpen) && <Outlet />}
       {/* 모달 창 */}

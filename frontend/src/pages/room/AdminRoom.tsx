@@ -4,7 +4,6 @@ import GenerateQrCode from "../../components/QRcode";
 import adminWebSocketManager from "../../modules/AdminWebSocketManager";
 import { adminStore } from "../../stores/adminStore";
 import { v7 } from "uuid";
-import BackgroundAnimation from "../../components/BackgroundAnimation";
 import GameCard from "../../components/GameCard";
 import RoomCode from "../../components/RoomCode";
 import { Users, Play } from "lucide-react";
@@ -57,8 +56,6 @@ export default function AdminRoom() {
 
     return (
         <div className="game-container">
-            <BackgroundAnimation />
-
             <GameCard>
                 {/* <h1 className="game-title">게임명</h1> */}
                 <div className="animate-pulse mb-6">
@@ -82,7 +79,7 @@ export default function AdminRoom() {
                     )}
 
                     {latestNickname && (
-                        <div className="text-center mb-4 p-2 bg-green-100 dark:bg-green-900 rounded-lg animate-pulse">
+                        <div className="text-center mb-4 p-2 bg-green-100 dark:bg-green-900 text-[#1e1e1e] dark:text-[#1e1e1e] rounded-lg animate-pulse">
                             <p className="font-medium">
                                 {latestNickname}님이 입장했습니다!
                             </p>
