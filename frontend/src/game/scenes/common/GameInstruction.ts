@@ -56,9 +56,14 @@ export class GameInstruction extends Scene {
     instruction.setScale(scale);
 
     // 카운트다운 시작
-    this.events.on("countdownFinished", () => {
-      this.onComplete();
-    });
     this.countdown.startCountdown(this.countTime);
+    
+    this.events.once("countdownFinished", () => {
+      if (this.onComplete) {
+        this.onComplete();
+      } else {
+        console.warn('onComplete is undefined!');
+      }
+    });
   }
 }

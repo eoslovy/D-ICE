@@ -101,6 +101,7 @@ export class Preloader extends Phaser.Scene {
         this.scene.start("Roulette", {
             nextGame: userStore.getState().gameType,
             onComplete: () => {
+                console.log("Roulette Scene Stop");
                 this.scene.stop("Roulette");
                 this.scene.start(userStore.getState().gameType);
             },
