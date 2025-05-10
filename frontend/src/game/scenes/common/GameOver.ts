@@ -18,7 +18,6 @@ export class GameOver extends Phaser.Scene {
   private loadingText: Phaser.GameObjects.Text | null = null;
   private uploadStatus: Phaser.GameObjects.Text | null = null;
   private countdown?: UICountdown;
-  private nextButton?: Phaser.GameObjects.Text;
   private isLastRound: boolean = false;
   
   constructor() {
@@ -64,24 +63,31 @@ export class GameOver extends Phaser.Scene {
   }
 
   private showCountdownAndNext() {
+    const width = this.cameras.main.width;
+    const height = this.cameras.main.height;
+
     // UICountdown 표시
     if (!this.countdown) {
-      this.countdown = new UICountdown(this, this.cameras.main.centerX, this.cameras.main.centerY + 120);
+      this.countdown = new UICountdown(this, width / 2, height * 0.8);
     }
     this.countdown.startCountdown(10);
 
-    // "다음" 버튼
-    if (this.nextButton) this.nextButton.destroy();
-    this.nextButton = this.add.text(this.cameras.main.centerX, this.cameras.main.centerY + 200, '다음 게임', {
-      fontSize: '36px', color: '#fff', backgroundColor: '#222', padding: { x: 16, y: 8 }
-    }).setOrigin(0.5).setInteractive();
-
+    // "다음 게임" 버튼 표시
+    let preloaderButton: Phaser.GameObjects.Container | undefined;
+    const removeButton = () => {
+      if (preloaderButton) {
+        preloaderButton.destroy();
+        preloaderButton = undefined;
+      }
+    };
+    preloaderButton = this.createPreloaderButton(width / 2, height * 0.9);
+    
     let finished = false;
     const goNext = () => {
       if (finished) return;
       finished = true;
       this.countdown?.stopCountdown(false);
-      this.nextButton?.destroy();
+      removeButton();
       if (this.isLastRound) {
         this.EndGame();
       } else {
@@ -89,7 +95,7 @@ export class GameOver extends Phaser.Scene {
       }
     };
 
-    this.nextButton.on('pointerdown', goNext);
+    preloaderButton.on('pointerdown', goNext);
     this.events.once('countdownFinished', goNext);
   }
   
@@ -139,9 +145,6 @@ export class GameOver extends Phaser.Scene {
       yoyo: true,
       repeat: -1
     });
-
-    // 다음 게임 버튼
-    this.createPreloaderButton(width / 2, height * 0.9);
   }
 
   private updateUI() {
@@ -215,10 +218,6 @@ export class GameOver extends Phaser.Scene {
         align: 'center'
       }
     ).setOrigin(0.5);
-
-    // 다음 게임 버튼
-    this.createPreloaderButton(width / 2, height * 0.95);
-
   }
 
   private createRankGraph(x: number, y: number) {
@@ -434,10 +433,8 @@ export class GameOver extends Phaser.Scene {
     button.add([bg, text]);
     button.setSize(buttonWidth, buttonHeight);
     button.setInteractive();
-    
-    button.on('pointerup', () => {
-      this.scene.start('Preloader');
-    });
+  
+    return button;
 }
   
   private sendScoreToBackend(userId: string | null, roomCode: string | null) {
