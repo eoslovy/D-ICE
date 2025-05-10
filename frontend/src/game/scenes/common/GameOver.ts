@@ -3,6 +3,7 @@ import potgManager from '../../../modules/POTGManager';
 import { v7 as uuidv7 } from 'uuid';
 import { userStore } from '../../../stores/userStore';
 import userWebSocketManager from '../../../modules/UserWebSocketManager';
+import { UICountdown } from '../../../modules/gameutils/UICountdown';
 
 // Add interface for scene data
 interface GameOverSceneData {
@@ -16,6 +17,9 @@ export class GameOver extends Phaser.Scene {
   private backendResponse: AggregatedUserMessage | null = null;
   private loadingText: Phaser.GameObjects.Text | null = null;
   private uploadStatus: Phaser.GameObjects.Text | null = null;
+  private countdown?: UICountdown;
+  private nextButton?: Phaser.GameObjects.Text;
+  private isLastRound: boolean = false;
   
   constructor() {
     super({ key: 'GameOver' });
@@ -45,13 +49,48 @@ export class GameOver extends Phaser.Scene {
     // WebSocket 응답 리스너 설정
     userWebSocketManager.on('AGGREGATED_USER', (payload: AggregatedUserMessage) => {
       this.backendResponse = payload;
+      this.isLastRound = payload.currentRound === payload.totalRound;
       this.updateUI();
-      this.handleVideoUpload();
-      
-      if(payload.currentRound == payload.totalRound){
-        this.EndGame();
+
+      // 집계 UI 및 분기 처리
+      if (payload.videoUploadUrl) {
+        this.handleVideoUpload().then(() => {
+          this.showCountdownAndNext();
+        });
+      } else {
+        this.showCountdownAndNext();
       }
     });
+  }
+
+  private showCountdownAndNext() {
+    // UICountdown 표시
+    if (!this.countdown) {
+      this.countdown = new UICountdown(this, this.cameras.main.centerX, this.cameras.main.centerY + 120);
+    }
+    this.countdown.startCountdown(10);
+
+    // "다음" 버튼
+    if (this.nextButton) this.nextButton.destroy();
+    this.nextButton = this.add.text(this.cameras.main.centerX, this.cameras.main.centerY + 200, '다음 게임', {
+      fontSize: '36px', color: '#fff', backgroundColor: '#222', padding: { x: 16, y: 8 }
+    }).setOrigin(0.5).setInteractive();
+
+    let finished = false;
+    const goNext = () => {
+      if (finished) return;
+      finished = true;
+      this.countdown?.stopCountdown(false);
+      this.nextButton?.destroy();
+      if (this.isLastRound) {
+        this.EndGame();
+      } else {
+        this.scene.start('Preloader');
+      }
+    };
+
+    this.nextButton.on('pointerdown', goNext);
+    this.events.once('countdownFinished', goNext);
   }
   
   private showInitialScreen() {
@@ -100,9 +139,6 @@ export class GameOver extends Phaser.Scene {
       yoyo: true,
       repeat: -1
     });
-
-    // 메인 메뉴 버튼
-    this.createMenuButton(width / 2, height * 0.8);
 
     // 다음 게임 버튼
     this.createPreloaderButton(width / 2, height * 0.9);
@@ -180,11 +216,9 @@ export class GameOver extends Phaser.Scene {
       }
     ).setOrigin(0.5);
 
-    // 메인 메뉴 버튼
-    this.createMenuButton(width / 2, height * 0.9);
-
     // 다음 게임 버튼
     this.createPreloaderButton(width / 2, height * 0.95);
+
   }
 
   private createRankGraph(x: number, y: number) {
@@ -379,29 +413,6 @@ export class GameOver extends Phaser.Scene {
         totalScore: this.backendResponse.totalScore,
         rankRecord: this.backendResponse.rankRecord,
         overallRank: this.backendResponse.overallRank
-    });
-}
-  private createMenuButton(x: number, y: number) {
-    const buttonWidth = 200;
-    const buttonHeight = 50;
-
-    const button = this.add.container(x, y);
-    
-    const bg = this.add.graphics();
-    bg.fillStyle(0x4a4a4a, 1);
-    bg.fillRoundedRect(-buttonWidth/2, -buttonHeight/2, buttonWidth, buttonHeight, 16);
-    
-    const text = this.add.text(0, 0, '메인 메뉴', {
-      fontSize: '24px',
-      color: '#ffffff'
-    }).setOrigin(0.5);
-    
-    button.add([bg, text]);
-    button.setSize(buttonWidth, buttonHeight);
-    button.setInteractive();
-    
-    button.on('pointerup', () => {
-      this.scene.start('MainMenu');
     });
   }
 
