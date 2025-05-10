@@ -1,25 +1,12 @@
 import { Scene } from 'phaser';
+import { GAME_TYPES } from './GameType';
 
 interface RouletteConfig {
-    games: {
-      name: string;
-      key: string;
-      color: number;
-    }[];
     nextGame: string;
     onComplete: () => void;
   }
-  
-
-interface GameItem {
-  name: string;
-  key: string;
-  color: number;
-}
-
 export class Roulette extends Scene {
   private wheel: Phaser.GameObjects.Container;
-  private games: GameItem[];
   private nextGame: string;
   private onComplete: () => void;
   private isSpinning: boolean = false;
@@ -29,7 +16,7 @@ export class Roulette extends Scene {
   }
 
   init(data: RouletteConfig) {
-    this.games = data.games;
+    console.log("nextGame: ",data.nextGame);
     this.nextGame = data.nextGame;
     this.onComplete = data.onComplete;
   }
@@ -46,10 +33,10 @@ export class Roulette extends Scene {
     this.wheel = this.add.container(width / 2, height / 2);
 
     const wheelRadius = Math.min(width, height) * 0.35;
-    const sliceAngle = (Math.PI * 2) / this.games.length;
+    const sliceAngle = (Math.PI * 2) / GAME_TYPES.length;
 
     // 게임 항목 추가
-    this.games.forEach((game, index) => {
+    GAME_TYPES.forEach((game, index) => {
       const graphics = this.add.graphics();
       const startAngle = sliceAngle * index;
       const endAngle = startAngle + sliceAngle;
@@ -57,7 +44,6 @@ export class Roulette extends Scene {
       // 섹션 그리기
       graphics.beginPath();
       graphics.lineStyle(2, 0xffffff, 0.5);
-      graphics.fillStyle(game.color, 0.7);
       graphics.moveTo(0, 0);
       graphics.arc(0, 0, wheelRadius, startAngle, endAngle);
       graphics.closePath();
@@ -103,14 +89,14 @@ export class Roulette extends Scene {
     if (this.isSpinning) return;
     this.isSpinning = true;
 
-    const targetIndex = this.games.findIndex(game => game.key === this.nextGame);
+    const targetIndex = GAME_TYPES.findIndex(game => game.key === this.nextGame);
 
     if (targetIndex === -1) {
       console.error(`Game ${this.nextGame} not found in the wheel`);
       return;
     }
 
-    const sliceAngle = (Math.PI * 2) / this.games.length;
+    const sliceAngle = (Math.PI * 2) / GAME_TYPES.length;
     const targetAngle = -((sliceAngle * targetIndex) + (Math.PI / 2)) - 0.175; // 0.175 라디안 = 10도
     const totalAngle = (Math.PI * 2 * 5) + targetAngle;
 
@@ -132,7 +118,6 @@ export class Roulette extends Scene {
         
         // 모달 배경
         const modalBox = this.add.graphics();
-        modalBox.fillStyle(this.games[targetIndex].color, 1);
         modalBox.fillRoundedRect(-200, -150, 400, 300, 20);
         modalContainer.add(modalBox);
 
@@ -145,7 +130,7 @@ export class Roulette extends Scene {
         modalContainer.add(titleText);
 
         // 게임 이름
-        const gameNameText = this.add.text(0, 0, this.games[targetIndex].name, {
+        const gameNameText = this.add.text(0, 0, GAME_TYPES[targetIndex].name, {
           fontSize: '48px',
           color: '#ffffff',
           fontStyle: 'bold',
@@ -177,7 +162,7 @@ export class Roulette extends Scene {
                   // GameInstruction 씬으로 전환
                   this.scene.start('GameInstruction', {
                     nextGame: this.nextGame,
-                    gameName: this.games[targetIndex].name,
+                    gameName: GAME_TYPES[targetIndex].name,
                     onComplete: () => {
                       this.scene.stop('GameInstruction');
                       this.onComplete();

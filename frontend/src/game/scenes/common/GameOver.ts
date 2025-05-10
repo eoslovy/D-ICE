@@ -1,8 +1,8 @@
 import Phaser from 'phaser';
-import potgManager from '../../modules/POTGManager';
+import potgManager from '../../../modules/POTGManager';
 import { v7 as uuidv7 } from 'uuid';
-import { userStore } from '../../stores/userStore';
-import userWebSocketManager from '../../modules/UserWebSocketManager';
+import { userStore } from '../../../stores/userStore';
+import userWebSocketManager from '../../../modules/UserWebSocketManager';
 
 // Add interface for scene data
 interface GameOverSceneData {
