@@ -13,6 +13,7 @@ import { Mugungwha } from './scenes/Mugungwha';
 import { Wirewalk } from './scenes/Wirewalk';
 import { Josephus } from './scenes/Josephus';
 import { Dye } from './scenes/Dye';
+import { GraphHigh } from './scenes/GraphHigh';
 
 const config: Phaser.Types.Core.GameConfig = {
   type: Phaser.AUTO,
@@ -41,7 +42,7 @@ const config: Phaser.Types.Core.GameConfig = {
       debug: false
     }
   },
-  scene: [Boot, Preloader, MainMenu, GameOver, Roulette, Clicker, Reaction, GameInstruction, PerfectCircle, Mugungwha, Wirewalk, Josephus, Dye, EndGame],
+  scene: [Boot, Preloader, MainMenu, GameOver, Roulette, Clicker, Reaction, GameInstruction, PerfectCircle, Mugungwha, Wirewalk, Josephus, Dye, EndGame, GraphHigh],
 };
 
 export default config;

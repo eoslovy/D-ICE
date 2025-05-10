@@ -14,9 +14,9 @@ interface GameInfo {
 export class Preloader extends Phaser.Scene {
     private waitingText?: Phaser.GameObjects.Text;
     private readyToStart: boolean = false;
-    private mockNextGame: string = "Clicker";
+    private mockNextGame: string = "GraphHigh";
     private mockGameInfo: GameInfo = {
-        nextGame: "PerfectCircle",
+        nextGame: "GraphHigh",
         rouletteGames: [
             { name: "반응속도 게임", key: "Reaction", color: 0x2ed573 },
             { name: "클리커", key: "Clicker", color: 0xff4757 },
@@ -31,6 +31,7 @@ export class Preloader extends Phaser.Scene {
             { name: "무궁화", key: "Mugungwha", color: 0xff6348 },
             { name: "줄타기", key: "Wirewalk", color: 0x1dd1a1 },
             { name: "요세푸스", key: "Josephus", color: 0xff6b81 },
+            { name: "그래프게임", key: "GraphHigh", color: 0xff6b81 },
             { name: "염색", key: "Dye", color: 0xff9f43 },
         ],
     };
@@ -116,8 +117,8 @@ export class Preloader extends Phaser.Scene {
     private moveToRoulette() {
         // 텍스트 제거
         this.waitingText?.destroy();
-
-        this.scene.start("Roulette", {
+        this.scene.start(this.mockGameInfo.nextGame);
+        /*this.scene.start("Roulette", {
             games: this.mockGameInfo.rouletteGames,
             nextGame: this.mockGameInfo.nextGame,
             onComplete: () => {
@@ -125,6 +126,8 @@ export class Preloader extends Phaser.Scene {
                 this.scene.start(this.mockGameInfo.nextGame);
             },
         });
+       
+         */
     }
 
     create() {
