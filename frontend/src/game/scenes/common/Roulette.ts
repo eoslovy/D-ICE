@@ -275,25 +275,7 @@ export class Roulette extends Scene {
     // 0.5초 후 모달 표시
     this.time.delayedCall(500, () => {
       this.showResultModal();
-
-      // 2초 후 자동 진행
-      this.time.delayedCall(2000, () => {
-        this.transitionToNextScene();
-      });
     });
-  }
-
-  private transitionToNextScene() {
-    this.cameras.main.fadeOut(800, 0, 0, 0,
-      (_: Phaser.Cameras.Scene2D.Camera, progress: number) => {
-        if (progress === 1) {
-          this.scene.start('GameInstruction', {
-            nextGame: this.nextGame,
-            onComplete: this.onComplete
-          });
-        }
-      }
-    );
   }
 
   private showResultModal() {
@@ -357,6 +339,7 @@ export class Roulette extends Scene {
                 nextGame: this.nextGame,
                 gameName: targetGame.name,
                 onComplete: () => {
+                  console.log("GameInstruction Scene Stop");
                   this.scene.stop('GameInstruction');
                   this.onComplete();
                 }
