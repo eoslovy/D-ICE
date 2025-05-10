@@ -25,7 +25,7 @@ export class DiceMiniGame {
 
     private readonly diceSize = 160;
     private readonly wallPadding = 10;
-    private readonly rollDuration = 5000; // ms
+    private readonly rollDuration = 3000; // ms
 
     // 각 면에 대응하는 회전값(라디안)
     private readonly faceRotations = [
@@ -82,10 +82,10 @@ export class DiceMiniGame {
         this.diceResultText = this.scene.add.text(
             this.scene.cameras.main.width / 2,
             screenHeight - 200,
-            "합: 0",
+            "0",
             {
-                fontFamily: "Arial Black",
-                fontSize: 36,
+                fontFamily: "Jua",
+                fontSize: 50,
                 color: "#fff"
             }
         ).setOrigin(0.5);
@@ -262,7 +262,7 @@ export class DiceMiniGame {
                     this.alignDiceToTopFace(d); // 추가!
                 }
 
-                this.diceResultText?.setText(`합: ${this.dice.reduce((a, b) => a + b.result, 0)}`);
+                this.diceResultText?.setText(`${this.dice.reduce((a, b) => a + b.result, 0)}`);
                 this.diceRolling = false;
                 this.scene.events.off('update', updateRoll);
             }

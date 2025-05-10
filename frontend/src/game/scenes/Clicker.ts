@@ -196,7 +196,7 @@ export class Clicker extends Scene {
                     stroke: "#000000",
                     strokeThickness: 2,
                     align: "center",
-                    fontFamily: "Arial",
+                    fontFamily: "Jua",
                     fontStyle: "bold",
                 }
             );
@@ -208,7 +208,7 @@ export class Clicker extends Scene {
                 stroke: "#000000",
                 strokeThickness: 2,
                 align: "center",
-                fontFamily: "Arial",
+                fontFamily: "Jua",
                 fontStyle: "bold",
             });
         }
@@ -266,7 +266,7 @@ export class Clicker extends Scene {
                 stroke: "#000000",
                 strokeThickness: 2,
                 align: "center",
-                fontFamily: "Arial",
+                fontFamily: "Jua",
                 fontStyle: "bold",
             }
         );
@@ -285,7 +285,7 @@ export class Clicker extends Scene {
                         stroke: "#000000",
                         strokeThickness: 2,
                         align: "center",
-                        fontFamily: "Arial",
+                        fontFamily: "Jua",
                         fontStyle: "bold",
                     }
                 );
@@ -320,7 +320,7 @@ export class Clicker extends Scene {
                 stroke: "#000000",
                 strokeThickness: 2,
                 align: "center",
-                fontFamily: "Arial",
+                fontFamily: "Jua",
                 fontStyle: "bold",
             }
         );
