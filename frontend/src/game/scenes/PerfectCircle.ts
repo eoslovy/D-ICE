@@ -42,7 +42,7 @@ export class PerfectCircle extends Phaser.Scene {
 
     // 3. 제한 시간 텍스트 표시
     this.timerText = this.add.text(20, 20, `남은 시간: ${this.roundTimeLimit}`, {
-      fontFamily: 'Arial',
+      fontFamily: 'Jua',
       fontSize: '32px',
       color: '#ffffff',
       fontStyle: 'bold',
@@ -100,7 +100,7 @@ export class PerfectCircle extends Phaser.Scene {
 
     // 타이틀
     this.add.text(width / 2, height * 0.08, '원 그리기 게임', {
-      fontFamily: 'Arial',
+      fontFamily: 'Jua',
       fontSize: '40px',
       color: '#ffffff',
       fontStyle: 'bold',
@@ -111,7 +111,7 @@ export class PerfectCircle extends Phaser.Scene {
 
     // 안내문구
     this.add.text(width / 2, height * 0.18, '가이드 원을 따라 최대한 정확하게 그려보세요!', {
-      fontFamily: 'Arial',
+      fontFamily: 'Jua',
       fontSize: '24px',
       color: '#ffffff',
       stroke: '#000000',
@@ -131,7 +131,7 @@ export class PerfectCircle extends Phaser.Scene {
       this.add.text(width/2, height*0.7, '조금 더 길게 그려주세요!', {
         fontSize: '32px',
         color: '#ff0000',
-        fontFamily: 'Arial',
+        fontFamily: 'Jua',
         fontStyle: 'bold',
         stroke: '#000000',
         strokeThickness: 4
@@ -154,7 +154,7 @@ export class PerfectCircle extends Phaser.Scene {
     resultBg.fillRoundedRect(width/2-160, height*0.8-40, 320, 80, 20);
 
     const resultText = this.add.text(width / 2, height * 0.8, `정확도: ${score}%`, {
-      fontFamily: 'Arial',
+      fontFamily: 'Jua',
       fontSize: '48px',
       color: '#00ffd0',
       fontStyle: 'bold',

@@ -53,7 +53,7 @@ export class Preloader extends Phaser.Scene {
 
         const loadingText = this.add
             .text(width / 2, height / 2 - 50, "Loading...", {
-                fontFamily: "Arial",
+                fontFamily: "Jua",
                 fontSize: "20px",
                 color: "#ffffff",
             })
@@ -94,7 +94,7 @@ export class Preloader extends Phaser.Scene {
                 height / 2 - 350,
                 "다음 게임을 기다리는 중...",
                 {
-                    fontFamily: "Arial",
+                    fontFamily: "Jua",
                     fontSize: "32px",
                     color: "#ffffff",
                     align: "center",
@@ -135,7 +135,7 @@ export class Preloader extends Phaser.Scene {
     }
 
     create() {
-        this.cameras.main.setBackgroundColor('#2b87d1');
+        this.cameras.main.setBackgroundColor('#2b2e4a');
         // 메시지 타입별 리스너 등록
         console.log("WAIT 이벤트 리스너 등록");
         userWebSocketManager.on("WAIT", (payload: WaitMessage) => {

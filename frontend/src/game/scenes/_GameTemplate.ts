@@ -87,7 +87,7 @@ export class MyAwesomeGame extends Scene {
                     stroke: '#000000',
                     strokeThickness: 2,
                     align: 'center',
-                    fontFamily: 'Arial',
+                    fontFamily: 'Jua',
                     fontStyle: 'bold',
                 });
                 this.result();
