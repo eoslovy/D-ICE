@@ -33,9 +33,7 @@ export default function Lobby() {
         try {
             setIsJoining(true);
 
-            const USER_WS_URL = `ws://${
-                import.meta.env.VITE_API_URL || "localhost:8080"
-            }/ws/game/user/${roomCodeInput}`;
+            const USER_WS_URL = `${import.meta.env.VITE_WEBSOCKET_URL}/ws/game/user/${roomCodeInput}`;
             connectWebSocket("user", USER_WS_URL);
 
             userWebSocketManager.on(
