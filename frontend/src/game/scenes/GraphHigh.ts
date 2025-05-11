@@ -172,7 +172,7 @@ export class GraphHigh extends Scene {
 
         const isSpike = Math.random() < spikeChance;
         const volatility = isSpike ? spikeVolatility : baseVolatility;
-        const change = (Math.random() - 0.485) * volatility;
+        const change = (Math.random() - 0.488 ) * volatility;
 
         this.currentPrice += change;
         this.currentPrice = Number(this.currentPrice.toFixed(2));
