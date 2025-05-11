@@ -43,14 +43,17 @@ export default function AdminRoom() {
 
     const initGame = async () => {
         try {
-            adminWebSocketManager.sendSessionInit(requestId, adminStore.getState().totalRound);
+            const initRes = adminWebSocketManager.sendSessionInit(requestId, adminStore.getState().totalRound);
             // 게임 중계 방으로 이동
-            adminStore.getState().setStatus("INGAME");
-            navigate(`/broadcast/${roomCode}`);
+            if (initRes === true){
+                adminStore.getState().setStatus("INGAME");
+                navigate(`/broadcast/${roomCode}`);
+                requestId = v7();
+            }else{
+                console.error("INIT 요청 실패");
+            }
         } catch (error) {
             console.error("게임 시작 중 오류:", error);
-        } finally {
-            requestId = v7();
         }
     };
 
