@@ -36,6 +36,7 @@ export default function Set() {
                     adminStore.getState().setStatus("WAITING");
                     adminStore.getState().setRoomCode(roomCode);
                     adminStore.getState().setTotalRound(rounds);
+                    requestId = uuidv7();
                     navigate(`/adminroom/${roomCode}`);
                 }
             );
@@ -47,8 +48,6 @@ export default function Set() {
         } catch (error) {
             console.error("방 생성 중 오류:", error);
             setIsCreating(false);
-        } finally {
-            requestId = uuidv7();
         }
     };
 
