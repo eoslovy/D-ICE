@@ -19,6 +19,7 @@ export class GameOver extends Phaser.Scene {
   private uploadStatus: Phaser.GameObjects.Text | null = null;
   private countdown?: UICountdown;
   private isLastRound: boolean = false;
+  private needVideoUpload: boolean = false; // 업로드 필요 여부 상태 추가
   
   constructor() {
     super({ key: 'GameOver' });
@@ -49,10 +50,11 @@ export class GameOver extends Phaser.Scene {
     userWebSocketManager.on('AGGREGATED_USER', (payload: AggregatedUserMessage) => {
       this.backendResponse = payload;
       this.isLastRound = payload.currentRound === payload.totalRound;
+      this.needVideoUpload = !!payload.videoUploadUrl;
       this.updateUI();
 
       // 집계 UI 및 분기 처리
-      if (payload.videoUploadUrl) {
+      if (this.needVideoUpload) {
         this.handleVideoUpload().then(() => {
           this.showCountdownAndNext();
         });
@@ -210,14 +212,16 @@ export class GameOver extends Phaser.Scene {
     this.createRankGraph(width / 2, height * 0.65);
 
     // 업로드 상태 텍스트 생성 (handleVideoUpload 메서드 내에서)
-    this.uploadStatus = this.add.text(width / 2, height * 0.85,
-      '게임 영상 업로드 중...', 
-      {
-        fontSize: '20px',
-        color: '#ffffff',
-        align: 'center'
-      }
-    ).setOrigin(0.5);
+    if (this.needVideoUpload) {
+      this.uploadStatus = this.add.text(width / 2, height * 0.85,
+        '게임 영상 업로드 중...', 
+        {
+          fontSize: '20px',
+          color: '#ffffff',
+          align: 'center'
+        }
+      ).setOrigin(0.5);
+    }
   }
 
   private createRankGraph(x: number, y: number) {
@@ -298,7 +302,7 @@ export class GameOver extends Phaser.Scene {
   }
 
   private async handleVideoUpload() {
-    if (!this.backendResponse?.videoUploadUrl) {
+    if (!this.needVideoUpload || !this.backendResponse?.videoUploadUrl) {
       console.log('[GameOver] No video upload URL provided');
       return;
     }
