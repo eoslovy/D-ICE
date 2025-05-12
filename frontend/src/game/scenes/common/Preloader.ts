@@ -1,21 +1,21 @@
 import Phaser from "phaser";
 import userWebSocketManager from "../../../modules/UserWebSocketManager";
 import { LoadManifestFromJSON } from "../../../modules/gameutils/LoadSpritesManifest";
-import { DiceMiniGame } from "../DiceMiniGame";
+//import { DiceMiniGame } from "../DiceMiniGame";
 import { userStore } from "../../../stores/userStore";
 
 export class Preloader extends Phaser.Scene {
-    private diceMiniGame?: DiceMiniGame;
+    //private diceMiniGame?: DiceMiniGame;
     private waitingText?: Phaser.GameObjects.Text;
     private readyToStart: boolean = false;
 
     constructor() {
         super({ key: "Preloader" });
     }
-
     preload() {
         this.load.image("dice-albedo", "assets/dice/dice-albedo.png");
         this.load.obj("dice-obj", "assets/dice/dice.obj");
+        this.load.image("Background", "assets/background/bg-2.jpg");
 
         const width = this.cameras.main.width;
         const height = this.cameras.main.height;
@@ -27,7 +27,7 @@ export class Preloader extends Phaser.Scene {
 
         const loadingText = this.add
             .text(width / 2, height / 2 - 50, "Loading...", {
-                fontFamily: "Jua",
+                fontFamily: "Fredoka",
                 fontSize: "20px",
                 color: "#ffffff",
             })
@@ -59,19 +59,30 @@ export class Preloader extends Phaser.Scene {
 
     private showWaitingScene() {
         const { width, height } = this.cameras.main;
-        this.diceMiniGame = new DiceMiniGame(this);
-        this.diceMiniGame.create(width / 2, height / 2);
+
+        //배경
+        this.add.image(
+            width / 2,
+            height / 2,
+            "Background"
+        )
+        .setDisplaySize(width, height)
+        .setDepth(-10);
+
+        //this.diceMiniGame = new DiceMiniGame(this);
+        //this.diceMiniGame.create(width / 2, height / 2);
 
         this.waitingText = this.add
             .text(
                 width / 2,
                 height / 2 - 350,
-                "다음 게임을 기다리는 중...",
+                "Waiting...",
                 {
-                    fontFamily: "Jua",
-                    fontSize: "32px",
-                    color: "#ffffff",
+                    fontFamily: "Fredoka",
+                    fontSize: "64px",
+                    color: "#ebebd3",
                     align: "center",
+                    fontStyle: "bold",
                 }
             )
             .setOrigin(0.5);
@@ -84,7 +95,7 @@ export class Preloader extends Phaser.Scene {
                 dots = dots.length >= 3 ? "" : dots + ".";
                 if (this.waitingText && !this.readyToStart) {
                     this.waitingText.setText(
-                        "다음 게임을 기다리는 중" + dots
+                        "Waiting" + dots
                     );
                 }
             },
@@ -96,7 +107,7 @@ export class Preloader extends Phaser.Scene {
         // 텍스트 제거
         this.waitingText?.destroy();
         // 다이스 제거
-        this.diceMiniGame?.destroy();
+        //this.diceMiniGame?.destroy();
 
         this.scene.start("Roulette", {
             nextGame: userStore.getState().gameType,
@@ -108,9 +119,8 @@ export class Preloader extends Phaser.Scene {
         });
     }
 
-    create() {
-        this.cameras.main.setBackgroundColor('#2b2e4a');
-        // 메시지 타입별 리스너 등록
+    create() {  
+
         console.log("WAIT 이벤트 리스너 등록");
         userWebSocketManager.on("WAIT", (payload: WaitMessage) => {
             console.log("WAIT 응답 성공:", payload);
