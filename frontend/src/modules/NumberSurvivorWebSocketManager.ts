@@ -105,8 +105,7 @@ type NumberSurvivorReceiveTypeMap = {
 class NumberSurvivorWebSocketManager extends WebSocketManager<NumberSurvivorReceiveTypeMap> {
     constructor() {
         super();
-        // this.setServerURL('ws://localhost/ws/gameydg-service/number-survivor');
-        this.setServerURL('ws://localhost:18087/ws/number-survivor');
+        this.setServerURL('ws://${import.meta.env.VITE_WEBSOCKET_URL}/ws/gameydg-service/number-survivor');
     }
 
     connect(): void {
