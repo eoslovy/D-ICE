@@ -43,8 +43,8 @@ export default function Set() {
 
             adminWebSocketManager.on("connect", () => {
                 console.log("WebSocket 연결 성공");
-                const adminJoinRes = adminWebSocketManager.sendAdminJoin(requestId);
-                if(adminJoinRes === true){
+                const adminJoinReq = adminWebSocketManager.sendAdminJoin(requestId);
+                if(adminJoinReq === true){
                     console.log("ADMIN_JOIN 요청 성공");
                 }else{
                     console.log("ADMIN_JOIN 요청 실패");

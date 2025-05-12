@@ -32,7 +32,13 @@ export default function BroadcastRoom() {
             setNextGame(payload.gameType);
             adminStore.getState().setGameType(payload.gameType);
             setIsLoading(false);
-            adminWebSocketManager.sendNextGameAck(payload.currentRound);
+            const nextGameAckReq = adminWebSocketManager.sendNextGameAck(payload.currentRound);
+            if(nextGameAckReq === true){
+                console.log("NEXT_GAME_ACK 요청 성공");
+            }else{
+                console.log("NEXT_GAME_ACK 요청 실패");
+            }
+            
         });
 
         // 게임 결과 이벤트 리스너 (실제 이벤트 이름은 API에 맞게 수정 필요)
@@ -80,8 +86,8 @@ export default function BroadcastRoom() {
     const startGame = async () => {
         try {
             
-            const startRes = adminWebSocketManager.sendStartGame(requestId);
-            if (startRes === true){
+            const startReq = adminWebSocketManager.sendStartGame(requestId);
+            if (startReq === true){
                 console.log("게임 시작 요청 성공", nextGame);
                 setIsLoading(true);
                 requestId = uuidv7();
