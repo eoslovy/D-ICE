@@ -1,0 +1,14 @@
+logging:
+  level:
+    root: INFO
+    com.gameydg: DEBUG
+    org.springframework.web: INFO
+    org.springframework.web.socket: DEBUG
+
+spring:
+  application:
+    name: game-ydg
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
