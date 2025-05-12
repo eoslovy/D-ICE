@@ -317,7 +317,7 @@ export default function FinalResult({ finalData, newGame, goLobby }: FinalResult
                         )}
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
                         {/* 전체 순위표 */}
                         <div>
                             <h3 className="text-xl font-bold mb-2">
