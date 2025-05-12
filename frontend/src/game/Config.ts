@@ -1,10 +1,10 @@
 import Phaser from "phaser";
 import { Boot } from "./scenes/common/Boot";
 import { Preloader } from "./scenes/common/Preloader";
-import { MainMenu } from "./scenes/MainMenu";
+import { MainMenu } from "./scenes/common/MainMenu";
 import { Clicker } from "./scenes/Clicker";
-import { GameOver } from "./scenes/GameOver";
-import { EndGame } from "./scenes/EndGame";
+import { GameOver } from "./scenes/common/GameOver";
+import { EndGame } from "./scenes/common/EndGame";
 import { Reaction } from "./scenes/Reaction";
 import { Roulette } from "./scenes/common/Roulette";
 import { PerfectCircle } from "./scenes/PerfectCircle";

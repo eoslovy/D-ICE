@@ -83,7 +83,7 @@ export class Wirewalk extends Scene {
                     item.setOrigin(0.5, 0.5);
                     item.setStyle({
                         fontSize: "64px",
-                        fontFamily: "Arial",
+                        fontFamily: "Jua",
                         color: "#ffffff",
                         stroke: "#000000",
                         strokeThickness: 2,
@@ -164,7 +164,7 @@ export class Wirewalk extends Scene {
         this.buttonLeftText = this.add
             .text(buttonX1, buttonY, "◀", {
                 fontSize: "64px",
-                fontFamily: "Arial",
+                fontFamily: "Jua",
                 color: "#ffffff",
                 align: "center",
             })
@@ -200,7 +200,7 @@ export class Wirewalk extends Scene {
         this.buttonRightText = this.add
             .text(buttonX2, buttonY, "▶", {
                 fontSize: "64px",
-                fontFamily: "Arial",
+                fontFamily: "Jua",
                 color: "#ffffff",
                 align: "center",
             })
@@ -232,7 +232,7 @@ export class Wirewalk extends Scene {
                         stroke: "#000000",
                         strokeThickness: 2,
                         align: "center",
-                        fontFamily: "Arial",
+                        fontFamily: "Jua",
                         fontStyle: "bold",
                     }
                 );
@@ -267,7 +267,7 @@ export class Wirewalk extends Scene {
                 stroke: "#000000",
                 strokeThickness: 2,
                 align: "center",
-                fontFamily: "Arial",
+                fontFamily: "Jua",
                 fontStyle: "bold",
             }
         );
@@ -287,7 +287,7 @@ export class Wirewalk extends Scene {
                     "안 돼!",
                     {
                         fontSize: "128px",
-                        fontFamily: "Arial",
+                        fontFamily: "Jua",
                         color: "#ff0000",
                         align: "center",
                         stroke: "#000000",

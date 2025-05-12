@@ -77,13 +77,12 @@ export default function WrapperLayout() {
         userWebSocketManager.on("USER_RECONNECTED", () => {
           console.log("User Reconnect 성공");
           setHasNavigated(true); // 상태 업데이트
+          requestId = uuidv7();
           navigate(navigateTo, { replace: true });
         });
 
       } catch (error) {
         console.error("User Reconnect 오류:", error);
-      } finally{
-        requestId = uuidv7();
       }
     }
     
@@ -128,12 +127,11 @@ export default function WrapperLayout() {
           console.log("Admin Reconnect 성공");
           setHasNavigated(true); // 상태 업데이트
           navigate(navigateTo, { replace: true });
+          requestId = uuidv7();
         });
 
       } catch (error) {
         console.error("Admin Reconnect 오류:", error);
-      } finally{
-        requestId = uuidv7();
       }
     }
 
