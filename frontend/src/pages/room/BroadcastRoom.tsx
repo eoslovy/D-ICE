@@ -77,14 +77,18 @@ export default function BroadcastRoom() {
 
     const startGame = async () => {
         try {
-            setIsLoading(true);
-            console.log("게임 시작 요청:", roomCode);
-            adminWebSocketManager.sendStartGame(requestId);
+            console.log("게임 시작 요청:", nextGame);
+            const startRes = adminWebSocketManager.sendStartGame(requestId);
+            if (startRes === true){
+                setIsLoading(true);
+                requestId = uuidv7();
+            }else{
+                setIsLoading(false);
+            }
+            
         } catch (error) {
             console.error("게임 시작 중 오류:", error);
             setIsLoading(false);
-        } finally {
-            requestId = uuidv7();
         }
     };
 
@@ -152,7 +156,7 @@ export default function BroadcastRoom() {
                         >
                             {isLoading ? (
                                 <span className="animate-pulse">
-                                    시작 중...
+                                    게임 중...
                                 </span>
                             ) : (
                                 <>
