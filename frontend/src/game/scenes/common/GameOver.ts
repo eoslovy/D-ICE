@@ -4,6 +4,7 @@ import { v7 as uuidv7 } from 'uuid';
 import { userStore } from '../../../stores/userStore';
 import userWebSocketManager from '../../../modules/UserWebSocketManager';
 import { UICountdown } from '../../../modules/gameutils/UICountdown';
+import { addBackgroundImage } from './addBackgroundImage';
 
 // Add interface for scene data
 interface GameOverSceneData {
@@ -33,7 +34,7 @@ export class GameOver extends Phaser.Scene {
       score: this.roundScore,
       gameType: this.gameType
     });
-    
+
     // 초기 화면 표시
     this.showInitialScreen();
     
@@ -102,12 +103,11 @@ export class GameOver extends Phaser.Scene {
   }
   
   private showInitialScreen() {
+
     const width = this.cameras.main.width;
     const height = this.cameras.main.height;
 
-    // 배경
-    this.add.rectangle(0, 0, width, height, 0x000000, 0.8)
-      .setOrigin(0);
+    addBackgroundImage(this);
 
     // 게임 오버 텍스트
     this.add.text(width / 2, height * 0.3, 
@@ -158,10 +158,8 @@ export class GameOver extends Phaser.Scene {
     // 기존 UI 요소들 제거
     this.children.removeAll();
 
-    // 배경
-    this.add.rectangle(0, 0, width, height, 0x000000, 0.8)
-      .setOrigin(0);
-
+    addBackgroundImage(this);
+    
     // 제목
     this.add.text(width / 2, height * 0.15, 
       '게임 종료!', 

@@ -1,5 +1,6 @@
 import { Scene } from 'phaser';
 import { GAME_TYPES } from './GameType';
+import { addBackgroundImage } from './addBackgroundImage';
 
 interface RouletteConfig {
   nextGame: string;
@@ -34,7 +35,7 @@ export class Roulette extends Scene {
     this.totalItems = GAME_TYPES.length * 3;
 
     // 배경
-    this.createAnimatedBackground(width, height);
+    addBackgroundImage(this);
 
     // 룰렛 컨테이너
     this.wheel = this.add.container(width / 2, height / 2);
@@ -59,9 +60,8 @@ export class Roulette extends Scene {
     maskShape.setVisible(false);
     this.wheel.setMask(maskShape.createGeometryMask());
 
-    // 바깥 테두리(황금색)
     const border = this.add.graphics();
-    border.lineStyle(12, 0xffd700, 1);
+    border.lineStyle(12, 0x3b5998, 1); // 진한 파란색(밤하늘 느낌)
     border.strokeRoundedRect(
       width / 2 - maskWidth / 2 - 8,
       height / 2 - maskHeight / 2 - 8,
@@ -69,8 +69,8 @@ export class Roulette extends Scene {
       maskHeight + 16,
       40
     );
-    // 안쪽 테두리(짙은 갈색)
-    border.lineStyle(6, 0x6d4c1b, 1);
+    // 안쪽 테두리(짙은 남색)
+    border.lineStyle(6, 0x192a56, 1); // 더 어두운 남색
     border.strokeRoundedRect(
       width / 2 - maskWidth / 2,
       height / 2 - maskHeight / 2,
@@ -79,7 +79,7 @@ export class Roulette extends Scene {
       32
     );
     // 중앙 강조선(살짝 밝은색)
-    border.lineStyle(4, 0xfff6d3, 0.7);
+    border.lineStyle(4, 0xfff6d3, 0.7); // 밝은 파란색
     border.strokeRoundedRect(
       width / 2 - maskWidth / 2 + 12,
       height / 2 - this.sliceHeight / 2,
@@ -88,47 +88,13 @@ export class Roulette extends Scene {
       24
     );
     // 양옆 포인터
-    this.createSidePointers(width, height, maskWidth);
+    //this.createSidePointers(width, height, maskWidth);
 
     // 1초 후 자동 스핀
     this.time.delayedCall(1000, () => this.spinWheel());
 
     // update 등록
     this.events.on('update', this.update, this);
-  }
-
-  private createAnimatedBackground(width: number, height: number) {
-    const bg = this.add.graphics();
-    bg.setDepth(-100);
-
-    let t = 0;
-    this.time.addEvent({
-      delay: 30,
-      loop: true,
-      callback: () => {
-        t += 0.01;
-        const color1 = Phaser.Display.Color.Interpolate.ColorWithColor(
-          new Phaser.Display.Color(25, 42, 86),
-          new Phaser.Display.Color(39, 60, 117),
-          100,
-          Math.abs(Math.sin(t)) * 100
-        );
-        const color2 = Phaser.Display.Color.Interpolate.ColorWithColor(
-          new Phaser.Display.Color(39, 60, 117),
-          new Phaser.Display.Color(25, 42, 86),
-          100,
-          Math.abs(Math.cos(t)) * 100
-        );
-        bg.clear();
-        bg.fillGradientStyle(
-          Phaser.Display.Color.GetColor(color1.r, color1.g, color1.b),
-          Phaser.Display.Color.GetColor(color1.r, color1.g, color1.b),
-          Phaser.Display.Color.GetColor(color2.r, color2.g, color2.b),
-          Phaser.Display.Color.GetColor(color2.r, color2.g, color2.b)
-        );
-        bg.fillRect(0, 0, width, height);
-      }
-    });
   }
 
   private createWheelItem(text: string, y: number) {
@@ -164,7 +130,7 @@ export class Roulette extends Scene {
       0, pointerSize / 2,
       pointerSize, 0,
       pointerSize, pointerSize,
-      0xffd700
+      0x74b9ff
     ).setOrigin(0.5);
     // 오른쪽 포인터
     const rightPointer = this.add.triangle(
@@ -172,7 +138,7 @@ export class Roulette extends Scene {
       pointerSize, pointerSize / 2,
       0, 0,
       0, pointerSize,
-      0xffd700
+      0x74b9ff
     ).setOrigin(0.5);
 
     // 애니메이션
