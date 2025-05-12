@@ -105,7 +105,7 @@ export default function TestModules(props: TestModulesProps) {
   // --- WebSocket Handlers ---
   const handleConnect = () => {
     const id = uuid();
-    const url = `${import.meta.env.VITE_WEBSOCKET_URL}/ws/game/user/${roomId}`;
+    const url = `${import.meta.env.VITE_WEBSOCKET_URL}/backbone/ws/game/user/${roomId}`;
     userWebSocketManager.setServerURL(url);
     userWebSocketManager.connect();
   };
