@@ -15,7 +15,6 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.stereotype.Repository;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.party.backbone.room.dto.RoundInfo;
 import com.party.backbone.room.dto.ScoreAggregationResult;
 import com.party.backbone.room.model.RoomStateTTL;
