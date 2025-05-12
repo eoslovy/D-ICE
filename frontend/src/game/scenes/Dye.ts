@@ -521,7 +521,7 @@ export class Dye extends Scene {
                 stroke: "#000000",
                 strokeThickness: 2,
                 align: "center",
-                fontFamily: "Jua",
+                fontFamily: "Fredoka",
                 fontStyle: "bold",
             }
         );
@@ -659,7 +659,7 @@ export class Dye extends Scene {
                         stroke: "#000000",
                         strokeThickness: 2,
                         align: "center",
-                        fontFamily: "Jua",
+                        fontFamily: "Fredoka",
                         fontStyle: "bold",
                     }
                 );

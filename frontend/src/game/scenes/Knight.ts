@@ -150,7 +150,7 @@ export class Knight extends Scene {
                 stroke: "#000000",
                 strokeThickness: 2,
                 align: "center",
-                fontFamily: "Jua",
+                fontFamily: "Fredoka",
                 fontStyle: "bold",
             })
             .setOrigin(0.5, 0.5);
@@ -180,7 +180,7 @@ export class Knight extends Scene {
                 stroke: "#000000",
                 strokeThickness: 2,
                 align: "center",
-                fontFamily: "Jua",
+                fontFamily: "Fredoka",
                 fontStyle: "bold",
             })
             .setOrigin(0.5, 0.5);
@@ -240,7 +240,7 @@ export class Knight extends Scene {
                         stroke: "#000000",
                         strokeThickness: 2,
                         align: "center",
-                        fontFamily: "Jua",
+                        fontFamily: "Fredoka",
                         fontStyle: "bold",
                     }
                 );
