@@ -1,27 +1,14 @@
 import Phaser from 'phaser';
-import potgManager from '../../modules/POTGManager';
+import potgManager from '../../../modules/POTGManager';
 import { v7 as uuidv7 } from 'uuid';
-import { userStore } from '../../stores/userStore';
-import userWebSocketManager from '../../modules/UserWebSocketManager';
+import { userStore } from '../../../stores/userStore';
+import userWebSocketManager from '../../../modules/UserWebSocketManager';
+import { UICountdown } from '../../../modules/gameutils/UICountdown';
 
 // Add interface for scene data
 interface GameOverSceneData {
   score?: number;
   gameType?: string;
-}
-
-interface BackendResponse {
-  type: "AGGREGATED_USER";
-  requestId: string; //UUIDv7
-  currentRound: number; // 현재 round
-  totalRound: number; // 전체 round
-  gameType: string; //게임이름
-  currentScore: number; // int 이번 round 점수
-  totalScore: number;
-  rankRecord: string; // 구분자 | 라운드별 순위 기록
-  roundRank: number;
-  overallRank: number;
-  videoUploadUrl: string; // s3 presigned url POST|PUT용
 }
 
 export class GameOver extends Phaser.Scene {
@@ -30,6 +17,9 @@ export class GameOver extends Phaser.Scene {
   private backendResponse: AggregatedUserMessage | null = null;
   private loadingText: Phaser.GameObjects.Text | null = null;
   private uploadStatus: Phaser.GameObjects.Text | null = null;
+  private countdown?: UICountdown;
+  private isLastRound: boolean = false;
+  private needVideoUpload: boolean = false; // 업로드 필요 여부 상태 추가
   
   constructor() {
     super({ key: 'GameOver' });
@@ -59,13 +49,56 @@ export class GameOver extends Phaser.Scene {
     // WebSocket 응답 리스너 설정
     userWebSocketManager.on('AGGREGATED_USER', (payload: AggregatedUserMessage) => {
       this.backendResponse = payload;
+      this.isLastRound = payload.currentRound === payload.totalRound;
+      this.needVideoUpload = !!payload.videoUploadUrl;
       this.updateUI();
-      this.handleVideoUpload();
-      
-      if(payload.currentRound == payload.totalRound){
-        this.EndGame();
+
+      // 집계 UI 및 분기 처리
+      if (this.needVideoUpload) {
+        this.handleVideoUpload().then(() => {
+          this.showCountdownAndNext();
+        });
+      } else {
+        this.showCountdownAndNext();
       }
     });
+  }
+
+  private showCountdownAndNext() {
+    const width = this.cameras.main.width;
+    const height = this.cameras.main.height;
+
+    // UICountdown 표시
+    if (!this.countdown) {
+      this.countdown = new UICountdown(this, width / 2, height * 0.8);
+    }
+    this.countdown.startCountdown(10);
+
+    // "다음 게임" 버튼 표시
+    let preloaderButton: Phaser.GameObjects.Container | undefined;
+    const removeButton = () => {
+      if (preloaderButton) {
+        preloaderButton.destroy();
+        preloaderButton = undefined;
+      }
+    };
+    preloaderButton = this.createPreloaderButton(width / 2, height * 0.9);
+    
+    let finished = false;
+    const goNext = () => {
+      if (finished) return;
+      finished = true;
+      this.countdown?.stopCountdown(false);
+      removeButton();
+      if (this.isLastRound) {
+        this.EndGame();
+      } else {
+        this.scene.start('Preloader');
+      }
+    };
+
+    preloaderButton.on('pointerdown', goNext);
+    this.events.once('countdownFinished', goNext);
   }
   
   private showInitialScreen() {
@@ -114,12 +147,6 @@ export class GameOver extends Phaser.Scene {
       yoyo: true,
       repeat: -1
     });
-
-    // 메인 메뉴 버튼
-    this.createMenuButton(width / 2, height * 0.8);
-
-    // 다음 게임 버튼
-    this.createPreloaderButton(width / 2, height * 0.9);
   }
 
   private updateUI() {
@@ -185,20 +212,16 @@ export class GameOver extends Phaser.Scene {
     this.createRankGraph(width / 2, height * 0.65);
 
     // 업로드 상태 텍스트 생성 (handleVideoUpload 메서드 내에서)
-    this.uploadStatus = this.add.text(width / 2, height * 0.85,
-      '게임 영상 업로드 중...', 
-      {
-        fontSize: '20px',
-        color: '#ffffff',
-        align: 'center'
-      }
-    ).setOrigin(0.5);
-
-    // 메인 메뉴 버튼
-    this.createMenuButton(width / 2, height * 0.9);
-
-    // 다음 게임 버튼
-    this.createPreloaderButton(width / 2, height * 0.95);
+    if (this.needVideoUpload) {
+      this.uploadStatus = this.add.text(width / 2, height * 0.85,
+        '게임 영상 업로드 중...', 
+        {
+          fontSize: '20px',
+          color: '#ffffff',
+          align: 'center'
+        }
+      ).setOrigin(0.5);
+    }
   }
 
   private createRankGraph(x: number, y: number) {
@@ -279,7 +302,7 @@ export class GameOver extends Phaser.Scene {
   }
 
   private async handleVideoUpload() {
-    if (!this.backendResponse?.videoUploadUrl) {
+    if (!this.needVideoUpload || !this.backendResponse?.videoUploadUrl) {
       console.log('[GameOver] No video upload URL provided');
       return;
     }
@@ -394,29 +417,6 @@ export class GameOver extends Phaser.Scene {
         rankRecord: this.backendResponse.rankRecord,
         overallRank: this.backendResponse.overallRank
     });
-}
-  private createMenuButton(x: number, y: number) {
-    const buttonWidth = 200;
-    const buttonHeight = 50;
-
-    const button = this.add.container(x, y);
-    
-    const bg = this.add.graphics();
-    bg.fillStyle(0x4a4a4a, 1);
-    bg.fillRoundedRect(-buttonWidth/2, -buttonHeight/2, buttonWidth, buttonHeight, 16);
-    
-    const text = this.add.text(0, 0, '메인 메뉴', {
-      fontSize: '24px',
-      color: '#ffffff'
-    }).setOrigin(0.5);
-    
-    button.add([bg, text]);
-    button.setSize(buttonWidth, buttonHeight);
-    button.setInteractive();
-    
-    button.on('pointerup', () => {
-      this.scene.start('MainMenu');
-    });
   }
 
   private createPreloaderButton(x: number, y: number) {
@@ -437,10 +437,8 @@ export class GameOver extends Phaser.Scene {
     button.add([bg, text]);
     button.setSize(buttonWidth, buttonHeight);
     button.setInteractive();
-    
-    button.on('pointerup', () => {
-      this.scene.start('Preloader');
-    });
+  
+    return button;
 }
   
   private sendScoreToBackend(userId: string | null, roomCode: string | null) {

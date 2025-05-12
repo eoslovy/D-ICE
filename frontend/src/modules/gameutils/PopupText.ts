@@ -40,7 +40,7 @@ export class PopupText {
         popup.setAlpha(1);
         popup.setStyle(config || {
             fontSize: '20px',
-            fontFamily: 'Arial',
+            fontFamily: 'Jua',
             color: '#ffffff',
             stroke: '#000000',
             strokeThickness: 4,
