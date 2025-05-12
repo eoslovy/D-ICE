@@ -69,6 +69,27 @@ interface GameInProgressMessage {
     message: string;
 }
 
+// 송신 메시지 타입 정의 추가
+interface JoinMessage {
+    type: 'NUMBER_SURVIVOR_JOIN';
+    userId: string;
+    roomCode: string;
+    nickname: string;
+}
+
+interface StartGameMessage {
+    type: 'NUMBER_SURVIVOR_START';
+    userId: string;
+    roomCode: string;
+}
+
+interface NumberSelectionMessage {
+    type: 'NUMBER_SURVIVOR_SELECT';
+    userId: string;
+    roomCode: string;
+    selectedNumber: number;
+}
+
 type NumberSurvivorReceiveTypeMap = {
     ROUND_START: RoundStartMessage;
     ROUND_RESULT: RoundResult;
@@ -84,7 +105,7 @@ type NumberSurvivorReceiveTypeMap = {
 class NumberSurvivorWebSocketManager extends WebSocketManager<NumberSurvivorReceiveTypeMap> {
     constructor() {
         super();
-        // this.setServerURL('ws://localhost/ws/number-survivor');
+        // this.setServerURL('ws://localhost/ws/gameydg-service/number-survivor');
         this.setServerURL('ws://localhost:18087/ws/number-survivor');
     }
 
@@ -104,30 +125,33 @@ class NumberSurvivorWebSocketManager extends WebSocketManager<NumberSurvivorRece
         this.setUpOnMessage();
     }
 
-    sendJoin(userId: string, roomId: string, nickname: string): void {
-        this.send({
+    sendJoin(userId: string, roomCode: string, nickname: string): void {
+        const message: JoinMessage = {
             type: 'NUMBER_SURVIVOR_JOIN',
             userId,
-            roomId,
+            roomCode,
             nickname
-        });
+        };
+        this.send(message);
     }
 
-    sendStartGame(userId: string, roomId: string): void {
-        this.send({
+    sendStartGame(userId: string, roomCode: string): void {
+        const message: StartGameMessage = {
             type: 'NUMBER_SURVIVOR_START',
             userId,
-            roomId
-        });
+            roomCode
+        };
+        this.send(message);
     }
 
-    sendNumberSelection(userId: string, roomId: string, selectedNumber: number): void {
-        this.send({
+    sendNumberSelection(userId: string, roomCode: string, selectedNumber: number): void {
+        const message: NumberSelectionMessage = {
             type: 'NUMBER_SURVIVOR_SELECT',
             userId,
-            roomId,
+            roomCode,
             selectedNumber
-        });
+        };
+        this.send(message);
     }
 
     private setUpOnMessage() {
