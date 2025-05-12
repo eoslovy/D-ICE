@@ -13,5 +13,5 @@ export const GAME_TYPES: GameTypeInfo[] = [
     { name: "요세푸스", key: "Josephus" },
     { name: "염색", key: "Dye" },
     { name: "기사", key: "Knight" },
+    { name: "숫자 생존게임", key: "NumberSurvivor"},
 ];
-

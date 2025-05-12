@@ -16,6 +16,7 @@ public enum GameType {
 	Josephus(40000),
 	Dye(40000),
 	Knight(40000),
+	NumberSurvivor(60000)
 	;
 	private static final GameType[] GAME_TYPES = values();
 
