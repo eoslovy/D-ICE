@@ -95,7 +95,7 @@ export class Wirewalk extends Scene {
 
         // game specific settings
 
-        // fill sky gradiant with skyblue to deep blue
+        // Fill the
         this.add
             .graphics()
             .fillStyle(0x87ceeb)
@@ -232,7 +232,7 @@ export class Wirewalk extends Scene {
                         stroke: "#000000",
                         strokeThickness: 2,
                         align: "center",
-                        fontFamily: "Jua",
+                        fontFamily: "Fredoka",
                         fontStyle: "bold",
                     }
                 );
@@ -256,29 +256,23 @@ export class Wirewalk extends Scene {
         const elapsedTime = Date.now() - this.gameStartedTime;
         const finalScore = this.getFinalScore();
 
-        this.popupText.popupText(
-            `Score: ${finalScore}`,
-            this.cameras.main.centerX,
-            this.cameras.main.centerY + 100,
-            3000,
-            {
-                fontSize: "80px",
-                color: "#ffffff",
-                stroke: "#000000",
-                strokeThickness: 2,
-                align: "center",
-                fontFamily: "Jua",
-                fontStyle: "bold",
-            }
-        );
-        // pop up result modal
+        // pop up result
+        this.time.addEvent({
+            delay: 1000,
+            callback: () => {
+                this.scene.start("GameOver", {
+                    score: finalScore,
+                    gameType: "Wirewalk",
+                });
+            },
+        });
     }
 
     update(time: number, delta: number) {
         if (!this.gameStarted || this.gameEnded) {
             return;
         }
-
+        // Check if the game should end
         if (Math.abs(this.tiltValue) > this.tiltLimit) {
             const failText = this.add
                 .text(
@@ -310,6 +304,7 @@ export class Wirewalk extends Scene {
             return;
         }
 
+        // Update the tilt value based on the tiltDiff
         const realDiff = Math.floor(Math.log(Math.abs(this.tiltValue)) + 1) * 2;
         if (this.tiltValue > 0) {
             this.tiltValue += realDiff;
