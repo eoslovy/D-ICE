@@ -150,7 +150,7 @@ export class Knight extends Scene {
                 stroke: "#000000",
                 strokeThickness: 2,
                 align: "center",
-                fontFamily: "Arial",
+                fontFamily: "Jua",
                 fontStyle: "bold",
             })
             .setOrigin(0.5, 0.5);
@@ -180,7 +180,7 @@ export class Knight extends Scene {
                 stroke: "#000000",
                 strokeThickness: 2,
                 align: "center",
-                fontFamily: "Arial",
+                fontFamily: "Jua",
                 fontStyle: "bold",
             })
             .setOrigin(0.5, 0.5);
@@ -240,7 +240,7 @@ export class Knight extends Scene {
                         stroke: "#000000",
                         strokeThickness: 2,
                         align: "center",
-                        fontFamily: "Arial",
+                        fontFamily: "Jua",
                         fontStyle: "bold",
                     }
                 );
@@ -272,7 +272,7 @@ export class Knight extends Scene {
                 stroke: "#000000",
                 strokeThickness: 2,
                 align: "center",
-                fontFamily: "Arial",
+                fontFamily: "Jua",
                 fontStyle: "bold",
             }
         );
@@ -333,7 +333,7 @@ export class Knight extends Scene {
                     stroke: "#000000",
                     strokeThickness: 2,
                     align: "center",
-                    fontFamily: "Arial",
+                    fontFamily: "Jua",
                     fontStyle: "bold",
                 }
             );
