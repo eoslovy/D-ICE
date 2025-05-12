@@ -34,6 +34,8 @@ class OverlayScene extends Phaser.Scene {
     preload() {
         console.log('[OverlayScene] preload');
         // No need to load 'star' if only using shapes
+        this.load.font('Jua', '/assets/fonts/Jua-Regular.ttf');
+        this.load.font('Fredoka', '/assets/fonts/Fredoka-Regular.ttf');
         this.load.image('star', '/assets/star.png');
     }
 
