@@ -43,7 +43,13 @@ export default function Set() {
 
             adminWebSocketManager.on("connect", () => {
                 console.log("WebSocket 연결 성공");
-                adminWebSocketManager.sendAdminJoin(requestId);
+                const adminJoinRes = adminWebSocketManager.sendAdminJoin(requestId);
+                if(adminJoinRes === true){
+                    console.log("ADMIN_JOIN 요청 성공");
+                }else{
+                    console.log("ADMIN_JOIN 요청 실패");
+                }
+                
             });
         } catch (error) {
             console.error("방 생성 중 오류:", error);

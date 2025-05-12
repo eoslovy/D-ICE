@@ -46,6 +46,7 @@ export default function AdminRoom() {
             const initRes = adminWebSocketManager.sendSessionInit(requestId, adminStore.getState().totalRound);
             // 게임 중계 방으로 이동
             if (initRes === true){
+                console.error("INIT 요청 성공");
                 adminStore.getState().setStatus("INGAME");
                 navigate(`/broadcast/${roomCode}`);
                 requestId = v7();

@@ -121,7 +121,13 @@ export default function WrapperLayout() {
     };
     const handleAdminReJoin = () => {
       try {
-        adminWebSocketManager.sendAdminReconnect(requestId, adminStore.getState().administratorId);
+        const adminReconnectRes = adminWebSocketManager.sendAdminReconnect(requestId);
+        if(adminReconnectRes === true){
+          console.log("ADMIN_RECONNECT 요청 성공");
+        }else{
+          console.log("ADMIN_RECONNECT 요청 실패");
+        }
+        
 
         adminWebSocketManager.on("ADMIN_RECONNECTED", () => {
           console.log("Admin Reconnect 성공");
