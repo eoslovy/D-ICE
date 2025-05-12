@@ -57,9 +57,21 @@ interface WaitingMessage {
     currentPlayers: number;
 }
 
+// userStore 타입 추가
+type UserStoreState = {
+    status: string | null;
+    userId: string;
+    roomCode: string;
+    nickname: string;
+    gameType: string;
+    startAt: number;
+    duration: number;
+    currentMs: number;
+};
+
 export class NumberSurvivor extends Scene {
     private userId: string;
-    private roomId: string;
+    private roomCode: string;
     private nickname: string;
     private numberButtons: Phaser.GameObjects.Container[];
     private messageText?: Phaser.GameObjects.Text;
@@ -90,62 +102,67 @@ export class NumberSurvivor extends Scene {
     init() {
         console.log('[NumberSurvivor] Init called');
         
-        // 주스탠드 테스트 코드
-        // console.log('[NumberSurvivor] 테스트 전 주스탠드 상태:', userStore.getState());
-        // userStore.getState().setUserId('test-user-id');
-        // userStore.getState().setRoomCode('test-room-code');
-        // userStore.getState().setNickname('테스트닉네임');
-        // console.log('[NumberSurvivor] 테스트 후 주스탠드 상태:', userStore.getState());
-        
         // 주스탠드 스토어에서 사용자 정보 가져오기
-        const { userId, roomCode, nickname } = userStore.getState();
-        this.userId = userId || 'guest';
-        this.roomId = roomCode || 'default-room';
-        this.nickname = nickname || '게스트';
-
-        console.log(`[NumberSurvivor] Init - User info from store - userId: ${this.userId}, roomId: ${this.roomId}, nickname: ${this.nickname}`);
-
-        // 스토어에 값이 없으면 로컬 스토리지에서 시도
-        if (!this.userId || this.userId === 'guest') {
-            const localUserId = localStorage.getItem('userId');
-            if (localUserId) {
-                this.userId = localUserId;
-                userStore.getState().setUserId(localUserId);
-                console.log(`[NumberSurvivor] userId updated from localStorage: ${this.userId}`);
-            }
+        const storeState: UserStoreState = userStore.getState();
+        
+        // 기본값 설정
+        const defaultValues = {
+            userId: 'guest',
+            roomCode: 'default-room',
+            nickname: '게스트'
+        };
+        
+        // 스토어에서 값 가져오기 (없으면 기본값 사용)
+        this.userId = storeState.userId || defaultValues.userId;
+        this.roomCode = storeState.roomCode || defaultValues.roomCode;
+        this.nickname = storeState.nickname || defaultValues.nickname;
+        
+        console.log(`[NumberSurvivor] Init - User info from store:`, {
+            userId: this.userId,
+            roomCode: this.roomCode,
+            nickname: this.nickname
+        });
+        
+        // 로컬 스토리지에서 값 가져오기 (스토어에 값이 없거나 기본값인 경우)
+        const localStorageValues = {
+            userId: localStorage.getItem('userId'),
+            roomCode: localStorage.getItem('roomCode'),
+            nickname: localStorage.getItem('nickname')
+        };
+        
+        // 로컬 스토리지 값이 있고, 현재 값이 기본값이면 업데이트
+        if (localStorageValues.userId && (this.userId === defaultValues.userId)) {
+            this.userId = localStorageValues.userId;
+            userStore.getState().setUserId(localStorageValues.userId);
+            console.log(`[NumberSurvivor] userId updated from localStorage: ${this.userId}`);
         }
         
-        if (!this.roomId || this.roomId === 'default-room') {
-            const localRoomId = localStorage.getItem('roomId');
-            if (localRoomId) {
-                this.roomId = localRoomId;
-                userStore.getState().setRoomCode(localRoomId);
-                console.log(`[NumberSurvivor] roomId updated from localStorage: ${this.roomId}`);
-            }
+        if (localStorageValues.roomCode && (this.roomCode === defaultValues.roomCode)) {
+            this.roomCode = localStorageValues.roomCode;
+            userStore.getState().setRoomCode(localStorageValues.roomCode);
+            console.log(`[NumberSurvivor] roomCode updated from localStorage: ${this.roomCode}`);
         }
         
-        if (!this.nickname || this.nickname === '게스트') {
-            const localNickname = localStorage.getItem('nickname');
-            if (localNickname) {
-                this.nickname = localNickname;
-                userStore.getState().setNickname(localNickname);
-                console.log(`[NumberSurvivor] nickname updated from localStorage: ${this.nickname}`);
-            }
+        if (localStorageValues.nickname && (this.nickname === defaultValues.nickname)) {
+            this.nickname = localStorageValues.nickname;
+            userStore.getState().setNickname(localStorageValues.nickname);
+            console.log(`[NumberSurvivor] nickname updated from localStorage: ${this.nickname}`);
         }
-
-        console.log(`[NumberSurvivor] Final user info - userId: ${this.userId}, roomId: ${this.roomId}, nickname: ${this.nickname}`);
         
-        // 게임 시작 시 모든 eliminatedPlayer 로컬 스토리지 항목 제거
+        // 게임 상태 초기화
         this.clearAllEliminationStates();
-        
-        // 새 게임 시작 시 항상 생존 상태로 초기화
         this.playerAlive = true;
         
-        console.log('[NumberSurvivor] User info:', {
+        // 게임 타입 설정 (NumberSurvivor)
+        userStore.getState().setGameType('NumberSurvivor');
+        
+        // 최종 사용자 정보 로깅
+        console.log('[NumberSurvivor] Final user info:', {
             userId: this.userId,
-            roomId: this.roomId,
+            roomCode: this.roomCode,
             nickname: this.nickname,
-            playerAlive: this.playerAlive
+            playerAlive: this.playerAlive,
+            gameType: userStore.getState().gameType
         });
     }
     
@@ -224,32 +241,32 @@ export class NumberSurvivor extends Scene {
     // [서비스용] WebSocket 이벤트 리스너 설정
     private setupWebSocketListeners(): void {
         // 이벤트 리스너 등록 전에 이전 리스너 제거
-        numberSurvivorWebSocketManager.removeListener('ROUND_START', this.handleRoundStart, this);
-        numberSurvivorWebSocketManager.removeListener('ROUND_RESULT', this.handleRoundResult, this);
-        numberSurvivorWebSocketManager.removeListener('GAME_OVER', this.handleGameOver, this);
-        numberSurvivorWebSocketManager.removeListener('WAITING', this.handleWaiting, this);
+        numberSurvivorWebSocketManager.removeListener('ROUND_START', this.handleRoundStart);
+        numberSurvivorWebSocketManager.removeListener('ROUND_RESULT', this.handleRoundResult);
+        numberSurvivorWebSocketManager.removeListener('GAME_OVER', this.handleGameOver);
+        numberSurvivorWebSocketManager.removeListener('WAITING', this.handleWaiting);
         
         // 새로운 메시지 타입 리스너 제거
-        numberSurvivorWebSocketManager.removeListener('WAITING_COUNTDOWN', this.handleWaitingCountdown, this);
-        numberSurvivorWebSocketManager.removeListener('PREPARE_START', this.handlePrepareStart, this);
-        numberSurvivorWebSocketManager.removeListener('PREPARE_COUNTDOWN', this.handlePrepareCountdown, this);
-        numberSurvivorWebSocketManager.removeListener('GAME_PREPARING', this.handleGamePreparing, this);
-        numberSurvivorWebSocketManager.removeListener('GAME_IN_PROGRESS', this.handleGameInProgress, this);
+        numberSurvivorWebSocketManager.removeListener('WAITING_COUNTDOWN', this.handleWaitingCountdown);
+        numberSurvivorWebSocketManager.removeListener('PREPARE_START', this.handlePrepareStart);
+        numberSurvivorWebSocketManager.removeListener('PREPARE_COUNTDOWN', this.handlePrepareCountdown);
+        numberSurvivorWebSocketManager.removeListener('GAME_PREPARING', this.handleGamePreparing);
+        numberSurvivorWebSocketManager.removeListener('GAME_IN_PROGRESS', this.handleGameInProgress);
         
         console.log('[NumberSurvivor] Setting up WebSocket listeners for userId:', this.userId);
         
-        // 서버에서 보내는 메시지 타입으로 수신
-        numberSurvivorWebSocketManager.on('ROUND_START', this.handleRoundStart, this);
-        numberSurvivorWebSocketManager.on('ROUND_RESULT', this.handleRoundResult, this);
-        numberSurvivorWebSocketManager.on('GAME_OVER', this.handleGameOver, this);
-        numberSurvivorWebSocketManager.on('WAITING', this.handleWaiting, this);
+        // 서버에서 보내는 메시지 타입으로 수신 (화살표 함수로 this 바인딩)
+        numberSurvivorWebSocketManager.on('ROUND_START', (msg) => this.handleRoundStart(msg));
+        numberSurvivorWebSocketManager.on('ROUND_RESULT', (msg) => this.handleRoundResult(msg));
+        numberSurvivorWebSocketManager.on('GAME_OVER', (msg) => this.handleGameOver(msg));
+        numberSurvivorWebSocketManager.on('WAITING', (msg) => this.handleWaiting(msg));
         
-        // 새로운 메시지 타입 리스너 등록
-        numberSurvivorWebSocketManager.on('WAITING_COUNTDOWN', this.handleWaitingCountdown, this);
-        numberSurvivorWebSocketManager.on('PREPARE_START', this.handlePrepareStart, this);
-        numberSurvivorWebSocketManager.on('PREPARE_COUNTDOWN', this.handlePrepareCountdown, this);
-        numberSurvivorWebSocketManager.on('GAME_PREPARING', this.handleGamePreparing, this);
-        numberSurvivorWebSocketManager.on('GAME_IN_PROGRESS', this.handleGameInProgress, this);
+        // 새로운 메시지 타입 리스너 등록 (화살표 함수로 this 바인딩)
+        numberSurvivorWebSocketManager.on('WAITING_COUNTDOWN', (msg) => this.handleWaitingCountdown(msg));
+        numberSurvivorWebSocketManager.on('PREPARE_START', (msg) => this.handlePrepareStart(msg));
+        numberSurvivorWebSocketManager.on('PREPARE_COUNTDOWN', (msg) => this.handlePrepareCountdown(msg));
+        numberSurvivorWebSocketManager.on('GAME_PREPARING', (msg) => this.handleGamePreparing(msg));
+        numberSurvivorWebSocketManager.on('GAME_IN_PROGRESS', (msg) => this.handleGameInProgress(msg));
         
         this.wsConnected = true;
         console.log('[NumberSurvivor] WebSocket listeners setup completed');
@@ -532,7 +549,7 @@ export class NumberSurvivor extends Scene {
         console.log(`[NumberSurvivor] Selected number: ${number}`);
         
         // 탈락 상태 확인 (추가 안전장치)
-        const storageKey = `eliminatedPlayer_${this.userId}_${this.roomId}`;
+        const storageKey = `eliminatedPlayer_${this.userId}_${this.roomCode}`;
         const isEliminatedFromStorage = localStorage.getItem(storageKey);
         
         // 로컬 스토리지에 탈락 상태가 저장되어 있으면 강제로 업데이트
@@ -594,7 +611,7 @@ export class NumberSurvivor extends Scene {
         
         // [서비스용] WebSocket을 통해 선택한 숫자 전송
         if (numberSurvivorWebSocketManager.isConnected()) {
-            numberSurvivorWebSocketManager.sendNumberSelection(this.userId, this.roomId, number);
+            numberSurvivorWebSocketManager.sendNumberSelection(this.userId, this.roomCode, number);
         }
         
         // 버튼 비활성화
@@ -683,7 +700,7 @@ export class NumberSurvivor extends Scene {
         this.updateRoundInfo(message.round);
         
         // 로컬 스토리지에서 탈락 상태 명시적 확인 - 매 라운드마다 확인
-        const storageKey = `eliminatedPlayer_${this.userId}_${this.roomId}`;
+        const storageKey = `eliminatedPlayer_${this.userId}_${this.roomCode}`;
         
         // 강제로 로컬 스토리지 다시 확인
         const isEliminatedFromStorage = localStorage.getItem(storageKey);
@@ -889,8 +906,8 @@ export class NumberSurvivor extends Scene {
         
         // 탈락 시 즉시 로컬 스토리지에 상태 저장 - 탈락 시에만 저장
         if (!myResult.isAlive) {
-            const storageKey = `eliminatedPlayer_${this.userId}_${this.roomId}`;
-            console.log(`[NumberSurvivor] 탈락 상태 저장 - userId: ${this.userId}, roomId: ${this.roomId}`);
+            const storageKey = `eliminatedPlayer_${this.userId}_${this.roomCode}`;
+            console.log(`[NumberSurvivor] 탈락 상태 저장 - userId: ${this.userId}, roomCode: ${this.roomCode}`);
             console.log(`[NumberSurvivor] Storing eliminated state in localStorage with key: ${storageKey}`);
             try {
                 // 명시적으로 'true' 문자열로 저장
@@ -1290,17 +1307,17 @@ export class NumberSurvivor extends Scene {
         
         // WebSocket 리스너 제거 - 서버 메시지 타입 사용
         if (numberSurvivorWebSocketManager) {
-            numberSurvivorWebSocketManager.removeListener('ROUND_START', this.handleRoundStart, this);
-            numberSurvivorWebSocketManager.removeListener('ROUND_RESULT', this.handleRoundResult, this);
-            numberSurvivorWebSocketManager.removeListener('GAME_OVER', this.handleGameOver, this);
-            numberSurvivorWebSocketManager.removeListener('WAITING', this.handleWaiting, this);
+            numberSurvivorWebSocketManager.removeListener('ROUND_START', this.handleRoundStart);
+            numberSurvivorWebSocketManager.removeListener('ROUND_RESULT', this.handleRoundResult);
+            numberSurvivorWebSocketManager.removeListener('GAME_OVER', this.handleGameOver);
+            numberSurvivorWebSocketManager.removeListener('WAITING', this.handleWaiting);
             
             // 새로운 메시지 타입 리스너 제거
-            numberSurvivorWebSocketManager.removeListener('WAITING_COUNTDOWN', this.handleWaitingCountdown, this);
-            numberSurvivorWebSocketManager.removeListener('PREPARE_START', this.handlePrepareStart, this);
-            numberSurvivorWebSocketManager.removeListener('PREPARE_COUNTDOWN', this.handlePrepareCountdown, this);
-            numberSurvivorWebSocketManager.removeListener('GAME_PREPARING', this.handleGamePreparing, this);
-            numberSurvivorWebSocketManager.removeListener('GAME_IN_PROGRESS', this.handleGameInProgress, this);
+            numberSurvivorWebSocketManager.removeListener('WAITING_COUNTDOWN', this.handleWaitingCountdown);
+            numberSurvivorWebSocketManager.removeListener('PREPARE_START', this.handlePrepareStart);
+            numberSurvivorWebSocketManager.removeListener('PREPARE_COUNTDOWN', this.handlePrepareCountdown);
+            numberSurvivorWebSocketManager.removeListener('GAME_PREPARING', this.handleGamePreparing);
+            numberSurvivorWebSocketManager.removeListener('GAME_IN_PROGRESS', this.handleGameInProgress);
         }
         
         this.wsConnected = false;
@@ -1321,7 +1338,7 @@ export class NumberSurvivor extends Scene {
                     console.log('[NumberSurvivor] WebSocket connected, sending join message');
                     
                     // JOIN 메시지 전송
-                    numberSurvivorWebSocketManager.sendJoin(this.userId, this.roomId, this.nickname);
+                    numberSurvivorWebSocketManager.sendJoin(this.userId, this.roomCode, this.nickname);
                     
                     // 웹소켓 이벤트 리스너 등록
                     this.setupWebSocketListeners();
@@ -1519,11 +1536,13 @@ export class NumberSurvivor extends Scene {
         // 서버에서 resetLocalStorage 플래그 확인
         if (message.resetLocalStorage) {
             console.log('[NumberSurvivor] Server requested localStorage reset');
+            // 게임 종료 시 userStore 상태 초기화
+            userStore.getState().reset();
         }
         
         // 로컬 스토리지에서 탈락 상태 제거 (게임 종료 시 상태 초기화)
         try {
-            const storageKey = `eliminatedPlayer_${this.userId}_${this.roomId}`;
+            const storageKey = `eliminatedPlayer_${this.userId}_${this.roomCode}`;
             localStorage.removeItem(storageKey);
             console.log(`[NumberSurvivor] Removed elimination state from localStorage on game over, key: ${storageKey}`);
             
