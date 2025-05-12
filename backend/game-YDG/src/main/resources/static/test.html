@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Number Survivor Test</title>
+    <style>
+        .container { margin: 20px; }
+        .message { margin: 10px 0; padding: 10px; border: 1px solid #ccc; }
+        .input-group { margin: 10px 0; }
+        button { margin: 5px; }
+        .game-controls { display: none; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Number Survivor Test</h2>
+        
+        <div class="input-group">
+            <input type="text" id="userId" placeholder="User ID">
+            <input type="text" id="nickname" placeholder="Nickname">
+            <input type="text" id="roomId" placeholder="Room ID">
+            <button onclick="joinGame()">Join Game</button>
+        </div>
+
+        <div class="game-controls">
+            <button onclick="startGame()" id="startButton">Start Game</button>
+            <div class="input-group">
+                <input type="number" id="selectedNumber" placeholder="Select Number">
+                <button onclick="selectNumber()">Select Number</button>
+            </div>
+        </div>
+
+        <div id="messages"></div>
+    </div>
+
+    <script>
+        let ws;
+        let currentUserId;
+        let currentRoomId;
+
+        function connect() {
+            ws = new WebSocket('ws://localhost:8080/ws/number-survivor');
+            
+            ws.onopen = () => {
+                console.log('Connected to WebSocket');
+                addMessage('Connected to server');
+            };
+            
+            ws.onmessage = (event) => {
+                const message = JSON.parse(event.data);
+                addMessage('Received: ' + JSON.stringify(message, null, 2));
+                
+                // 게임 시작 메시지 처리
+                if (message.type === 'ROUND_START') {
+                    addMessage(`Round ${message.round} started! Select a number between 1 and ${message.maxNumber}`);
+                }
+                
+                // 라운드 결과 처리
+                if (message.type === 'ROUND_RESULT') {
+                    const survivors = message.survivors.map(p => p.nickname).join(', ');
+                    const eliminated = message.eliminated.map(p => p.nickname).join(', ');
+                    addMessage(`Round ${message.round} Results:
+                        Survivors: ${survivors}
+                        Eliminated: ${eliminated}`);
+                }
+                
+                // 게임 종료 처리
+                if (message.type === 'GAME_OVER') {
+                    addMessage(`Game Over! Winner: ${message.winner.nickname}`);
+                    document.querySelector('.game-controls').style.display = 'none';
+                }
+
+                // 대기 메시지 처리
+                if (message.type === 'WAITING') {
+                    addMessage(message.message);
+                }
+            };
+            
+            ws.onclose = () => {
+                console.log('Disconnected from WebSocket');
+                addMessage('Disconnected from server');
+            };
+        }
+
+        function joinGame() {
+            const userId = document.getElementById('userId').value;
+            const nickname = document.getElementById('nickname').value;
+            const roomId = document.getElementById('roomId').value;
+            
+            if (!userId || !nickname || !roomId) {
+                alert('Please fill in all fields');
+                return;
+            }
+            
+            currentUserId = userId;
+            currentRoomId = roomId;
+            
+            const message = {
+                type: 'NUMBER_SURVIVOR_JOIN',
+                userId: userId,
+                roomId: roomId,
+                nickname: nickname
+            };
+            
+            ws.send(JSON.stringify(message));
+            addMessage('Sent: ' + JSON.stringify(message));
+            document.querySelector('.game-controls').style.display = 'block';
+        }
+
+        function startGame() {
+            if (!currentUserId || !currentRoomId) {
+                alert('Please join a game first');
+                return;
+            }
+            
+            const message = {
+                type: 'NUMBER_SURVIVOR_START',
+                userId: currentUserId,
+                roomId: currentRoomId
+            };
+            
+            ws.send(JSON.stringify(message));
+            addMessage('Sent: ' + JSON.stringify(message));
+            document.getElementById('startButton').disabled = true;
+        }
+
+        function selectNumber() {
+            const number = document.getElementById('selectedNumber').value;
+            
+            if (!number || !currentUserId || !currentRoomId) {
+                alert('Please join a game and select a number');
+                return;
+            }
+            
+            const message = {
+                type: 'NUMBER_SURVIVOR_SELECT',
+                userId: currentUserId,
+                roomId: currentRoomId,
+                selectedNumber: parseInt(number)
+            };
+            
+            ws.send(JSON.stringify(message));
+            addMessage('Sent: ' + JSON.stringify(message));
+        }
+
+        function addMessage(text) {
+            const messagesDiv = document.getElementById('messages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message';
+            messageDiv.textContent = text;
+            messagesDiv.appendChild(messageDiv);
+        }
+
+        // 페이지 로드 시 웹소켓 연결
+        connect();
+    </script>
+</body>
+</html> 
