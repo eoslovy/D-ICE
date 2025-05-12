@@ -1,15 +1,19 @@
 import Phaser from 'phaser';
 import { Boot } from './scenes/common/Boot';
 import { Preloader } from './scenes/common/Preloader';
-import { MainMenu } from './scenes/MainMenu';
+import { MainMenu } from './scenes/common/MainMenu';
 import { Clicker } from './scenes/Clicker';
-import { GameOver } from './scenes/GameOver';
+import { GameOver } from './scenes/common/GameOver';
+import { EndGame } from './scenes/common/EndGame';
 import { Reaction } from './scenes/Reaction';
 import { Roulette } from './scenes/common/Roulette';
-import { PerfectCircleGame } from './scenes/PerfectCircleGame';
+import { PerfectCircle } from './scenes/PerfectCircle';
 import { GameInstruction } from './scenes/common/GameInstruction';
+import { Mugungwha } from './scenes/Mugungwha';
+import { Wirewalk } from './scenes/Wirewalk';
+import { Josephus } from './scenes/Josephus';
+import { Dye } from './scenes/Dye';
 import { NumberSurvivor } from './scenes/NumberSurvivor';
-import { EndGame } from './scenes/EndGame';
 
 const config: Phaser.Types.Core.GameConfig = {
   type: Phaser.AUTO,
@@ -38,7 +42,7 @@ const config: Phaser.Types.Core.GameConfig = {
       debug: false
     }
   },
-  scene: [Boot, Preloader, MainMenu, GameOver, EndGame, Roulette, Clicker, Reaction, GameInstruction, PerfectCircleGame, NumberSurvivor]
+  scene: [Boot, Preloader, MainMenu, GameOver, Roulette, Clicker, Reaction, GameInstruction, PerfectCircle, Mugungwha, Wirewalk, Josephus, Dye, NumberSurvivor, EndGame],
 };
 
 export default config;

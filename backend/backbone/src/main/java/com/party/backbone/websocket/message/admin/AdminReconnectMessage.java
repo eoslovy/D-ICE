@@ -1,0 +1,15 @@
+package com.party.backbone.websocket.message.admin;
+
+import com.party.backbone.websocket.message.IdempotentMessage;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class AdminReconnectMessage implements IdempotentMessage, AdminMessage {
+	private String requestId;
+	private String administratorId;
+}

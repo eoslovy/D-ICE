@@ -15,15 +15,11 @@ import com.party.backbone.websocket.model.UserMessageType;
 @Component
 public class SubmitMessageHandler extends GameMessageHandler<SubmitMessage> implements UserMessageHandler {
 	private final RoomRedisRepository roomRepository;
-	private final ObjectMapper objectMapper;
-	private final SessionRegistry sessionRegistry;
 
 	protected SubmitMessageHandler(IdempotencyRedisRepository idempotencyRedisRepository, ObjectMapper objectMapper,
 		RoomRedisRepository roomRepository, SessionRegistry sessionRegistry) {
-		super(idempotencyRedisRepository);
+		super(idempotencyRedisRepository, roomRepository);
 		this.roomRepository = roomRepository;
-		this.objectMapper = objectMapper;
-		this.sessionRegistry = sessionRegistry;
 	}
 
 	@Override

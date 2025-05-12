@@ -1,5 +1,5 @@
 import { Scene } from 'phaser';
-
+import { UICountdown } from '../../../modules/gameutils/UICountdown';
 interface InstructionConfig {
   nextGame: string;
   gameName: string;
@@ -10,9 +10,8 @@ export class GameInstruction extends Scene {
   private nextGame: string;
   private gameName: string;
   private onComplete: () => void;
-  private countdownText?: Phaser.GameObjects.Text;
-  private timeLeft: number = 10;
-  private countdownTimer?: Phaser.Time.TimerEvent;
+  private countTime: number = 10;
+  private countdown: UICountdown;
 
   constructor() {
     super('GameInstruction');
@@ -31,6 +30,7 @@ export class GameInstruction extends Scene {
 
   create() {
     const { width, height } = this.cameras.main;
+    this.countdown = new UICountdown(this, width / 2, height - 100);
 
     // 배경 그라데이션
     this.add.graphics()
@@ -55,42 +55,15 @@ export class GameInstruction extends Scene {
     );
     instruction.setScale(scale);
 
-    // 카운트다운 텍스트
-    this.countdownText = this.add.text(width / 2, height - 100, '10', {
-      fontSize: '64px',
-      color: '#ffffff',
-      fontStyle: 'bold'
-    }).setOrigin(0.5);
-
     // 카운트다운 시작
-    this.countdownTimer = this.time.addEvent({
-      delay: 1000,
-      callback: this.updateCountdown,
-      callbackScope: this,
-      loop: true
-    });
-  }
-
-  private updateCountdown() {
-    this.timeLeft--;
+    this.countdown.startCountdown(this.countTime);
     
-    if (this.countdownText) {
-      this.countdownText.setText(this.timeLeft.toString());
-      
-      // 마지막 3초 동안 텍스트 효과
-      if (this.timeLeft <= 3) {
-        this.tweens.add({
-          targets: this.countdownText,
-          scale: { from: 1.5, to: 1 },
-          duration: 500,
-          ease: 'Cubic.easeOut'
-        });
+    this.events.once("countdownFinished", () => {
+      if (this.onComplete) {
+        this.onComplete();
+      } else {
+        console.warn('onComplete is undefined!');
       }
-    }
-
-    if (this.timeLeft <= 0) {
-      this.countdownTimer?.destroy();
-      this.onComplete();
-    }
+    });
   }
 }
