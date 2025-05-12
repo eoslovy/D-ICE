@@ -30,7 +30,9 @@ export default function BroadcastRoom() {
             console.log("NEXT_GAME 응답 성공:", payload);
             setCurrentRound(payload.currentRound);
             setNextGame(payload.gameType);
+            adminStore.getState().setGameType(payload.gameType);
             setIsLoading(false);
+            adminWebSocketManager.sendNextGameAck(payload.currentRound);
         });
 
         // 게임 결과 이벤트 리스너 (실제 이벤트 이름은 API에 맞게 수정 필요)
@@ -77,13 +79,15 @@ export default function BroadcastRoom() {
 
     const startGame = async () => {
         try {
-            console.log("게임 시작 요청:", nextGame);
+            
             const startRes = adminWebSocketManager.sendStartGame(requestId);
             if (startRes === true){
+                console.log("게임 시작 요청 성공", nextGame);
                 setIsLoading(true);
                 requestId = uuidv7();
             }else{
                 setIsLoading(false);
+                console.log("게임 시작 요청 실패", nextGame);
             }
             
         } catch (error) {

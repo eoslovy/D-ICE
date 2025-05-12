@@ -1,5 +1,5 @@
 interface SendMessage {
-    requestId: string;
+    requestId?: string;
 }
 
 interface UserSendMessage extends SendMessage {
@@ -30,10 +30,9 @@ interface BroadcastRequestMessage extends UserSendMessage {
     payload: string;
 }
 
-interface AdminSendMessage {
-    type: "ADMIN_JOIN" | "INIT" | "START_GAME" | "ADMIN_RECONNECT";
+interface AdminSendMessage extends SendMessage{
+    type: "ADMIN_JOIN" | "INIT" | "START_GAME" | "ADMIN_RECONNECT" | "NEXT_GAME_ACK";
     administratorId: string;
-    requestId: string;
 }
 
 interface AdminJoinMessage extends AdminSendMessage {
@@ -51,4 +50,9 @@ interface StartGameMessage extends AdminSendMessage {
 
 interface AdminReconnectMessage extends AdminSendMessage {
     type: "ADMIN_RECONNECT",
+}
+
+interface NextGameAckMessage extends AdminSendMessage{
+	type: "NEXT_GAME_ACK",
+	currentRound: number,
 }
