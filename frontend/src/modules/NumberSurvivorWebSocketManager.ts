@@ -48,20 +48,20 @@ interface PrepareStartMessage {
     type: "PREPARE_START";
     message: string;
     timeLeft: number;
-    playerCount: number;
+    currentPlayers: number;
 }
 
 interface PrepareCountdownMessage {
     type: "PREPARE_COUNTDOWN";
     message: string;
     timeLeft: number;
-    playerCount: number;
+    currentPlayers: number;
 }
 
 interface GamePreparingMessage {
     type: "GAME_PREPARING";
     message: string;
-    playerCount: number;
+    currentPlayers: number;
 }
 
 interface GameInProgressMessage {
