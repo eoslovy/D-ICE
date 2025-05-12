@@ -261,22 +261,16 @@ export class Knight extends Scene {
         const elapsedTime = Date.now() - this.gameStartedTime;
         const finalScore = this.getFinalScore();
 
-        this.popupText.popupText(
-            `Score: ${finalScore}`,
-            this.cameras.main.centerX,
-            this.cameras.main.centerY + 100,
-            3000,
-            {
-                fontSize: "80px",
-                color: "#ffffff",
-                stroke: "#000000",
-                strokeThickness: 2,
-                align: "center",
-                fontFamily: "Jua",
-                fontStyle: "bold",
-            }
-        );
-        // pop up result modal
+        // pop up result
+        this.time.addEvent({
+            delay: 1000,
+            callback: () => {
+                this.scene.start("GameOver", {
+                    score: finalScore,
+                    gameType: "Knight",
+                });
+            },
+        });
     }
 
     update(time: number, delta: number) {

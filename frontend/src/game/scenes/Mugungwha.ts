@@ -158,12 +158,14 @@ export class Mugungwha extends Scene {
         const buttonX = this.cameras.main.width / 2;
         const buttonY = this.cameras.main.height / 2;
 
+        // Add the game button
         this.gameButton = this.add
             .sprite(buttonX, buttonY, "btn_green")
             .setOrigin(0.5, 0.5)
             .setInteractive()
             .on("pointerdown", () => {
                 if (this.isWatching) {
+                    // If the player presses the button while watching, he loses
                     this.mugungwha_fail?.play();
                     this.popupText.popupText(
                         "앗!",
@@ -173,11 +175,17 @@ export class Mugungwha extends Scene {
                         {
                             fontSize: "128px",
                             color: "#ff0000",
+                            fontFamily: "Jua",
+                            stroke: "#000000",
+                            strokeThickness: 2,
+                            align: "center",
+                            fontStyle: "bold",
                         }
                     );
                     this.endGame();
                     return;
                 }
+                // If the player presses the button while not watching, he moves
                 this.mugungwha_pop?.play();
                 this.player.anims.play("mugungwha_player", true);
                 this.distanceMoved += 1; // Simulate distance moved
@@ -286,22 +294,16 @@ export class Mugungwha extends Scene {
         const elapsedTime = Date.now() - this.gameStartedTime;
         const finalScore = this.getFinalScore();
 
-        this.popupText.popupText(
-            `Score: ${finalScore}`,
-            this.cameras.main.centerX,
-            this.cameras.main.centerY + 100,
-            3000,
-            {
-                fontSize: "80px",
-                color: "#ffffff",
-                stroke: "#000000",
-                strokeThickness: 2,
-                align: "center",
-                fontFamily: "Jua",
-                fontStyle: "bold",
-            }
-        );
-        // pop up result modal
+        // pop up result
+        this.time.addEvent({
+            delay: 1000,
+            callback: () => {
+                this.scene.start("GameOver", {
+                    score: finalScore,
+                    gameType: "Mugungwha",
+                });
+            },
+        });
     }
 
     update(time: number, delta: number) {
@@ -311,8 +313,10 @@ export class Mugungwha extends Scene {
         }
         this.lastDistance = this.distanceMoved;
 
+        // Update internal counter if not watching
         if (!this.isWatching) {
             this.watchingCounter += Phaser.Math.Between(0, 2);
+            // Display alert messages based on the watchingCounter
             if (this.watchingCounter > 250 && this.alerLevel < 1) {
                 this.alerLevel = 1;
                 this.mugungwha_01?.play();
@@ -328,6 +332,7 @@ export class Mugungwha extends Scene {
                         stroke: "#000000",
                         strokeThickness: 2,
                         align: "center",
+                        fontFamily: "Jua",
                     }
                 );
             }
@@ -347,10 +352,11 @@ export class Mugungwha extends Scene {
                         stroke: "#000000",
                         strokeThickness: 2,
                         align: "center",
+                        fontFamily: "Jua",
                     }
                 );
             }
-
+            // If alert level 3 is reached, change the button color and play sound
             if (this.watchingCounter > 1000 && this.alerLevel < 3) {
                 this.isWatching = true;
                 this.gameButton.tint = 0xff0000;
@@ -368,11 +374,12 @@ export class Mugungwha extends Scene {
                         stroke: "#000000",
                         strokeThickness: 2,
                         align: "center",
+                        fontFamily: "Jua",
                     }
                 );
 
                 this.gameButtonText.setText("STOP!");
-
+                // Reset the button color after 2 seconds
                 this.time.addEvent({
                     delay: 2000,
                     callback: () => {
