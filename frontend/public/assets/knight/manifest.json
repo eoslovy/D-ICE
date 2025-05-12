@@ -1,0 +1,115 @@
+[
+    {
+        "key": "knight_attack_1",
+        "type": "spritesheet",
+        "path": "assets/knight/Attack_1.png",
+        "frameConfig": { "frameWidth": 128, "frameHeight": 128 },
+        "animations": [ { "key": "knight_attack_1", "frames": { "start": 0, "end": 4 }, "frameRate": 20, "repeat": 0 } ]
+    },
+    {
+        "key": "knight_attack_2",
+        "type": "spritesheet",
+        "path": "assets/knight/Attack_2.png",
+        "frameConfig": { "frameWidth": 128, "frameHeight": 128 },
+        "animations": [ { "key": "knight_attack_2", "frames": { "start": 0, "end": 3 }, "frameRate": 20, "repeat": 0 } ]
+    },
+    {
+        "key": "knight_attack_3",
+        "type": "spritesheet",
+        "path": "assets/knight/Attack_3.png",
+        "frameConfig": { "frameWidth": 128, "frameHeight": 128 },
+        "animations": [ { "key": "knight_attack_3", "frames": { "start": 0, "end": 3 }, "frameRate": 20, "repeat": 0 } ]
+    },
+    {
+        "key": "knight_dead",
+        "type": "spritesheet",
+        "path": "assets/knight/Dead.png",
+        "frameConfig": { "frameWidth": 128, "frameHeight": 128 },
+        "animations": [ { "key": "knight_dead", "frames": { "start": 0, "end": 5 }, "frameRate": 20, "repeat": 0 } ]
+    },
+    {
+        "key": "knight_defend",
+        "type": "spritesheet",
+        "path": "assets/knight/Defend.png",
+        "frameConfig": { "frameWidth": 128, "frameHeight": 128 },
+        "animations": [ { "key": "knight_defend", "frames": { "start": 0, "end": 4 }, "frameRate": 20, "repeat": 0 } ]
+    },
+    {
+        "key": "knight_hurt",
+        "type": "spritesheet",
+        "path": "assets/knight/Hurt.png",
+        "frameConfig": { "frameWidth": 128, "frameHeight": 128 },
+        "animations": [ { "key": "knight_hurt", "frames": { "start": 0, "end": 1 }, "frameRate": 2, "repeat": 0 } ]
+    },
+    {
+        "key": "knight_idle",
+        "type": "spritesheet",
+        "path": "assets/knight/Idle.png",
+        "frameConfig": { "frameWidth": 128, "frameHeight": 128 },
+        "animations": [ { "key": "knight_idle", "frames": { "start": 0, "end": 3 }, "frameRate": 5, "repeat": -1 } ]
+    },
+    {
+        "key": "knight_jump",
+        "type": "spritesheet",
+        "path": "assets/knight/Jump.png",
+        "frameConfig": { "frameWidth": 128, "frameHeight": 128 },
+        "animations": [ { "key": "knight_jump", "frames": { "start": 0, "end": 5 }, "frameRate": 20, "repeat": 0 } ]
+    },
+    {
+        "key": "knight_protect",
+        "type": "spritesheet",
+        "path": "assets/knight/Protect.png",
+        "frameConfig": { "frameWidth": 128, "frameHeight": 128 },
+        "animations": [ { "key": "knight_protect", "frames": { "start": 0, "end": 0 }, "frameRate": 20, "repeat": -1 } ]
+    },
+    {
+        "key": "knight_run_attack",
+        "type": "spritesheet",
+        "path": "assets/knight/Run_Attack.png",
+        "frameConfig": { "frameWidth": 128, "frameHeight": 128 },
+        "animations": [ { "key": "knight_run_attack", "frames": { "start": 0, "end": 6 }, "frameRate": 20, "repeat": 0 } ]
+    },
+    {
+        "key": "knight_run",
+        "type": "spritesheet",
+        "path": "assets/knight/Run.png",
+        "frameConfig": { "frameWidth": 128, "frameHeight": 128 },
+        "animations": [ { "key": "knight_run", "frames": { "start": 0, "end": 5 }, "frameRate": 20, "repeat": -1 } ]
+    },
+    {
+        "key": "knight_walk",
+        "type": "spritesheet",
+        "path": "assets/knight/Walk.png",
+        "frameConfig": { "frameWidth": 128, "frameHeight": 128 },
+        "animations": [ { "key": "knight_walk", "frames": { "start": 0, "end": 7 }, "frameRate": 20, "repeat": -1 } ]
+    },
+    {
+        "key": "knight_slash",
+        "type": "spritesheet",
+        "path": "assets/knight/Slash_Curved_07_BW_SpriteSheet.png",
+        "frameConfig": { "frameWidth": 512, "frameHeight": 512 },
+        "animations": [ { "key": "knight_slash", "frames": { "start": 0, "end": 5 }, "frameRate": 20, "repeat": 0 } ]
+    },
+    {
+        "key": "knight_parry",
+        "type": "spritesheet",
+        "path": "assets/knight/Flame_3_SpriteSheet.png",
+        "frameConfig": { "frameWidth": 512, "frameHeight": 512 },
+        "animations": [ { "key": "knight_parry", "frames": { "start": 0, "end": 15 }, "frameRate": 20, "repeat": 0 } ]
+    },
+    {
+        "key": "slash_challenge",
+        "type": "image",
+        "path": "assets/knight/slash_challenge.png"
+    },
+    {
+        "key": "parry_challenge",
+        "type": "image",
+        "path": "assets/knight/parry_challenge.png"
+    },
+    {
+        "key": "knight_bg",
+        "type": "image",
+        "path": "assets/knight/knight_bg.png"
+    }
+]
