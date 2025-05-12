@@ -1,0 +1,14 @@
+[
+    {
+        "key": "mugungwha_player",
+        "type": "spritesheet",
+        "path": "assets/mugungwha/mugungwha_player.png",
+        "frameConfig": { "frameWidth": 256, "frameHeight": 388 },
+        "animations": [ { "key": "mugungwha_player", "frames": { "start": 0, "end": 5 }, "frameRate": 20, "repeat": 0 } ]
+    },
+    {
+        "key": "mugungwha_background",
+        "type": "image",
+        "path": "assets/mugungwha/mugungwha_background.png"
+    }
+]
