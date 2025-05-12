@@ -24,7 +24,7 @@ export default function Set() {
 
             adminStore.getState().setAdministratorId(administratorId);
             
-            const ADMIN_WS_URL = `${import.meta.env.VITE_WEBSOCKET_URL}/ws/game/admin/${roomCode}`;
+            const ADMIN_WS_URL = `${import.meta.env.VITE_WEBSOCKET_URL}/backbone/ws/game/admin/${roomCode}`;
             connectWebSocket("admin", ADMIN_WS_URL);
 
             adminWebSocketManager.on(
