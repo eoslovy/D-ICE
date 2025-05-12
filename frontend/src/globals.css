@@ -213,7 +213,7 @@
   }
 
   .rankings-header {
-    @apply p-4 text-white font-bold;
+    @apply p-4 font-bold;
     background-color: var(--primary-color);
     color: var(--tertiary-color);
   }
@@ -583,4 +583,20 @@
 .dark .game-enter{
   font: medium;
   color: #1e1e1e;
+}
+
+.text-warning{
+  color: red;
+  margin-top: calc(var(--spacing) * 4);
+  margin-bottom: 0px;
+  display: flex;
+  justify-content: center;
+}
+
+.dark .text-warning{
+  color: red;
+  margin-top: calc(var(--spacing) * 4);
+  margin-bottom: 0px;
+  display: flex;
+  justify-content: center;
 }
