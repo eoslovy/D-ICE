@@ -39,6 +39,7 @@ export class GameInstruction extends Scene {
 
     // 게임 제목
     this.add.text(width / 2, 50, this.gameName, {
+      fontFamily: 'Jua',
       fontSize: '48px',
       color: '#ffffff',
       fontStyle: 'bold'

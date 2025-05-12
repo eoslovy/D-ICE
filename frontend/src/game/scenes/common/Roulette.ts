@@ -144,7 +144,7 @@ export class Roulette extends Scene {
       fontSize: '32px',
       color: '#fff',
       fontStyle: 'bold',
-      fontFamily: 'Arial',
+      fontFamily: 'Jua',
       stroke: '#222',
       strokeThickness: 4,
       align: 'center'
@@ -301,7 +301,7 @@ export class Roulette extends Scene {
       fontSize: '28px',
       color: '#273c75',
       fontStyle: 'bold',
-      fontFamily: 'Arial'
+      fontFamily: 'Jua'
     }).setOrigin(0.5);
     modalContainer.add(titleText);
 
@@ -310,7 +310,7 @@ export class Roulette extends Scene {
       fontSize: '48px',
       color: '#192a56',
       fontStyle: 'bold',
-      fontFamily: 'Arial',
+      fontFamily: 'Jua',
       stroke: '#fff',
       strokeThickness: 4,
       align: 'center',
