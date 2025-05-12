@@ -12,7 +12,7 @@ export class UITimer {
         this.phaserScene = phaserScene;
         this.timerText = this.phaserScene.add.text(x, y, '', {
             fontSize: '48px',
-            fontFamily: 'Arial',
+            fontFamily: 'Jua',
             color: '#ffffff',
             stroke: '#000000',
             align: 'center',

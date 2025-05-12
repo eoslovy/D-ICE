@@ -18,7 +18,7 @@ export class UICountdown {
         }
         this.countdownText = this.phaserScene.add.text(x, y, '', {
             fontSize: '128px',
-            fontFamily: 'Arial',
+            fontFamily: 'Jua',
             color: '#ffffff',
             stroke: '#000000',
             align: 'center',

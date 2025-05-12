@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { userStore } from '../../stores/userStore';
+import { userStore } from '../../../stores/userStore';
 
 interface EndGameSceneData {
     totalScore: number;
