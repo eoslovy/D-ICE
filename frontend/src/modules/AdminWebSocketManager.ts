@@ -31,16 +31,16 @@ class AdminWebSocketManager extends WebSocketManager<AdminReceiveTypeMap> {
         });
     }
 
-    sendSessionInit(requestId: string, totalRound: number | null): void {
+    sendSessionInit(requestId: string, totalRound: number | null): boolean {
         const administratorId = adminStore.getState().administratorId;
         if (!administratorId) {
             console.error(
                 "[WebSocketManager] Administrator ID not found in local storage."
             );
-            return;
+            return false;
         }
         // Use sendRequest
-        this.sendRequest({
+        return this.sendRequest({
             type: "INIT",
             administratorId,
             totalRound,
@@ -48,16 +48,16 @@ class AdminWebSocketManager extends WebSocketManager<AdminReceiveTypeMap> {
         });
     }
 
-    sendStartGame(requestId: string): void {
+    sendStartGame(requestId: string): boolean {
         const administratorId = adminStore.getState().administratorId;
         if (!administratorId) {
             console.error(
                 "[WebSocketManager] Administrator ID not found in local storage."
             );
-            return;
+            return false;
         }
         // Use sendRequest
-        this.sendRequest({
+        return this.sendRequest({
             type: "START_GAME",
             administratorId,
             requestId,

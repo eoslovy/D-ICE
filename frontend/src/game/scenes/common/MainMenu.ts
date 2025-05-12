@@ -36,14 +36,14 @@ export class MainMenu extends Phaser.Scene {
 
     // Add title text
     this.add.text(width / 2, height * 0.2, 'TOUCH TOUCH', {
-      fontFamily: 'Arial',
+      fontFamily: 'Jua',
       fontSize: '48px',
       color: '#ffffff'
     }).setOrigin(0.5);
 
     // Add tap instruction
     this.add.text(width / 2, height * 0.8, 'Tap to Get Scores!', {
-      fontFamily: 'Arial',
+      fontFamily: 'Jua',
       fontSize: '24px',
       color: '#ffffff',
       align: 'center'
@@ -69,7 +69,7 @@ export class MainMenu extends Phaser.Scene {
 
     // Button text
     const buttonText = this.add.text(0, 0, text, {
-      fontFamily: 'Arial',
+      fontFamily: 'Jua',
       fontSize: '32px',
       color: '#ffffff'
     }).setOrigin(0.5);

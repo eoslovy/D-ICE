@@ -145,7 +145,7 @@ export class Josephus extends Scene {
                 (this.cameras.main.height * 4) / 5,
                 "최후의 생존자는 누구?",
                 {
-                    fontFamily: "Arial",
+                    fontFamily: "Jua",
                     fontSize: "72px",
                     color: "#ffffff",
                     align: "center",
@@ -190,7 +190,7 @@ export class Josephus extends Scene {
                         stroke: "#000000",
                         strokeThickness: 2,
                         align: "center",
-                        fontFamily: "Arial",
+                        fontFamily: "Jua",
                         fontStyle: "bold",
                     }
                 );
@@ -226,7 +226,7 @@ export class Josephus extends Scene {
                 stroke: "#000000",
                 strokeThickness: 2,
                 align: "center",
-                fontFamily: "Arial",
+                fontFamily: "Jua",
                 fontStyle: "bold",
             }
         );
@@ -338,7 +338,7 @@ export class Josephus extends Scene {
                             stroke: "#000000",
                             strokeThickness: 2,
                             align: "center",
-                            fontFamily: "Arial",
+                            fontFamily: "Jua",
                             fontStyle: "bold",
                         }
                     );
@@ -363,7 +363,7 @@ export class Josephus extends Scene {
                 stroke: "#000000",
                 strokeThickness: 2,
                 align: "center",
-                fontFamily: "Arial",
+                fontFamily: "Jua",
                 fontStyle: "bold",
             }
         );

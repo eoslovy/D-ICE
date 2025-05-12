@@ -115,7 +115,7 @@ class OverlayScene extends Phaser.Scene {
             return;
         }
         const style = {
-            fontFamily: 'Arial',
+            fontFamily: 'Jua',
             fontSize: `${size}px`,
             fontStyle: 'bold',
             fontWeight: 'bold',

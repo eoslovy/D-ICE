@@ -82,7 +82,7 @@ export class Mugungwha extends Scene {
                     item.setOrigin(0.5, 0.5);
                     item.setStyle({
                         fontSize: "64px",
-                        fontFamily: "Arial",
+                        fontFamily: "Jua",
                         color: "#ffffff",
                         stroke: "#000000",
                         strokeThickness: 2,
@@ -229,7 +229,7 @@ export class Mugungwha extends Scene {
         this.gameButtonText = this.add
             .text(buttonX, buttonY, "GO!", {
                 fontSize: "84px",
-                fontFamily: "Arial",
+                fontFamily: "Jua",
                 color: "#ffffff",
                 align: "center",
                 fontStyle: "bold",
@@ -261,7 +261,7 @@ export class Mugungwha extends Scene {
                         stroke: "#000000",
                         strokeThickness: 2,
                         align: "center",
-                        fontFamily: "Arial",
+                        fontFamily: "Jua",
                         fontStyle: "bold",
                     }
                 );
@@ -297,7 +297,7 @@ export class Mugungwha extends Scene {
                 stroke: "#000000",
                 strokeThickness: 2,
                 align: "center",
-                fontFamily: "Arial",
+                fontFamily: "Jua",
                 fontStyle: "bold",
             }
         );

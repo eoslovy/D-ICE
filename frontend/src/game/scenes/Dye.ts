@@ -106,7 +106,7 @@ export class Dye extends Scene {
                 // Increased font, adjusted Y offset
                 fontSize: "40px",
                 color: "#ffffff",
-                fontFamily: "Arial",
+                fontFamily: "Jua",
                 fontStyle: "bold",
             })
             .setOrigin(0.5);
@@ -521,7 +521,7 @@ export class Dye extends Scene {
                 stroke: "#000000",
                 strokeThickness: 2,
                 align: "center",
-                fontFamily: "Arial",
+                fontFamily: "Jua",
                 fontStyle: "bold",
             }
         );
@@ -549,7 +549,7 @@ export class Dye extends Scene {
                 stroke: "#000000",
                 strokeThickness: 2,
                 align: "center",
-                fontFamily: "Arial",
+                fontFamily: "Jua",
                 fontStyle: "bold",
             }
         );
@@ -606,7 +606,7 @@ export class Dye extends Scene {
                             stroke: "#000000",
                             strokeThickness: 2,
                             align: "center",
-                            fontFamily: "Arial",
+                            fontFamily: "Jua",
                             fontStyle: "Bold",
                         }
                     );
@@ -636,7 +636,7 @@ export class Dye extends Scene {
                             stroke: "#000000",
                             strokeThickness: 2,
                             align: "center",
-                            fontFamily: "Arial",
+                            fontFamily: "Jua",
                             fontStyle: "Bold",
                         }
                     );
@@ -663,7 +663,7 @@ export class Dye extends Scene {
                         stroke: "#000000",
                         strokeThickness: 2,
                         align: "center",
-                        fontFamily: "Arial",
+                        fontFamily: "Jua",
                         fontStyle: "bold",
                     }
                 );
