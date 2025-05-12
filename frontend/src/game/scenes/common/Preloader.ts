@@ -1,45 +1,22 @@
 import Phaser from "phaser";
 import userWebSocketManager from "../../../modules/UserWebSocketManager";
 import { LoadManifestFromJSON } from "../../../modules/gameutils/LoadSpritesManifest";
-
-interface GameInfo {
-    nextGame: string;
-    rouletteGames: {
-        name: string;
-        key: string;
-        color: number;
-    }[];
-}
+import { DiceMiniGame } from "../DiceMiniGame";
+import { userStore } from "../../../stores/userStore";
 
 export class Preloader extends Phaser.Scene {
+    private diceMiniGame?: DiceMiniGame;
     private waitingText?: Phaser.GameObjects.Text;
     private readyToStart: boolean = false;
-    private mockNextGame: string = "Clicker";
-    private mockGameInfo: GameInfo = {
-        nextGame: "PerfectCircle",
-        rouletteGames: [
-            { name: "반응속도 게임", key: "Reaction", color: 0x2ed573 },
-            { name: "클리커", key: "Clicker", color: 0xff4757 },
-            { name: "원 그리기 게임", key: "PerfectCircle", color: 0x1e90ff },
-            { name: "퍼즐 게임", key: "Puzzle", color: 0xffa502 },
-            { name: "리듬 게임", key: "Rhythm", color: 0xe84393 },
-            { name: "타이핑 게임", key: "Typing", color: 0xa8e6cf },
-            { name: "카드 매칭", key: "Cards", color: 0x3742fa },
-            { name: "미로 찾기", key: "Maze", color: 0x2f3542 },
-            { name: "색상 맞추기", key: "Color", color: 0x7bed9f },
-            { name: "숫자 게임", key: "Number", color: 0xfed330 },
-            { name: "무궁화", key: "Mugungwha", color: 0xff6348 },
-            { name: "줄타기", key: "Wirewalk", color: 0x1dd1a1 },
-            { name: "요세푸스", key: "Josephus", color: 0xff6b81 },
-            { name: "염색", key: "Dye", color: 0xff9f43 },
-        ],
-    };
 
     constructor() {
         super({ key: "Preloader" });
     }
 
     preload() {
+        this.load.image("dice-albedo", "assets/dice/dice-albedo.png");
+        this.load.obj("dice-obj", "assets/dice/dice.obj");
+
         const width = this.cameras.main.width;
         const height = this.cameras.main.height;
 
@@ -50,7 +27,7 @@ export class Preloader extends Phaser.Scene {
 
         const loadingText = this.add
             .text(width / 2, height / 2 - 50, "Loading...", {
-                fontFamily: "Arial",
+                fontFamily: "Jua",
                 fontSize: "20px",
                 color: "#ffffff",
             })
@@ -71,7 +48,7 @@ export class Preloader extends Phaser.Scene {
             progressBar.destroy();
             progressBox.destroy();
             loadingText.destroy();
-            this.showWaitingMessage();
+            this.showWaitingScene();
         });
 
         this.load.image("bg", "assets/bg.png");
@@ -80,16 +57,18 @@ export class Preloader extends Phaser.Scene {
         LoadManifestFromJSON(this, "assets/manifest.json");
     }
 
-    private showWaitingMessage() {
+    private showWaitingScene() {
         const { width, height } = this.cameras.main;
+        this.diceMiniGame = new DiceMiniGame(this);
+        this.diceMiniGame.create(width / 2, height / 2);
 
         this.waitingText = this.add
             .text(
                 width / 2,
-                height / 2 - 50,
-                "다른 유저를 기다리는 중입니다...",
+                height / 2 - 350,
+                "다음 게임을 기다리는 중...",
                 {
-                    fontFamily: "Arial",
+                    fontFamily: "Jua",
                     fontSize: "32px",
                     color: "#ffffff",
                     align: "center",
@@ -105,7 +84,7 @@ export class Preloader extends Phaser.Scene {
                 dots = dots.length >= 3 ? "" : dots + ".";
                 if (this.waitingText && !this.readyToStart) {
                     this.waitingText.setText(
-                        "다른 유저를 기다리는 중입니다" + dots
+                        "다음 게임을 기다리는 중" + dots
                     );
                 }
             },
@@ -116,26 +95,31 @@ export class Preloader extends Phaser.Scene {
     private moveToRoulette() {
         // 텍스트 제거
         this.waitingText?.destroy();
+        // 다이스 제거
+        this.diceMiniGame?.destroy();
 
         this.scene.start("Roulette", {
-            games: this.mockGameInfo.rouletteGames,
-            nextGame: this.mockGameInfo.nextGame,
+            nextGame: userStore.getState().gameType,
             onComplete: () => {
+                console.log("Roulette Scene Stop");
                 this.scene.stop("Roulette");
-                this.scene.start(this.mockGameInfo.nextGame);
+                this.scene.start(userStore.getState().gameType);
             },
         });
     }
 
     create() {
+        this.cameras.main.setBackgroundColor('#2b2e4a');
         // 메시지 타입별 리스너 등록
         console.log("WAIT 이벤트 리스너 등록");
         userWebSocketManager.on("WAIT", (payload: WaitMessage) => {
             console.log("WAIT 응답 성공:", payload);
             this.readyToStart = true;
             if (payload) {
-                //this.mockGameInfo.nextGame = this.mockNextGame;
-                this.mockGameInfo.nextGame = payload.gameType;
+                userStore.getState().setGameType(payload.gameType);
+                userStore.getState().setStartAt(payload.startAt);
+                userStore.getState().setDuration(payload.duration);
+                userStore.getState().setCurrentMs(payload.currentMs);
             }
             this.moveToRoulette();
         });
