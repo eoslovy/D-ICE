@@ -4,15 +4,6 @@ import PhaserGame from "./PhaserGame";
 import OverlayScreen, { OverlayScreenHandle } from '../modules/OverlayScreen';
 // Test Modules import
 import TestModules from '../modules/TestModules';
-import userWebSocketManager from "../modules/UserWebSocketManager";
-
-// Define props if you need to pass data to control connection
-interface AppProps {
-  // Example prop: maybe a room ID is needed to decide if we should connect
-  roomId?: string;
-  // Or a simple flag
-  shouldConnect?: boolean;
-}
 
 // Use the props in the component definition (optional, adjust as needed)
 export default function App(/*{ roomId = "wasted", shouldConnect = true }: AppProps*/) {
@@ -36,26 +27,6 @@ export default function App(/*{ roomId = "wasted", shouldConnect = true }: AppPr
     return () => window.removeEventListener('resize', checkOrientation);
   }, []); // Empty dependency array means this runs once on mount and cleans up on unmount
 
-  // Effect for WebSocket connection management
-  // useEffect(() => {
-  //   // Only connect if the condition is met (e.g., shouldConnect prop is true)
-  //   if (shouldConnect) {
-  //     console.log('[App] Connecting WebSocket...');
-  //     userWebSocketManager.connect();
-
-  //     // Return a cleanup function to disconnect when the component unmounts
-  //     // or when the 'shouldConnect' prop changes to false
-  //     return () => {
-  //         console.log("[App] Disconnecting WebSocket...");
-  //         userWebSocketManager.disconnect();
-  //     };
-  //   } else {
-  //     // Ensure disconnected if condition is false
-  //     userWebSocketManager.disconnect();
-  //   }
-  //   // Add shouldConnect to dependency array if connection depends on it
-  // }, [shouldConnect]);
-
   // OverlayScreen ref to call methods on the Phaser game instance
   const overlayRef = useRef<OverlayScreenHandle>(null);
   const handleTriggerEffect = () => {
@@ -77,12 +48,13 @@ export default function App(/*{ roomId = "wasted", shouldConnect = true }: AppPr
   };
 
   return (
+    
     <div className="game-container">
       {/* Conditionally render PhaserGame based on connection or other logic if needed */}
       <div id="phaser-game-container" style={{ width: '100%', height: '100%' }}>
         <PhaserGame />
       </div>
-
+      
       <button
         onClick={() => navigate('/')}
         className="back-button"

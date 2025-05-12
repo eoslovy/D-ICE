@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { userStore } from '../../../stores/userStore';
+import { addBackgroundImage } from './addBackgroundImage';
 
 interface EndGameSceneData {
     totalScore: number;
@@ -21,15 +22,15 @@ export class EndGame extends Phaser.Scene {
             overallRank
         });
 
+        //배경
+        addBackgroundImage(this);
+
         this.showFinalResults(totalScore, rankRecord, overallRank);
     }
 
     private showFinalResults(totalScore: number, rankRecord: string, overallRank: number) {
         const width = this.cameras.main.width;
         const height = this.cameras.main.height;
-
-        // Background
-        this.add.rectangle(0, 0, width, height, 0x000000, 0.8).setOrigin(0);
 
         // Title
         this.add.text(width / 2, height * 0.2, '최종 결과', {

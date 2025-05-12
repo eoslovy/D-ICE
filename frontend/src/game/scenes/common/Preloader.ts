@@ -3,6 +3,7 @@ import userWebSocketManager from "../../../modules/UserWebSocketManager";
 import { LoadManifestFromJSON } from "../../../modules/gameutils/LoadSpritesManifest";
 //import { DiceMiniGame } from "../DiceMiniGame";
 import { userStore } from "../../../stores/userStore";
+import { addBackgroundImage } from "./addBackgroundImage";
 
 export class Preloader extends Phaser.Scene {
     //private diceMiniGame?: DiceMiniGame;
@@ -61,13 +62,7 @@ export class Preloader extends Phaser.Scene {
         const { width, height } = this.cameras.main;
 
         //배경
-        this.add.image(
-            width / 2,
-            height / 2,
-            "Background"
-        )
-        .setDisplaySize(width, height)
-        .setDepth(-10);
+        addBackgroundImage(this);
 
         //this.diceMiniGame = new DiceMiniGame(this);
         //this.diceMiniGame.create(width / 2, height / 2);
