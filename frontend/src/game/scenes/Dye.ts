@@ -538,21 +538,16 @@ export class Dye extends Scene {
         const elapsedTime = Date.now() - this.gameStartedTime;
         const finalScore = this.getFinalScore();
 
-        this.popupText.popupText(
-            `Score: ${finalScore}`,
-            this.cameras.main.centerX,
-            this.cameras.main.centerY + 100,
-            3000,
-            {
-                fontSize: "80px",
-                color: "#ffffff",
-                stroke: "#000000",
-                strokeThickness: 2,
-                align: "center",
-                fontFamily: "Jua",
-                fontStyle: "bold",
-            }
-        );
+        // pop up result
+        this.time.addEvent({
+            delay: 1000,
+            callback: () => {
+                this.scene.start("GameOver", {
+                    score: finalScore,
+                    gameType: "Dye",
+                });
+            },
+        });
     }
 
     update(time: number, delta: number) {
@@ -564,6 +559,7 @@ export class Dye extends Scene {
     }
 
     judgeColorMatch() {
+        // Judding the color match
         const individualResultDuration = 2500; // How long each individual result is shown
         const staggerDelay = 400; // Delay between showing each marker's result
         const resultsYPosition = this.cameras.main.centerY - 150; // Y position for individual results
@@ -667,11 +663,7 @@ export class Dye extends Scene {
                         fontStyle: "bold",
                     }
                 );
-                // Call result() to show the final (best) score after "Game Over" has appeared
-                this.time.delayedCall(1000, () => {
-                    // Show final score 1s after "Game Over"
-                    this.result();
-                });
+                this.result();
             },
         });
     }
