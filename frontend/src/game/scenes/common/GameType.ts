@@ -12,4 +12,5 @@ export const GAME_TYPES: GameTypeInfo[] = [
   { name: "줄타기", key: "Wirewalk"},
   { name: "요세푸스", key: "Josephus"},
   { name: "염색", key: "Dye"},
+  { name: "숫자 생존게임", key: "NumberSurvivor"},
 ];
