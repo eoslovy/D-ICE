@@ -12,6 +12,7 @@ import org.springframework.web.socket.WebSocketSession;
 
 import com.gameydg.numberSurvivor.dto.PlayerDto;
 import com.gameydg.numberSurvivor.manager.NumberSurvivorManager;
+import com.gameydg.numberSurvivor.repository.RoomRedisRepository;
 import com.gameydg.numberSurvivor.session.GameSessionRegistry;
 
 import jakarta.annotation.PreDestroy;
@@ -25,6 +26,7 @@ import lombok.extern.slf4j.Slf4j;
 public class GameMessageService {
     private final GameSessionRegistry sessionRegistry;
     private final NumberSurvivorManager gameManager;
+    private final RoomRedisRepository roomRedisRepository;
     
     // 비동기 작업을 위한 실행기 - I/O 작업 처리용
     private final ExecutorService executorService = Executors.newFixedThreadPool(10);
@@ -150,7 +152,8 @@ public class GameMessageService {
         List<PlayerDto> winners = gameManager.getWinners(roomId);
         log.info("[메시지 서비스] 게임 종료 메시지 전송 [방ID: {}, 우승자: {}명, 시간제한종료: {}]", 
                 roomId, winners.size(), isTimeLimit);
-        
+
+        roomRedisRepository.setAggregationTime(roomId);
         Map<String, Object> gameOverMessage = new HashMap<>();
         gameOverMessage.put("type", "GAME_OVER");
         gameOverMessage.put("winners", winners);
