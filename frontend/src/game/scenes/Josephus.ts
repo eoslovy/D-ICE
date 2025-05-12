@@ -191,7 +191,7 @@ export class Josephus extends Scene {
                         stroke: "#000000",
                         strokeThickness: 2,
                         align: "center",
-                        fontFamily: "Jua",
+                        fontFamily: "Fredoka",
                         fontStyle: "bold",
                     }
                 );
@@ -358,7 +358,7 @@ export class Josephus extends Scene {
             "생존!!",
             this.cameras.main.centerX,
             this.cameras.main.centerY,
-            1000,
+            500,
             {
                 fontSize: "128px",
                 color: "#00ff00",

@@ -198,7 +198,7 @@ export class Mugungwha extends Scene {
                     randomX,
                     randomY
                 ) as Phaser.GameObjects.Text;
-                curText.setText(randomX % 2 == 0 ? "가자!" : "Go!");
+                curText.setText(randomX % 2 == 0 ? "가자!" : "GO!");
                 curText.rotation = Phaser.Math.DegToRad(
                     Phaser.Math.Between(0, 360)
                 );
@@ -236,8 +236,8 @@ export class Mugungwha extends Scene {
             });
         this.gameButtonText = this.add
             .text(buttonX, buttonY, "GO!", {
-                fontSize: "84px",
-                fontFamily: "Jua",
+                fontSize: "72px",
+                fontFamily: "Fredoka",
                 color: "#ffffff",
                 align: "center",
                 fontStyle: "bold",
@@ -269,7 +269,7 @@ export class Mugungwha extends Scene {
                         stroke: "#000000",
                         strokeThickness: 2,
                         align: "center",
-                        fontFamily: "Jua",
+                        fontFamily: "Fredoka",
                         fontStyle: "bold",
                     }
                 );

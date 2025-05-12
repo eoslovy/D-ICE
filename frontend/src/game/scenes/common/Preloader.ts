@@ -14,6 +14,8 @@ export class Preloader extends Phaser.Scene {
     }
 
     preload() {
+        this.load.font("Jua", "assets/fonts/Jua-Regular.ttf");
+        this.load.font("FredokaOne", "assets/fonts/Fredoka-Regular.ttf");
         this.load.image("dice-albedo", "assets/dice/dice-albedo.png");
         this.load.obj("dice-obj", "assets/dice/dice.obj");
 
@@ -27,7 +29,7 @@ export class Preloader extends Phaser.Scene {
 
         const loadingText = this.add
             .text(width / 2, height / 2 - 50, "Loading...", {
-                fontFamily: "Jua",
+                fontFamily: "Fredoka",
                 fontSize: "20px",
                 color: "#ffffff",
             })
