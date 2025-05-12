@@ -39,20 +39,19 @@ public class NumberSurvivorManager {
 	// 게임 제한 시간 설정
 	public void setGameDurationLimit(String roomId, long durationMs) {
 		gameDurationLimits.put(roomId, durationMs);
-		log.info("게임 제한 시간 설정 [방ID: {}, 제한 시간: {}ms]", roomId, durationMs);
 	}
 	
 	public void joinRoom(String roomId, PlayerDto player) {
 		rooms.computeIfAbsent(roomId, k -> new HashSet<>()).add(player);
 		currentRounds.putIfAbsent(roomId, 1);
 		roundSelections.putIfAbsent(roomId, new ConcurrentHashMap<>());
-		
-		// 기본 게임 제한 시간 설정 (아직 설정되지 않은 경우)
 		gameDurationLimits.putIfAbsent(roomId, DEFAULT_GAME_DURATION_LIMIT);
+		
+		log.info("[게임 매니저] 플레이어 입장 [방ID: {}, 사용자ID: {}, 닉네임: {}]", 
+				roomId, player.getUserId(), player.getNickname());
 	}
 
 	public void startGame(String roomId) {
-		// 방이 존재하지 않으면 초기화
 		if (!rooms.containsKey(roomId)) {
 			rooms.putIfAbsent(roomId, new HashSet<>());
 		}
@@ -64,17 +63,15 @@ public class NumberSurvivorManager {
 		if (!roundSelections.containsKey(roomId)) {
 			roundSelections.put(roomId, new ConcurrentHashMap<>());
 		} else {
-			// 선택 기록 초기화
 			roundSelections.get(roomId).clear();
 		}
 		
-		// 게임 시작 시간 기록
 		long startTime = System.currentTimeMillis();
 		gameStartTimes.put(roomId, startTime);
-		log.info("게임 시작 시간 기록 [방ID: {}, 시간: {}, 제한시간: {}ms]", 
-		        roomId, startTime, gameDurationLimits.getOrDefault(roomId, DEFAULT_GAME_DURATION_LIMIT));
 		
-		// 모든 플레이어 초기 상태 설정
+		log.info("[게임 매니저] 게임 시작 [방ID: {}, 플레이어: {}명, 제한시간: {}ms]", 
+				roomId, rooms.get(roomId).size(), gameDurationLimits.getOrDefault(roomId, DEFAULT_GAME_DURATION_LIMIT));
+		
 		if (rooms.containsKey(roomId)) {
 			rooms.get(roomId).forEach(player -> {
 				player.setAlive(true);
@@ -88,13 +85,8 @@ public class NumberSurvivorManager {
 		long startTime = System.currentTimeMillis();
 		roundStartTimes.put(roomId, startTime);
 		
-		// 게임 시작 후 경과 시간 계산
-		long gameStartTime = gameStartTimes.getOrDefault(roomId, 0L);
-		long gameElapsedTime = startTime - gameStartTime;
-		long remainingTime = getRemainingGameTime(roomId);
-		
-		log.info("라운드 시작 시간 기록 [방ID: {}, 현재라운드: {}, 시간: {}, 게임경과: {}ms, 게임남은시간: {}ms]", 
-				roomId, currentRounds.get(roomId), startTime, gameElapsedTime, remainingTime);
+		log.info("[게임 매니저] 라운드 시작 [방ID: {}, 라운드: {}]", 
+				roomId, currentRounds.get(roomId));
 	}
 	
 	// 게임 남은 시간 계산 (밀리초)
@@ -102,12 +94,7 @@ public class NumberSurvivorManager {
 		long startTime = gameStartTimes.getOrDefault(roomId, 0L);
 		long duration = gameDurationLimits.getOrDefault(roomId, DEFAULT_GAME_DURATION_LIMIT);
 		long currentTime = System.currentTimeMillis();
-		long remainingTime = Math.max(0, startTime + duration - currentTime);
-		
-		log.debug("게임 남은 시간 계산 [방ID: {}, 시작: {}, 현재: {}, 제한: {}ms, 남은시간: {}ms]",
-		        roomId, startTime, currentTime, duration, remainingTime);
-		
-		return remainingTime;
+		return Math.max(0, startTime + duration - currentTime);
 	}
 	
 	// 현재 라운드 경과 시간 (밀리초)
@@ -116,45 +103,32 @@ public class NumberSurvivorManager {
 		if (roundStart == 0) {
 			return 0;
 		}
-		
-		long currentTime = System.currentTimeMillis();
-		long elapsedTime = currentTime - roundStart;
-		
-		log.debug("라운드 경과 시간 [방ID: {}, 라운드: {}, 시작: {}, 현재: {}, 경과: {}ms]", 
-		        roomId, currentRounds.get(roomId), roundStart, currentTime, elapsedTime);
-		
-		return elapsedTime;
+		return System.currentTimeMillis() - roundStart;
 	}
 	
-	/**
-	 * 방에서 플레이어 나가기
-	 * @param roomId 방 ID
-	 * @param userId 사용자 ID
-	 * @return 제거 성공 여부
-	 */
+	// 방에서 플레이어 나가기
 	public boolean leaveRoom(String roomId, String userId) {
 		if (!rooms.containsKey(roomId)) {
-			log.warn("leaveRoom 실패 - 존재하지 않는 방 [방ID: {}, 사용자ID: {}]", roomId, userId);
+			log.warn("[게임 매니저] 방 퇴장 실패 - 존재하지 않는 방 [방ID: {}, 사용자ID: {}]", roomId, userId);
 			return false;
 		}
 		
 		PlayerDto playerToRemove = findPlayer(roomId, userId);
 		if (playerToRemove == null) {
-			log.warn("leaveRoom 실패 - 존재하지 않는 플레이어 [방ID: {}, 사용자ID: {}]", roomId, userId);
+			log.warn("[게임 매니저] 방 퇴장 실패 - 존재하지 않는 플레이어 [방ID: {}, 사용자ID: {}]", roomId, userId);
 			return false;
 		}
 		
-		// 방에서 플레이어 제거
 		boolean removed = rooms.get(roomId).remove(playerToRemove);
 		
-		// 현재 라운드의 선택 목록에서도 제거
 		if (removed && roundSelections.containsKey(roomId)) {
 			roundSelections.get(roomId).values().forEach(players -> 
 				players.removeIf(p -> p.getUserId().equals(userId))
 			);
 		}
 		
-		log.info("플레이어 방 나가기 처리 [방ID: {}, 사용자ID: {}, 제거 성공: {}]", roomId, userId, removed);
+		log.info("[게임 매니저] 플레이어 퇴장 [방ID: {}, 사용자ID: {}, 닉네임: {}]", 
+				roomId, userId, playerToRemove.getNickname());
 		return removed;
 	}
 
@@ -173,15 +147,12 @@ public class NumberSurvivorManager {
 		List<PlayerDto> survivors = new ArrayList<>();
 		List<PlayerDto> eliminated = new ArrayList<>();
 
-		// 각 숫자별로 처리
 		selections.forEach((number, players) -> {
 			if (players.size() == 1) {
-				// 단독 선택한 플레이어는 생존
 				PlayerDto survivor = players.get(0);
 				survivor.setAlive(true);
 				survivors.add(survivor);
 			} else {
-				// 중복 선택한 플레이어들은 탈락
 				players.forEach(player -> {
 					player.setAlive(false);
 					eliminated.add(player);
@@ -189,9 +160,11 @@ public class NumberSurvivorManager {
 			}
 		});
 
-		// 다음 라운드 준비
 		currentRounds.put(roomId, currentRounds.get(roomId) + 1);
 		roundSelections.get(roomId).clear();
+
+		log.info("[게임 매니저] 라운드 결과 [방ID: {}, 라운드: {}, 생존자: {}명, 탈락자: {}명]", 
+				roomId, currentRounds.get(roomId) - 1, survivors.size(), eliminated.size());
 
 		return RoundResultDto.builder()
 				.round(currentRounds.get(roomId) - 1)
@@ -202,27 +175,37 @@ public class NumberSurvivorManager {
 	}
 
 	public boolean isGameOver(String roomId) {
-		return rooms.get(roomId).stream()
+		long aliveCount = rooms.get(roomId).stream()
 				.filter(PlayerDto::isAlive)
-				.count() <= 2;
+				.count();
+				
+		if (aliveCount <= 2) {
+			log.info("[게임 매니저] 게임 종료 조건 충족 [방ID: {}, 생존자: {}명]", roomId, aliveCount);
+			return true;
+		}
+		return false;
 	}
 
 	public boolean isAllDead(String roomId) {
-		return rooms.get(roomId).stream().noneMatch(PlayerDto::isAlive);
+		boolean allDead = rooms.get(roomId).stream().noneMatch(PlayerDto::isAlive);
+		if (allDead) {
+			log.info("[게임 매니저] 전원 탈락 [방ID: {}]", roomId);
+		}
+		return allDead;
 	}
 
 	public List<PlayerDto> getWinners(String roomId) {
-		return rooms.get(roomId).stream()
+		List<PlayerDto> winners = rooms.get(roomId).stream()
 				.filter(PlayerDto::isAlive)
 				.toList();
+				
+		log.info("[게임 매니저] 우승자 결정 [방ID: {}, 우승자: {}명]", 
+				roomId, winners.size());
+				
+		return winners;
 	}
 
-	/**
-	 * 사용자 ID로 플레이어 찾기
-	 * @param roomId 방 ID
-	 * @param userId 사용자 ID
-	 * @return 플레이어 객체
-	 */
+	// 사용자 ID로 플레이어 찾기
 	public PlayerDto findPlayer(String roomId, String userId) {
 		return rooms.get(roomId).stream()
 				.filter(p -> p.getUserId().equals(userId))

@@ -693,14 +693,6 @@ export class NumberSurvivor extends Scene {
         if (isEliminatedFromStorage === 'true') {
             console.log('[NumberSurvivor] Player is eliminated (from localStorage) - setting playerAlive to false');
             this.playerAlive = false;
-            
-            // 디버깅용 - 화면에 로컬 스토리지 내용 표시
-            this.add.text(10, 10, `탈락상태: ${isEliminatedFromStorage}`, {
-                fontSize: '16px',
-                color: '#ff9999',
-                backgroundColor: '#000000',
-                padding: { x: 5, y: 5 }
-            }).setDepth(100);
         }
         
         console.log(`[NumberSurvivor] Round ${message.round} - Player alive status: ${this.playerAlive}`);
@@ -725,6 +717,7 @@ export class NumberSurvivor extends Scene {
                 });
             }
             
+            // 살아있는 플레이어만 타이머 시작
             this.startTimer(message.timeLimit);
         } else {
             console.log('[NumberSurvivor] Player is eliminated - showing spectator mode');
@@ -790,6 +783,11 @@ export class NumberSurvivor extends Scene {
                         });
                     }
                 }
+            }
+
+            // 탈락한 플레이어는 타이머 텍스트 숨기기
+            if (this.timerText) {
+                this.timerText.setVisible(false);
             }
         }
     }
@@ -901,26 +899,6 @@ export class NumberSurvivor extends Scene {
                 // 정상적으로 저장되었는지 바로 확인
                 const storedValue = localStorage.getItem(storageKey);
                 console.log(`[NumberSurvivor] Successfully stored eliminated state. Key: ${storageKey}, Value: ${storedValue}`);
-                
-                // 디버깅용 화면 텍스트 표시 (더 명확하게 표시)
-                const debugText = this.add.text(
-                    GAME_CONFIG.CENTER_X, 
-                    50, 
-                    `탈락상태 저장 완료: ${this.userId}`, 
-                    {
-                        fontSize: '24px',
-                        color: '#ff0000',
-                        backgroundColor: '#000000',
-                        padding: { x: 10, y: 5 }
-                    }
-                ).setOrigin(0.5).setDepth(100);
-                
-                // 5초 후 디버깅 텍스트 제거
-                this.time.delayedCall(5000, () => {
-                    if (debugText && debugText.active) {
-                        debugText.destroy();
-                    }
-                });
             } catch (error) {
                 console.error('[NumberSurvivor] Failed to store eliminated state in localStorage:', error);
             }
@@ -1411,7 +1389,7 @@ export class NumberSurvivor extends Scene {
         
         // UI 업데이트
         if (this.messageText) {
-            this.messageText.setText(`게임 시작 준비 중... (${message.playerCount}명 참가)`);
+            this.messageText.setText(`게임 시작 준비 중... (${message.currentPlayers}명 참가)`);
             this.messageText.setColor('#88ff88');
             
             // 애니메이션 효과 추가
@@ -1463,7 +1441,7 @@ export class NumberSurvivor extends Scene {
         
         // UI 업데이트
         if (this.messageText) {
-            this.messageText.setText(`게임이 ${message.timeLeft}초 후 시작됩니다! (${message.playerCount}명 참가)`);
+            this.messageText.setText(`게임이 ${message.timeLeft}초 후 시작됩니다! (${message.currentPlayers}명 참가)`);
             this.messageText.setColor('#ffff00');
         }
         
@@ -1495,7 +1473,7 @@ export class NumberSurvivor extends Scene {
         
         // UI 업데이트
         if (this.messageText) {
-            this.messageText.setText(`게임 시작 준비 중입니다. 잠시 후 게임이 시작됩니다. (${message.playerCount}명 참가)`);
+            this.messageText.setText(`게임 시작 준비 중입니다. 잠시 후 게임이 시작됩니다. (${message.currentPlayers}명 참가)`);
             this.messageText.setColor('#ffff00');
         }
         

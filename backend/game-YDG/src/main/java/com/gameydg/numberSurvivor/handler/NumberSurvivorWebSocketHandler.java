@@ -15,9 +15,7 @@ import com.gameydg.numberSurvivor.service.NumberSurvivorService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-/**
- * 숫자 서바이버 웹소켓 핸들러 - 클라이언트 연결 및 메시지 라우팅 담당
- */
+// 숫자 서바이버 웹소켓 핸들러 - 클라이언트 연결 및 메시지 라우팅 담당
 @Slf4j
 @Component
 @RequiredArgsConstructor
