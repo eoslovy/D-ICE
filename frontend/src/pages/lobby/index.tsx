@@ -37,7 +37,7 @@ export default function Lobby() {
 
             const USER_WS_URL = `${
                 import.meta.env.VITE_WEBSOCKET_URL
-            }/ws/game/user/${roomCodeInput}`;
+            }/backbone/ws/game/user/${roomCodeInput}`;
             connectWebSocket("user", USER_WS_URL);
 
             userWebSocketManager.on(
@@ -63,15 +63,19 @@ export default function Lobby() {
             });
 
             userWebSocketManager.on("disconnect", (payload: unknown) => {
-                const { code, reason } = payload as { code: number; reason: string };
+                const { code, reason } = payload as {
+                    code: number;
+                    reason: string;
+                };
 
                 if (code === 1003) {
                     console.error("방 코드가 유효하지 않습니다. 연결 실패.");
-                    setErrorMessage("방 번호가 유효하지 않습니다. 다시 확인해 주세요.");
+                    setErrorMessage(
+                        "방 번호가 유효하지 않습니다. 다시 확인해 주세요."
+                    );
                     setIsJoining(false);
                 }
             });
-
         } catch (error: any) {
             // 서버 연결 실패, 유효하지 않은 방 코드 등의 오류 처리
             console.error("방 입장 중 오류:", error);
@@ -156,9 +160,7 @@ export default function Lobby() {
                     </button>
                 </form>
 
-                {errorMessage && (
-                    <p className="text-warning">{errorMessage}</p>
-                )}
+                {errorMessage && <p className="text-warning">{errorMessage}</p>}
             </GameCard>
         </div>
     );
