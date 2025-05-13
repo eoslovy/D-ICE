@@ -5,6 +5,7 @@ import { PopupText } from "../../modules/gameutils/PopupText";
 import { UITimer } from "../../modules/gameutils/UITimer";
 import { UICountdown } from "../../modules/gameutils/UICountdown";
 import { GalleryThumbnailsIcon } from "lucide-react";
+import potgManager from "../../modules/POTGManager";
 
 export class Wirewalk extends Scene {
     // Common settings
@@ -101,14 +102,6 @@ export class Wirewalk extends Scene {
             .fillStyle(0x87ceeb)
             .fillRect(0, 0, this.cameras.main.width, this.cameras.main.height);
 
-        const x = this.cameras.main.centerX;
-        const y = this.cameras.main.height;
-
-        this.add.image(x, y - 100, "wire");
-        this.player = this.add.sprite(x, y, "wirewalk_player");
-        this.player.setOrigin(0.5, 1.0);
-        this.player.setPosition(x, y);
-
         this.wirewalk_fail = this.sound.add("wirewalk_fail");
         this.wirewalk_btn = this.sound.add("wirewalk_btn");
         this.wirewalk_bgm = this.sound.add("wirewalk_bgm");
@@ -132,9 +125,21 @@ export class Wirewalk extends Scene {
 
         this.wirewalk_bgm?.play({ loop: true });
 
+        const x = this.cameras.main.centerX;
+        const y = this.cameras.main.centerY + 100;
+
+        this.add
+            .image(x, y, "wire")
+            .setScale(1.0, 2.0)
+            .setOrigin(0.5, 1.0)
+            .setPosition(x, this.cameras.main.height);
+        this.player = this.add.sprite(x, y, "wirewalk_player");
+        this.player.setOrigin(0.5, 1.0);
+        this.player.setPosition(x, y);
+
         const buttonX1 = this.cameras.main.width / 4;
         const buttonX2 = (this.cameras.main.width * 3) / 4;
-        const buttonY = this.cameras.main.centerY;
+        const buttonY = (this.cameras.main.height * 3) / 4;
 
         this.buttonLeft = this.add
             .sprite(buttonX1, buttonY, "btn_blue")
@@ -205,6 +210,14 @@ export class Wirewalk extends Scene {
                 align: "center",
             })
             .setOrigin(0.5, 0.5);
+
+        if (potgManager.getIsRecording()) {
+            const clearBeforeStart = async () => {
+                await potgManager.stopRecording();
+                potgManager.startCanvasRecording();
+            };
+            clearBeforeStart();
+        } else potgManager.startCanvasRecording();
     }
 
     endGame() {
@@ -218,6 +231,7 @@ export class Wirewalk extends Scene {
         this.buttonRightText.destroy();
 
         this.wirewalk_bgm?.stop();
+
         this.time.addEvent({
             delay: 1000,
             callback: () => {
@@ -255,6 +269,10 @@ export class Wirewalk extends Scene {
     result() {
         const elapsedTime = Date.now() - this.gameStartedTime;
         const finalScore = this.getFinalScore();
+
+        if (potgManager.getIsRecording()) {
+            potgManager.stopRecording();
+        }
 
         // pop up result
         this.time.addEvent({
