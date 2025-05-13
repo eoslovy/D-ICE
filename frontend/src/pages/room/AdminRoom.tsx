@@ -13,7 +13,7 @@ export default function AdminRoom() {
     const [errorMessage, setErrorMessage] = useState("");
     const [userNickname, setUserNickname] = useState<string[]>([]);
     const [latestNickname, setLatestNickname] = useState<string | null>(null);
-    const [userCount, setUserCount] = useState<number | null>(null);
+    const [userCount, setUserCount] = useState<number | null>(adminStore.getState().userCount);
     let requestId = v7();
     const roomCode = adminStore.getState().roomCode;
     useEffect(() => {
@@ -56,12 +56,10 @@ export default function AdminRoom() {
             return;
         }
         try {
-            const initRes = adminWebSocketManager.sendSessionInit(
-                requestId,
-                adminStore.getState().totalRound
-            );
+            const initReq = adminWebSocketManager.sendSessionInit(requestId, adminStore.getState().totalRound);
             // 게임 중계 방으로 이동
-            if (initRes === true) {
+            if (initReq === true){
+                console.error("INIT 요청 성공");
                 adminStore.getState().setStatus("INGAME");
                 navigate(`/broadcast/${roomCode}`);
                 requestId = v7();

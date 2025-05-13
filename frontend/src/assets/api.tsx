@@ -1,8 +1,6 @@
 export const API = {
     async createRoom() {
-        const url = `${
-            import.meta.env.VITE_API_URL || "http://localhost:8080"
-        }/backbone/rooms`;
+        const url = `${import.meta.env.VITE_API_URL}/backbone/rooms`;
         try {
             const response = await fetch(url, {
                 method: "POST",

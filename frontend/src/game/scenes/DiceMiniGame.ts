@@ -85,8 +85,8 @@ export class DiceMiniGame {
             "0",
             {
                 fontFamily: "Jua",
-                fontSize: 50,
-                color: "#fff"
+                fontSize: 64,
+                color: "#42cafd"
             }
         ).setOrigin(0.5);
 

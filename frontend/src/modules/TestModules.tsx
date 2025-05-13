@@ -47,9 +47,8 @@ export default function TestModules(props: TestModulesProps) {
     );
     const [rawMessageError, setRawMessageError] = useState<string | null>(null);
 
-    // --- State for Test Game Start ---
-    const [testGameTypeInput, setTestGameTypeInput] =
-        useState<string>("Clicker");
+  // --- State for Test Game Start ---
+  const [testGameTypeInput, setTestGameTypeInput] = useState<string>("PerfectCircle");
 
     // --- POTG Event Listeners ---
     useEffect(() => {
@@ -120,15 +119,13 @@ export default function TestModules(props: TestModulesProps) {
         };
     }, [potgVideoUrl]); // Re-run effect if potgVideoUrl changes to handle cleanup correctly
 
-    // --- WebSocket Handlers ---
-    const handleConnect = () => {
-        const id = uuid();
-        const url = `${
-            import.meta.env.VITE_WEBSOCKET_URL
-        }/backbone/ws/game/user/${roomId}`;
-        userWebSocketManager.setServerURL(url);
-        userWebSocketManager.connect();
-    };
+  // --- WebSocket Handlers ---
+  const handleConnect = () => {
+    const id = uuid();
+    const url = `${import.meta.env.VITE_WEBSOCKET_URL}/backbone/ws/game/user/${roomId}`;
+    userWebSocketManager.setServerURL(url);
+    userWebSocketManager.connect();
+  };
 
     const handleDisconnect = () => {
         userWebSocketManager.disconnect();
@@ -242,18 +239,75 @@ export default function TestModules(props: TestModulesProps) {
         }
     };
 
-    const testStartGame = () => {
-        const testData = {
-            type: "WAIT",
-            gameType: testGameTypeInput,
-            startAt: 1745382394207, // long epoch ms 게임 시작 시각
-            duration: 10000, // long ms 게임 지속시간
-            currentMs: 1745382384207, // long epoch ms 현재 시각 유저와 시간 align 용
-        };
-
-        // WebSocket 이벤트 에뮬레이션
-        userWebSocketManager.emit("WAIT", testData);
+  const testStartGame = () => {
+    const testData = {
+      type: 'WAIT',
+      gameType: testGameTypeInput,
+      startAt : 1745382394207, // long epoch ms 게임 시작 시각
+      duration: 10000, // long ms 게임 지속시간 
+      currentMs: 1745382384207, // long epoch ms 현재 시각 유저와 시간 align 용
     };
+  
+    // WebSocket 이벤트 에뮬레이션
+    userWebSocketManager.emit('WAIT', testData);
+  };
+
+  const testAggregation = () => {
+    const testData = {
+      type: "AGGREGATED_USER",
+      currentRound: 5, // 현재 round
+      totalRound: 5, // 전체 round
+      gameType: testGameTypeInput,//게임이름
+      currentScore: 100, // int 이번 round 점수
+      totalScore: 500,
+      rankRecord: "1|2|4|1|5", // 구분자 | 라운드별 순위 기록
+      roundRank: 1, 
+      overallRank: 3,
+      roundRanking: [
+        { 
+          "rank": 1, // 동차 면 같은 등수로
+          "userId": 1,
+          "nickname": "user1",
+          "score": 100 // 라운드별 계수 생각해봐야함
+        },
+        { 
+          "rank": 2,
+          "userId": 2,
+          "nickname": "user2",
+          "score": 96 // 라운드별 계수 생각해봐야함
+        },
+        { 
+          "rank": 2,
+          "userId": 3,
+          "nickname": "user3",
+          "score": 96 // 라운드별 계수 생각해봐야함
+        }
+      ],
+      overallRanking: [
+        {
+          "rank": 1,
+          "userId": 1,
+          "nickname": "user1",
+          "socre": 300
+        },
+        {
+          "rank": 2,
+          "userId": 2,
+          "nickname": "user2",
+          "socre": 286
+        },
+        {
+          "rank": 3,
+          "userId": 3,
+          "nickname": "user3",
+          "socre": 276
+        }
+      ],
+      "videoUploadUrl": "" // s3 presigned url POST|PUT용
+    }
+    // WebSocket 이벤트 에뮬레이션
+    userWebSocketManager.emit('AGGREGATED_USER', testData);
+  };
 
     // --- Styles ---
     const consoleStyle: React.CSSProperties = {
@@ -499,88 +553,58 @@ export default function TestModules(props: TestModulesProps) {
                     </div>
                     {/* --- End Raw WebSocket Message Section --- */}
 
-                    {/* Overlay Controls Section */}
-                    <div
-                        style={{
-                            marginTop: "15px",
-                            borderTop: "1px solid #666",
-                            paddingTop: "10px",
-                        }}
-                    >
-                        <h2 style={{ fontSize: "14px", marginBottom: "8px" }}>
-                            Overlay Controls
-                        </h2>
-                        <div style={{ marginBottom: "10px" }}>
-                            <input
-                                type="text"
-                                value={messageText}
-                                onChange={(e) => setMessageText(e.target.value)}
-                                placeholder="Enter message text..."
-                                style={inputStyle}
-                            />
-                        </div>
-                        <button
-                            onClick={handleTriggerEffect}
-                            style={buttonStyle}
-                        >
-                            Particle
-                        </button>
-                        <button
-                            onClick={handleTriggerSpriteShowcase}
-                            style={buttonStyle}
-                        >
-                            Sprite
-                        </button>
-                        <button
-                            onClick={handleTriggerMessage}
-                            style={
-                                messageText.trim()
-                                    ? buttonStyle
-                                    : disabledButtonStyle
-                            }
-                            disabled={!messageText.trim()}
-                        >
-                            Message
-                        </button>
-                    </div>
-                    {/* 게임 시작 테스트 버튼 추가 */}
-                    <div style={sectionStyle}>
-                        <h3>Game Start Test</h3>
-                        <div style={{ marginBottom: "10px" }}>
-                            <label
-                                htmlFor="testGameTypeInput"
-                                style={{
-                                    fontWeight: "bold",
-                                    marginRight: "10px",
-                                    display: "inline-block",
-                                    minWidth: "80px",
-                                }}
-                            >
-                                Game Type:
-                            </label>
-                            <input
-                                id="testGameTypeInput"
-                                type="text"
-                                value={testGameTypeInput}
-                                onChange={(e) =>
-                                    setTestGameTypeInput(e.target.value)
-                                }
-                                style={inputStyle}
-                                placeholder="e.g., Dye, Clicker"
-                            />
-                        </div>
-                        <button
-                            onClick={testStartGame}
-                            style={
-                                testGameTypeInput.trim()
-                                    ? buttonStyle
-                                    : disabledButtonStyle
-                            }
-                            disabled={!testGameTypeInput.trim()}
-                        >
-                            Test Game Start
-                        </button>
-                    </div>
+          {/* Overlay Controls Section */}
+          <div style={{ marginTop: '15px', borderTop: '1px solid #666', paddingTop: '10px' }}>
+            <h2 style={{ fontSize: '14px', marginBottom: '8px' }}>Overlay Controls</h2>
+            <div style={{ marginBottom: '10px' }}>
+              <input
+                type="text"
+                value={messageText}
+                onChange={(e) => setMessageText(e.target.value)}
+                placeholder="Enter message text..."
+                style={inputStyle}
+              />
+            </div>
+            <button onClick={handleTriggerEffect} style={buttonStyle}>Particle</button>
+            <button onClick={handleTriggerSpriteShowcase} style={buttonStyle}>Sprite</button>
+            <button 
+              onClick={handleTriggerMessage} 
+              style={messageText.trim() ? buttonStyle : disabledButtonStyle}
+              disabled={!messageText.trim()}
+            >
+              Message
+            </button>
+          </div>
+          {/* 게임 시작 테스트 버튼 추가 */}
+          <div style={sectionStyle}>
+            <h3>Game Start Test</h3>
+            <div style={{ marginBottom: '10px' }}>
+              <label htmlFor="testGameTypeInput" style={{ fontWeight: 'bold', marginRight: '10px', display: 'inline-block', minWidth: '80px' }}>Game Type:</label>
+              <input
+                id="testGameTypeInput"
+                type="text"
+                value={testGameTypeInput}
+                onChange={(e) => setTestGameTypeInput(e.target.value)}
+                style={inputStyle}
+                placeholder="e.g., Dye, Clicker"
+              />
+            </div>
+            <button 
+              onClick={testStartGame}
+              style={testGameTypeInput.trim() ? buttonStyle : disabledButtonStyle}
+              disabled={!testGameTypeInput.trim()}
+            >
+              Test Game Start
+            </button>
+          </div>
+          <div style={sectionStyle}>
+            <button 
+              onClick={testAggregation}
+              style={buttonStyle}
+            >
+              Test Aggregation
+            </button>
+          </div>
 
                     {/* --- POTG Recording Section (Updated Button Handler) --- */}
                     <div
