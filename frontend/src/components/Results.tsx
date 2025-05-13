@@ -169,9 +169,19 @@ export default function Result({
         ) : (
           <>
             <h2>{isFinalRound ? "최종 결과" : `${data?.gameType || "게임"} 결과`}</h2>
-            <p>{isFinalRound ? "모든 게임이 종료되었습니다!" : `라운드 ${data?.currentRound}/${data?.totalRound} 완료`}</p>
+            <p>
+              {isFinalRound ? "모든 게임이 종료되었습니다!" : `라운드 ${data?.currentRound}/${data?.totalRound} 완료`}
+            </p>
           </>
         )}
+        {/* 컨페티 다시 표시 버튼 */}
+        <button
+          onClick={() => setShowConfetti(true)}
+          className="btn btn-secondary inline-flex items-center ml-4"
+          style={{ fontSize: "0.9rem" }}
+        >
+          🎉 축하 효과
+        </button>
       </div>
 
       {/* 모바일 레이아웃 */}
@@ -400,11 +410,11 @@ export default function Result({
               {hasAnyVideo && currentVideoUrl && (
                 <>
                   <div className="video-wrapper mb-4">
-                    <video 
-                      ref={videoRef} 
-                      src={currentVideoUrl} 
-                      className="w-full h-full object-cover" 
-                      controls 
+                    <video
+                      ref={videoRef}
+                      src={currentVideoUrl}
+                      className="w-full h-full object-cover"
+                      controls
                       onEnded={handleVideoEnded}
                     />
                     <div className="video-badge">{activeVideo === "first" ? "🏆 우승자 플레이" : "😅 꼴등 플레이"}</div>
@@ -497,7 +507,9 @@ export default function Result({
           )}
 
           {/* 순위표 섹션 */}
-          <div className={`${!isFinalView && (!hasAnyVideo || !currentVideoUrl) ? "md:w-full max-w-md mx-auto" : isFinalView ? "md:w-full" : "md:w-1/2"}`}>
+          <div
+            className={`${!isFinalView && (!hasAnyVideo || !currentVideoUrl) ? "md:w-full max-w-md mx-auto" : isFinalView ? "md:w-full" : "md:w-1/2"}`}
+          >
             <div className="rankings-table">
               <div className="rankings-header text-center">{isFinalView ? "전체 순위표" : "순위표"}</div>
 
