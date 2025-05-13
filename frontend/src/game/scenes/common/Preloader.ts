@@ -130,6 +130,10 @@ export class Preloader extends Phaser.Scene {
             }
             this.moveToRoulette();
         });
+        this.events.on('shutdown', () => {
+            
+            userWebSocketManager.off("WAIT");
+            console.log("WAIT 이벤트 리스너 해제");
+        });
     }
 }
-
