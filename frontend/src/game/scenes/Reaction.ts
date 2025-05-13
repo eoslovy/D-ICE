@@ -1,5 +1,6 @@
 import Phaser from "phaser";
 import { UICountdown } from "../../modules/gameutils/UICountdown";
+import potgManager from "../../modules/POTGManager";
 
 export class Reaction extends Phaser.Scene {
     private state: "waiting" | "ready" | "clicked" | "timeout" = "waiting";
@@ -48,6 +49,15 @@ export class Reaction extends Phaser.Scene {
         // 첫 3초 카운트다운
         this.countdown.startCountdown(3);
         this.events.once("countdownFinished", () => {
+            // 녹화 시작
+            if (potgManager.getIsRecording()) {
+                const clearBeforeStart = async () => {
+                    await potgManager.stopRecording();
+                    potgManager.startCanvasRecording();
+                };
+                clearBeforeStart();
+            } else potgManager.startCanvasRecording();
+
             this.startWaiting();
         });
     }
@@ -152,8 +162,8 @@ export class Reaction extends Phaser.Scene {
                     `반응속도 : ${reactionTime}ms\n(${this.reactionTimes.length}/5)\n결과를 확인하세요!`
                 );
                 this.infoText.setFontFamily("Jua");
-
                 // 3초 카운트다운 후 결과 표시
+
                 this.countdown.startCountdown(3);
                 this.events.once("countdownFinished", () => {
                     this.calculateMin();
@@ -163,6 +173,10 @@ export class Reaction extends Phaser.Scene {
     }
 
     calculateMin() {
+        // 녹화 종료
+        if (potgManager.getIsRecording()) {
+            potgManager.stopRecording();
+        }
         const min =
             this.reactionTimes.length > 0 ? Math.min(...this.reactionTimes) : 0;
         this.cameras.main.setBackgroundColor("#2b87d1");
