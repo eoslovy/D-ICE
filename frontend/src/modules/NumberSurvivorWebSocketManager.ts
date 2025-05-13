@@ -1,4 +1,4 @@
-import { WebSocketManager } from './WebSocketManager';
+import { WebSocketManager } from "./WebSocketManager";
 
 interface NumberSurvivorMessage {
     type: string;
@@ -71,20 +71,20 @@ interface GameInProgressMessage {
 
 // 송신 메시지 타입 정의 추가
 interface JoinMessage {
-    type: 'NUMBER_SURVIVOR_JOIN';
+    type: "NUMBER_SURVIVOR_JOIN";
     userId: string;
     roomCode: string;
     nickname: string;
 }
 
 interface StartGameMessage {
-    type: 'NUMBER_SURVIVOR_START';
+    type: "NUMBER_SURVIVOR_START";
     userId: string;
     roomCode: string;
 }
 
 interface NumberSelectionMessage {
-    type: 'NUMBER_SURVIVOR_SELECT';
+    type: "NUMBER_SURVIVOR_SELECT";
     userId: string;
     roomCode: string;
     selectedNumber: number;
@@ -105,50 +105,62 @@ type NumberSurvivorReceiveTypeMap = {
 class NumberSurvivorWebSocketManager extends WebSocketManager<NumberSurvivorReceiveTypeMap> {
     constructor() {
         super();
-        this.setServerURL('ws://${import.meta.env.VITE_WEBSOCKET_URL}/ws/gameydg-service/number-survivor');
+        this.setServerURL(
+            "ws://${import.meta.env.VITE_WEBSOCKET_URL}/backbone/ws/gameydg-service/number-survivor"
+        );
     }
 
     connect(): void {
         if (this.isConnected()) {
-            console.log('[NumberSurvivorWebSocketManager] Already connected, skipping connect()');
+            console.log(
+                "[NumberSurvivorWebSocketManager] Already connected, skipping connect()"
+            );
             return;
         }
-        
+
         if (this.ws && this.ws.readyState === WebSocket.CONNECTING) {
-            console.log('[NumberSurvivorWebSocketManager] Already connecting, skipping connect()');
+            console.log(
+                "[NumberSurvivorWebSocketManager] Already connecting, skipping connect()"
+            );
             return;
         }
-        
-        console.log('[NumberSurvivorWebSocketManager] Connecting to WebSocket...');
+
+        console.log(
+            "[NumberSurvivorWebSocketManager] Connecting to WebSocket..."
+        );
         super.connect();
         this.setUpOnMessage();
     }
 
     sendJoin(userId: string, roomCode: string, nickname: string): void {
         const message: JoinMessage = {
-            type: 'NUMBER_SURVIVOR_JOIN',
+            type: "NUMBER_SURVIVOR_JOIN",
             userId,
             roomCode,
-            nickname
+            nickname,
         };
         this.send(message);
     }
 
     sendStartGame(userId: string, roomCode: string): void {
         const message: StartGameMessage = {
-            type: 'NUMBER_SURVIVOR_START',
+            type: "NUMBER_SURVIVOR_START",
             userId,
-            roomCode
+            roomCode,
         };
         this.send(message);
     }
 
-    sendNumberSelection(userId: string, roomCode: string, selectedNumber: number): void {
+    sendNumberSelection(
+        userId: string,
+        roomCode: string,
+        selectedNumber: number
+    ): void {
         const message: NumberSelectionMessage = {
-            type: 'NUMBER_SURVIVOR_SELECT',
+            type: "NUMBER_SURVIVOR_SELECT",
             userId,
             roomCode,
-            selectedNumber
+            selectedNumber,
         };
         this.send(message);
     }
@@ -159,21 +171,29 @@ class NumberSurvivorWebSocketManager extends WebSocketManager<NumberSurvivorRece
             let message: NumberSurvivorMessage;
             try {
                 message = JSON.parse(event.data);
-                console.log('[NumberSurvivorWebSocketManager] Received message:', message);
-                
-                if (message.type === 'GAME_OVER' && (message as GameOverMessage).closeConnection) {
-                    console.log('[NumberSurvivorWebSocketManager] Closing connection due to game over');
+                console.log(
+                    "[NumberSurvivorWebSocketManager] Received message:",
+                    message
+                );
+
+                if (
+                    message.type === "GAME_OVER" &&
+                    (message as GameOverMessage).closeConnection
+                ) {
+                    console.log(
+                        "[NumberSurvivorWebSocketManager] Closing connection due to game over"
+                    );
                     this.emit<keyof NumberSurvivorReceiveTypeMap>(
                         message.type as keyof NumberSurvivorReceiveTypeMap,
                         message
                     );
-                    
+
                     setTimeout(() => {
                         this.disconnect();
                     }, 500);
                     return;
                 }
-                
+
                 this.emit<keyof NumberSurvivorReceiveTypeMap>(
                     message.type as keyof NumberSurvivorReceiveTypeMap,
                     message
@@ -191,4 +211,4 @@ class NumberSurvivorWebSocketManager extends WebSocketManager<NumberSurvivorRece
 }
 
 const numberSurvivorWebSocketManager = new NumberSurvivorWebSocketManager();
-export default numberSurvivorWebSocketManager; 
+export default numberSurvivorWebSocketManager;

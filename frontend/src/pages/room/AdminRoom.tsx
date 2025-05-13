@@ -10,6 +10,7 @@ import { Users, Play } from "lucide-react";
 
 export default function AdminRoom() {
     const navigate = useNavigate();
+    const [errorMessage, setErrorMessage] = useState("");
     const [userNickname, setUserNickname] = useState<string[]>([]);
     const [latestNickname, setLatestNickname] = useState<string | null>(null);
     const [userCount, setUserCount] = useState<number | null>(null);
@@ -35,24 +36,43 @@ export default function AdminRoom() {
         );
 
         return () => {
-            adminWebSocketManager.off("USER_JOINED_ADMIN", (payload: UserJoinedAdminMessage) => {
-                console.log("USER_JOINED_ADMIN 이벤트 리스너 해제:", payload);
-            });
+            adminWebSocketManager.off(
+                "USER_JOINED_ADMIN",
+                (payload: UserJoinedAdminMessage) => {
+                    console.log(
+                        "USER_JOINED_ADMIN 이벤트 리스너 해제:",
+                        payload
+                    );
+                }
+            );
         };
     }, []);
 
     const initGame = async () => {
+        if (userCount === 0 || userCount === null) {
+            setErrorMessage(
+                "게임을 시작하려면 최소한 한 명의 참여자가 있어야 합니다."
+            );
+            return;
+        }
         try {
-            const initRes = adminWebSocketManager.sendSessionInit(requestId, adminStore.getState().totalRound);
+            const initRes = adminWebSocketManager.sendSessionInit(
+                requestId,
+                adminStore.getState().totalRound
+            );
             // 게임 중계 방으로 이동
-            if (initRes === true){
+            if (initRes === true) {
                 adminStore.getState().setStatus("INGAME");
                 navigate(`/broadcast/${roomCode}`);
                 requestId = v7();
-            }else{
+            } else {
+                setErrorMessage(
+                    "게임 시작 요청에 실패했습니다. 다시 시도해주세요."
+                );
                 console.error("INIT 요청 실패");
             }
         } catch (error) {
+            setErrorMessage("게임 시작 중 알 수 없는 오류가 발생했습니다.");
             console.error("게임 시작 중 오류:", error);
         }
     };
@@ -113,8 +133,8 @@ export default function AdminRoom() {
                     게임 시작
                 </button>
 
-                {userCount === 0 && (
-                    <p className="text-sm text-warning mt-2">
+                {errorMessage && (
+                    <p className="text-warning">
                         게임을 시작하려면 최소한 한 명의 참여자가 있어야 합니다.
                     </p>
                 )}
