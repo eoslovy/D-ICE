@@ -1,5 +1,7 @@
 import Phaser from 'phaser';
 import { userStore } from '../../../stores/userStore';
+import { addBackgroundImage } from './addBackgroundImage';
+import userWebSocketManager from '../../../modules/UserWebSocketManager';
 
 interface EndGameSceneData {
     totalScore: number;
@@ -21,109 +23,98 @@ export class EndGame extends Phaser.Scene {
             overallRank
         });
 
-        this.showFinalResults(totalScore, rankRecord, overallRank);
-    }
+        //배경
+        addBackgroundImage(this);
 
+        this.showFinalResults(totalScore, rankRecord, overallRank);
+
+        console.log("웹소켓 연결 종료");
+        userWebSocketManager.disconnect();
+    }
     private showFinalResults(totalScore: number, rankRecord: string, overallRank: number) {
         const width = this.cameras.main.width;
         const height = this.cameras.main.height;
 
-        // Background
-        this.add.rectangle(0, 0, width, height, 0x000000, 0.8).setOrigin(0);
-
         // Title
-        this.add.text(width / 2, height * 0.2, '최종 결과', {
+        this.add.text(width / 2, height * 0.18, '최종 결과', {
             fontSize: '48px',
             color: '#ffffff',
-            align: 'center'
+            align: 'center',
+            fontFamily: 'Jua'
         }).setOrigin(0.5);
 
-        // Total Score
-        this.add.text(width / 2, height * 0.35, `총 점수: ${totalScore}`, {
-            fontSize: '32px',
-            color: '#ffffff',
-            align: 'center'
-        }).setOrigin(0.5);
+        // 점수 정보 박스
+        const scoreBoxWidth = 420;
+        const scoreBoxHeight = 70;
+        const scoreBox = this.add.graphics();
+        scoreBox.fillStyle(0x1a223a, 0.85);
+        scoreBox.fillRoundedRect(width / 2 - scoreBoxWidth / 2, height * 0.28, scoreBoxWidth, scoreBoxHeight, 18);
 
-        // Overall Rank
-        this.add.text(width / 2, height * 0.45, `최종 순위: ${overallRank}위`, {
-            fontSize: '32px',
-            color: '#ffffff',
-            align: 'center'
-        }).setOrigin(0.5);
+        this.add.text(width / 2, height * 0.28 + scoreBoxHeight / 2,
+            `총 점수: ${totalScore}`, {
+                fontFamily: 'Jua',
+                fontSize: '28px',
+                color: '#ffe066',
+                align: 'center'
+            }
+        ).setOrigin(0.5);
 
-        // Rank Record Graph
-        this.createRankGraph(width / 2, height * 0.6, rankRecord);
+        // 순위 정보 박스
+        const rankBoxWidth = 420;
+        const rankBoxHeight = 70;
+        const rankBox = this.add.graphics();
+        rankBox.fillStyle(0x1a223a, 0.85);
+        rankBox.fillRoundedRect(width / 2 - rankBoxWidth / 2, height * 0.38, rankBoxWidth, rankBoxHeight, 18);
+
+        this.add.text(width / 2, height * 0.38 + rankBoxHeight / 2,
+            `최종 순위: ${overallRank}위`, {
+                fontFamily: 'Jua',
+                fontSize: '28px',
+                color: '#42cafd',
+                align: 'center'
+            }
+        ).setOrigin(0.5);
+
+        // 라운드별 순위 테이블
+        this.createFinalRankTable(width / 2, height * 0.52, rankRecord);
 
         // Main Menu Button
         this.createMenuButton(width / 2, height * 0.85);
     }
 
-    private createRankGraph(x: number, y: number, rankRecord: string) {
+    private createFinalRankTable(x: number, y: number, rankRecord: string) {
+        // rankRecord: "2|1|3|2|1" 형태라고 가정
         const ranks = rankRecord.split('|').map(Number);
-        const graphWidth = 400;
-        const graphHeight = 200;
-        const padding = 40;
+        const tableWidth = 320;
+        const rowHeight = 44;
 
-        const graphics = this.add.graphics();
-        graphics.lineStyle(2, 0x666666);
+        // 테이블 배경
+        const bg = this.add.graphics();
+        bg.fillStyle(0x222a3a, 0.7);
+        bg.fillRoundedRect(x - tableWidth / 2, y, tableWidth, rowHeight * (ranks.length + 1), 16);
 
-        // Y-axis
-        graphics.beginPath();
-        graphics.moveTo(x - graphWidth / 2, y - graphHeight / 2);
-        graphics.lineTo(x - graphWidth / 2, y + graphHeight / 2);
-        graphics.strokePath();
+        // 헤더
+        const headerStyle = {
+            fontSize: '32px',
+            color: '#ffe066',
+            fontFamily: 'Jua',
+            fontStyle: 'bold'
+        };
+        this.add.text(x - tableWidth / 2 + 60, y + rowHeight / 2, "라운드", headerStyle).setOrigin(0.5);
+        this.add.text(x + tableWidth / 2 - 60, y + rowHeight / 2, "순위", headerStyle).setOrigin(0.5);
 
-        // X-axis
-        graphics.beginPath();
-        graphics.moveTo(x - graphWidth / 2, y + graphHeight / 2);
-        graphics.lineTo(x + graphWidth / 2, y + graphHeight / 2);
-        graphics.strokePath();
-
-        // Rank Line
-        graphics.lineStyle(3, 0x00ff00);
-        graphics.beginPath();
-
-        const stepX = (graphWidth - padding * 2) / (ranks.length - 1);
-        const stepY = (graphHeight - padding * 2) / 4; // 1~5위
-
-        ranks.forEach((rank, index) => {
-            const pointX = x - graphWidth / 2 + padding + stepX * index;
-            const pointY = y - graphHeight / 2 + padding + stepY * (rank - 1);
-
-            if (index === 0) {
-                graphics.moveTo(pointX, pointY);
-            } else {
-                graphics.lineTo(pointX, pointY);
-            }
-
-            // Point Marker
-            this.add.circle(pointX, pointY, 5, 0x00ff00);
-
-            // X-axis Label (Round Number)
-            this.add.text(pointX, y + graphHeight / 2 + 10, `R${index + 1}`, {
-                fontSize: '16px',
-                color: '#ffffff'
-            }).setOrigin(0.5, 0);
-        });
-
-        graphics.strokePath();
-
-        // Y-axis Labels (Rank)
-        for (let i = 1; i <= 5; i++) {
-            const labelY = y - graphHeight / 2 + padding + stepY * (i - 1);
-            this.add.text(x - graphWidth / 2 - 10, labelY, `${i}위`, {
-                fontSize: '16px',
-                color: '#ffffff'
-            }).setOrigin(1, 0.5);
+        // 각 라운드별 순위
+        for (let i = 0; i < ranks.length; i++) {
+            const round = i + 1;
+            const rank = ranks[i];
+            const textStyle = {
+                fontSize: '28px',
+                color: rank === 1 ? '#ffd700' : rank === 2 ? '#c0c0c0' : rank === 3 ? '#cd7f32' : '#ffffff',
+                fontFamily: 'Jua'
+            };
+            this.add.text(x - tableWidth / 2 + 60, y + rowHeight * (i + 1) + rowHeight / 2, `R${round}`, textStyle).setOrigin(0.5);
+            this.add.text(x + tableWidth / 2 - 60, y + rowHeight * (i + 1) + rowHeight / 2, `${rank}위`, textStyle).setOrigin(0.5);
         }
-
-        // Graph Title
-        this.add.text(x, y - graphHeight / 2 - 20, '라운드별 순위 변화', {
-            fontSize: '24px',
-            color: '#ffffff',
-            align: 'center'
-        }).setOrigin(0.5);
     }
 
     private createMenuButton(x: number, y: number) {
@@ -150,6 +141,7 @@ export class EndGame extends Phaser.Scene {
         button.on('pointerup', () => {
             userStore.getState().reset(); // zustand 상태 초기화
             localStorage.removeItem('userStore'); // userStore 제거
+            
             window.location.href = '/select';
         });
     }

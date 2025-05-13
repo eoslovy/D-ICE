@@ -1,5 +1,6 @@
 import { Scene } from 'phaser';
 import { UICountdown } from '../../../modules/gameutils/UICountdown';
+import { addBackgroundImage } from './addBackgroundImage';
 interface InstructionConfig {
   nextGame: string;
   gameName: string;
@@ -32,13 +33,12 @@ export class GameInstruction extends Scene {
     const { width, height } = this.cameras.main;
     this.countdown = new UICountdown(this, width / 2, height - 100);
 
-    // 배경 그라데이션
-    this.add.graphics()
-      .fillGradientStyle(0x192a56, 0x192a56, 0x273c75, 0x273c75)
-      .fillRect(0, 0, width, height);
+    // 배경
+    addBackgroundImage(this);
 
     // 게임 제목
     this.add.text(width / 2, 50, this.gameName, {
+      fontFamily: 'Jua',
       fontSize: '48px',
       color: '#ffffff',
       fontStyle: 'bold'

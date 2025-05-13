@@ -1,5 +1,6 @@
 import { Scene } from 'phaser';
 import { GAME_TYPES } from './GameType';
+import { addBackgroundImage } from './addBackgroundImage';
 
 interface RouletteConfig {
   nextGame: string;
@@ -34,7 +35,7 @@ export class Roulette extends Scene {
     this.totalItems = GAME_TYPES.length * 3;
 
     // 배경
-    this.createAnimatedBackground(width, height);
+    addBackgroundImage(this);
 
     // 룰렛 컨테이너
     this.wheel = this.add.container(width / 2, height / 2);
@@ -42,13 +43,13 @@ export class Roulette extends Scene {
     // 아이템 생성
     for (let i = 0; i < this.totalItems; i++) {
       const game = GAME_TYPES[i % GAME_TYPES.length];
-      const y = (i - Math.floor(this.totalItems / 2)) * this.sliceHeight;
+      const y = (i-1) * this.sliceHeight;
       this.wheel.add(this.createWheelItem(game.name, y));
     }
 
     // 마스크: wheel 컨테이너 기준 중앙 3개만 보이게
     const maskWidth = width * 0.7;
-    const maskHeight = this.sliceHeight * this.visibleCount;
+    const maskHeight = this.sliceHeight * (this.visibleCount-1);
     const maskShape = this.add.graphics();
     maskShape.fillRect(
       width / 2 - maskWidth / 2,
@@ -59,9 +60,8 @@ export class Roulette extends Scene {
     maskShape.setVisible(false);
     this.wheel.setMask(maskShape.createGeometryMask());
 
-    // 바깥 테두리(황금색)
     const border = this.add.graphics();
-    border.lineStyle(12, 0xffd700, 1);
+    border.lineStyle(12, 0x3b5998, 1); // 진한 파란색(밤하늘 느낌)
     border.strokeRoundedRect(
       width / 2 - maskWidth / 2 - 8,
       height / 2 - maskHeight / 2 - 8,
@@ -69,8 +69,8 @@ export class Roulette extends Scene {
       maskHeight + 16,
       40
     );
-    // 안쪽 테두리(짙은 갈색)
-    border.lineStyle(6, 0x6d4c1b, 1);
+    // 안쪽 테두리(짙은 남색)
+    border.lineStyle(6, 0x192a56, 1); // 더 어두운 남색
     border.strokeRoundedRect(
       width / 2 - maskWidth / 2,
       height / 2 - maskHeight / 2,
@@ -79,7 +79,7 @@ export class Roulette extends Scene {
       32
     );
     // 중앙 강조선(살짝 밝은색)
-    border.lineStyle(4, 0xfff6d3, 0.7);
+    border.lineStyle(4, 0xfff6d3, 0.7); // 밝은 파란색
     border.strokeRoundedRect(
       width / 2 - maskWidth / 2 + 12,
       height / 2 - this.sliceHeight / 2,
@@ -88,47 +88,13 @@ export class Roulette extends Scene {
       24
     );
     // 양옆 포인터
-    this.createSidePointers(width, height, maskWidth);
+    //this.createSidePointers(width, height, maskWidth);
 
     // 1초 후 자동 스핀
     this.time.delayedCall(1000, () => this.spinWheel());
 
     // update 등록
     this.events.on('update', this.update, this);
-  }
-
-  private createAnimatedBackground(width: number, height: number) {
-    const bg = this.add.graphics();
-    bg.setDepth(-100);
-
-    let t = 0;
-    this.time.addEvent({
-      delay: 30,
-      loop: true,
-      callback: () => {
-        t += 0.01;
-        const color1 = Phaser.Display.Color.Interpolate.ColorWithColor(
-          new Phaser.Display.Color(25, 42, 86),
-          new Phaser.Display.Color(39, 60, 117),
-          100,
-          Math.abs(Math.sin(t)) * 100
-        );
-        const color2 = Phaser.Display.Color.Interpolate.ColorWithColor(
-          new Phaser.Display.Color(39, 60, 117),
-          new Phaser.Display.Color(25, 42, 86),
-          100,
-          Math.abs(Math.cos(t)) * 100
-        );
-        bg.clear();
-        bg.fillGradientStyle(
-          Phaser.Display.Color.GetColor(color1.r, color1.g, color1.b),
-          Phaser.Display.Color.GetColor(color1.r, color1.g, color1.b),
-          Phaser.Display.Color.GetColor(color2.r, color2.g, color2.b),
-          Phaser.Display.Color.GetColor(color2.r, color2.g, color2.b)
-        );
-        bg.fillRect(0, 0, width, height);
-      }
-    });
   }
 
   private createWheelItem(text: string, y: number) {
@@ -144,7 +110,7 @@ export class Roulette extends Scene {
       fontSize: '32px',
       color: '#fff',
       fontStyle: 'bold',
-      fontFamily: 'Arial',
+      fontFamily: 'Jua',
       stroke: '#222',
       strokeThickness: 4,
       align: 'center'
@@ -164,7 +130,7 @@ export class Roulette extends Scene {
       0, pointerSize / 2,
       pointerSize, 0,
       pointerSize, pointerSize,
-      0xffd700
+      0x74b9ff
     ).setOrigin(0.5);
     // 오른쪽 포인터
     const rightPointer = this.add.triangle(
@@ -172,7 +138,7 @@ export class Roulette extends Scene {
       pointerSize, pointerSize / 2,
       0, 0,
       0, pointerSize,
-      0xffd700
+      0x74b9ff
     ).setOrigin(0.5);
 
     // 애니메이션
@@ -193,11 +159,12 @@ export class Roulette extends Scene {
     this.spinPhase = 'spinning';
 
     // 목표 인덱스
-    const targetIndex = GAME_TYPES.findIndex(g => g.key === this.nextGame);
+    const targetIndex = GAME_TYPES.findIndex(g => g.key == this.nextGame);
     if (targetIndex === -1) {
       console.error('nextGame not found:', this.nextGame);
       return;
     }
+    console.log("targetIndex: ", targetIndex);
     this.stopTargetIndex = targetIndex;
 
     // 중앙에 nextGame이 오도록 stopTargetY 계산
@@ -207,9 +174,10 @@ export class Roulette extends Scene {
     const currentCenterGameIdx = (centerIndex) % GAME_TYPES.length;
     // nextGame이 중앙에 오도록 wheel.y를 이동
     const diff = ((targetIndex - currentCenterGameIdx + GAME_TYPES.length) % GAME_TYPES.length);
-    const rounds = 5;
-    const stopIndex = centerIndex + diff + rounds * GAME_TYPES.length;
-    this.stopTargetY = -((stopIndex) * this.sliceHeight) - 20;
+    const rounds = 2;
+    const stopIndex = targetIndex + 1 + rounds * GAME_TYPES.length;
+    this.stopTargetY = (stopIndex * this.sliceHeight) - 25;
+
 
     // 초기 속도
     this.spinVelocity = 55;
@@ -258,7 +226,7 @@ export class Roulette extends Scene {
         this.tweens.add({
           targets: this.wheel,
           y: this.stopTargetY,
-          duration: 1200,
+          duration: 3000,
           ease: 'Elastic.easeOut',
           onComplete: () => {
             this.handleSpinComplete();
@@ -301,7 +269,7 @@ export class Roulette extends Scene {
       fontSize: '28px',
       color: '#273c75',
       fontStyle: 'bold',
-      fontFamily: 'Arial'
+      fontFamily: 'Jua'
     }).setOrigin(0.5);
     modalContainer.add(titleText);
 
@@ -310,7 +278,7 @@ export class Roulette extends Scene {
       fontSize: '48px',
       color: '#192a56',
       fontStyle: 'bold',
-      fontFamily: 'Arial',
+      fontFamily: 'Jua',
       stroke: '#fff',
       strokeThickness: 4,
       align: 'center',

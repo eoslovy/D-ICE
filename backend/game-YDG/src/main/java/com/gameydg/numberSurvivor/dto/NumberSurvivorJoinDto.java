@@ -8,8 +8,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class NumberSurvivorJoinDto {
-    private final String type = "NUMBER_SURVIVOR_JOIN";
-    private String userId;
-    private String roomId;
-    private String nickname;
+	private final String type = "NUMBER_SURVIVOR_JOIN";
+	private String userId;
+	private String roomCode;
+	private String nickname;
 }
