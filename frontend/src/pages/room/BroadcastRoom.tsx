@@ -30,6 +30,7 @@ export default function BroadcastRoom() {
         adminWebSocketManager.on("NEXT_GAME", (payload: NextGameMessage) => {
             setCurrentRound(payload.currentRound);
             setNextGame(payload.gameType);
+            adminStore.getState().setGameType(payload.gameType);
             setIsLoading(false);
         });
 
@@ -54,12 +55,15 @@ export default function BroadcastRoom() {
 
     const startGame = async () => {
         try {
-            const startRes = adminWebSocketManager.sendStartGame(requestId);
-            if (startRes === true) {
+            
+            const startReq = adminWebSocketManager.sendStartGame(requestId);
+            if (startReq === true){
+                console.log("게임 시작 요청 성공", nextGame);
                 setIsLoading(true);
                 requestId = uuidv7();
             } else {
                 setIsLoading(false);
+                console.log("게임 시작 요청 실패", nextGame);
             }
         } catch (error) {
             console.error("게임 시작 중 오류:", error);

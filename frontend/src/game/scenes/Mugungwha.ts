@@ -4,6 +4,7 @@ import { PopupSprite } from "../../modules/gameutils/PopupSptire";
 import { PopupText } from "../../modules/gameutils/PopupText";
 import { UITimer } from "../../modules/gameutils/UITimer";
 import { UICountdown } from "../../modules/gameutils/UICountdown";
+import potgManager from "../../modules/POTGManager";
 
 export class Mugungwha extends Scene {
     // Common settings
@@ -104,32 +105,11 @@ export class Mugungwha extends Scene {
                 .tileSprite(0, 0, bgWidth, bgHeight, bgTexture.key)
                 .setOrigin(0, 0);
 
-            this.background.setTileScale(1.1, 1.1);
+            const bgRatio = bgHeight / bgTexture.getSourceImage().height;
+            this.background.setTileScale(bgRatio, bgRatio);
         } else {
             console.warn("[Mugungwha] Background texture not found");
             this.cameras.main.setBackgroundColor("#abcdef");
-        }
-
-        if (this.textures.exists("mugungwha_player")) {
-            const playerTexture = this.textures.get("mugungwha_player");
-            const playerHeight = this.cameras.main.height / 4;
-            const playerWidth =
-                playerTexture.getSourceImage().width *
-                (playerHeight / playerTexture.getSourceImage().height);
-
-            this.player = this.add
-                .sprite(
-                    this.cameras.main.width / 4,
-                    (this.cameras.main.height * 5) / 6,
-                    playerTexture.key
-                )
-                .setOrigin(0.5, 0.5)
-                .setScale(
-                    playerWidth / playerTexture.getSourceImage().width,
-                    playerHeight / playerTexture.getSourceImage().height
-                );
-        } else {
-            console.warn("[Mugungwha] Player texture not found");
         }
 
         this.mugungwha_pop = this.sound.add("mugungwha_pop", { loop: false });
@@ -154,6 +134,28 @@ export class Mugungwha extends Scene {
     startGame() {
         this.gameStartedTime = Date.now();
         this.timer.startTimer(this.gameDuration);
+
+        if (this.textures.exists("mugungwha_player")) {
+            const playerTexture = this.textures.get("mugungwha_player");
+            const playerHeight = this.cameras.main.height / 4;
+            const playerWidth =
+                playerTexture.getSourceImage().width *
+                (playerHeight / playerTexture.getSourceImage().height);
+
+            this.player = this.add
+                .sprite(
+                    this.cameras.main.width / 4,
+                    (this.cameras.main.height * 5) / 6,
+                    playerTexture.key
+                )
+                .setOrigin(0.5, 0.5)
+                .setScale(
+                    playerWidth / playerTexture.getSourceImage().width,
+                    playerHeight / playerTexture.getSourceImage().height
+                );
+        } else {
+            console.warn("[Mugungwha] Player texture not found");
+        }
 
         const buttonX = this.cameras.main.width / 2;
         const buttonY = this.cameras.main.height / 2;
@@ -247,6 +249,14 @@ export class Mugungwha extends Scene {
             .setOrigin(0.5, 0.5);
 
         this.isWatching = false;
+
+        if (potgManager.getIsRecording()) {
+            const clearBeforeStart = async () => {
+                await potgManager.stopRecording();
+                potgManager.startCanvasRecording();
+            };
+            clearBeforeStart();
+        } else potgManager.startCanvasRecording();
     }
 
     endGame() {
@@ -255,6 +265,7 @@ export class Mugungwha extends Scene {
         this.gameButtonText.destroy();
         this.timer.stopTimer(true);
         this.time.removeAllEvents();
+
         this.time.addEvent({
             delay: 1000,
             callback: () => {
@@ -294,6 +305,10 @@ export class Mugungwha extends Scene {
         const elapsedTime = Date.now() - this.gameStartedTime;
         const finalScore = this.getFinalScore();
 
+        if (potgManager.getIsRecording()) {
+            potgManager.stopRecording();
+        }
+
         // pop up result
         this.time.addEvent({
             delay: 1000,
@@ -324,7 +339,7 @@ export class Mugungwha extends Scene {
                 this.popupText.popupText(
                     "무궁화...",
                     this.cameras.main.centerX,
-                    this.cameras.main.centerY - 500,
+                    this.cameras.main.centerY / 2,
                     500,
                     {
                         fontSize: "128px",
@@ -344,7 +359,7 @@ export class Mugungwha extends Scene {
                 this.popupText.popupText(
                     "꽃이...",
                     this.cameras.main.centerX,
-                    this.cameras.main.centerY - 500,
+                    this.cameras.main.centerY / 2,
                     1000,
                     {
                         fontSize: "128px",
@@ -366,7 +381,7 @@ export class Mugungwha extends Scene {
                 this.popupText.popupText(
                     "피었습니다!",
                     this.cameras.main.centerX,
-                    this.cameras.main.centerY - 500,
+                    this.cameras.main.centerY / 2,
                     1000,
                     {
                         fontSize: "128px",

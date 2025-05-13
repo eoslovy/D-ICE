@@ -4,6 +4,7 @@ import { PopupSprite } from "../../modules/gameutils/PopupSptire";
 import { PopupText } from "../../modules/gameutils/PopupText";
 import { UITimer } from "../../modules/gameutils/UITimer";
 import { UICountdown } from "../../modules/gameutils/UICountdown";
+import potgManager from "../../modules/POTGManager";
 
 export class Knight extends Scene {
     // Common settings
@@ -95,7 +96,7 @@ export class Knight extends Scene {
                     this.cameras.main.centerY,
                     "knight_bg"
                 )
-                .setScale(1.4)
+                .setScale(1.5)
                 .setOrigin(0.5, 0.5);
         } else {
             this.add
@@ -135,9 +136,22 @@ export class Knight extends Scene {
             loop: true,
         });
 
-        const buttonY = this.cameras.main.centerY - 200;
-        const buttonLeftX = this.cameras.main.centerX - 200;
-        const buttonRightX = this.cameras.main.centerX + 200;
+        const alignmentY = (this.cameras.main.centerY * 3) / 4;
+        this.player = this.add
+            .sprite(this.playerPositionX, alignmentY, "knight_idle")
+            .setOrigin(0.5, 0.5)
+            .setScale(3.0);
+        this.player.anims.play("knight_idle", true);
+        this.player.on("animationcomplete", () => {
+            this.player.anims.play("knight_idle", true);
+        });
+
+        this.challengeContainer = this.add.container(0, alignmentY);
+
+        const buttonLeftX = this.cameras.main.width / 4;
+        const buttonRightX = (this.cameras.main.width * 3) / 4;
+        const buttonY = (this.cameras.main.height * 3) / 4;
+
         this.slashButton = this.add
             .sprite(buttonLeftX, buttonY, "btn_blue")
             .setInteractive()
@@ -198,20 +212,16 @@ export class Knight extends Scene {
             });
         });
 
-        const alignmentY = this.cameras.main.centerY;
-        this.player = this.add
-            .sprite(this.playerPositionX, alignmentY, "knight_idle")
-            .setOrigin(0.5, 0.5)
-            .setScale(3.0);
-        this.player.anims.play("knight_idle", true);
-        this.player.on("animationcomplete", () => {
-            this.player.anims.play("knight_idle", true);
-        });
-
-        this.challengeContainer = this.add.container(0, alignmentY);
-
         this.slashChallenge();
         this.parryChallenge();
+
+        if (potgManager.getIsRecording()) {
+            const clearBeforeStart = async () => {
+                await potgManager.stopRecording();
+                potgManager.startCanvasRecording();
+            };
+            clearBeforeStart();
+        } else potgManager.startCanvasRecording();
     }
 
     endGame() {
@@ -260,6 +270,10 @@ export class Knight extends Scene {
     result() {
         const elapsedTime = Date.now() - this.gameStartedTime;
         const finalScore = this.getFinalScore();
+
+        if (potgManager.getIsRecording()) {
+            potgManager.stopRecording();
+        }
 
         // pop up result
         this.time.addEvent({
