@@ -15,7 +15,6 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.stereotype.Repository;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.party.backbone.room.dto.RoundInfo;
 import com.party.backbone.room.dto.ScoreAggregationResult;
 import com.party.backbone.room.model.RoomStateTTL;
@@ -29,11 +28,11 @@ import lombok.extern.slf4j.Slf4j;
 @Repository
 public class RoomRedisRepositoryImpl implements RoomRedisRepository {
 	private final Duration PLAYER_BASE_TTL = Duration.ofHours(2);
-	private final long DEFAULT_GAME_START_OFFSET = 10_000;
+	// 룰렛, 설명, 카운트 다운 포함 대략 30초로 설정
+	private final long DEFAULT_GAME_START_OFFSET = 30_000;
 	private static final String PENDING_AGGREGATION_KEY = "pendingAggregationRooms";
 
 	private final RedisTemplate<String, String> redisTemplate;
-	private final ObjectMapper objectMapper;
 
 	@Override
 	public void createRoom(String roomCode, String administratorId) {

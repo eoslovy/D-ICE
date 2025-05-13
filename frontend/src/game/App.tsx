@@ -48,8 +48,7 @@ export default function App(/*{ roomId = "wasted", shouldConnect = true }: AppPr
   };
 
   return (
-    
-    <div className="game-container">
+    <>
       {/* Conditionally render PhaserGame based on connection or other logic if needed */}
       <div id="phaser-game-container" style={{ width: '100%', height: '100%' }}>
         <PhaserGame />
@@ -87,6 +86,6 @@ export default function App(/*{ roomId = "wasted", shouldConnect = true }: AppPr
           Please rotate your device to portrait mode for a better experience.
         </div>
       )}
-    </div>
+    </>
   );
 }

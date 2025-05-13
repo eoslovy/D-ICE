@@ -8,39 +8,52 @@ export class UITimer {
     private timerFinishedSound: Phaser.Sound.BaseSound;
 
     constructor(phaserScene: Phaser.Scene, x: number = 100, y: number = 100) {
-        console.log('[UITimer] Initializing UITimer');
+        console.log("[UITimer] Initializing UITimer");
         this.phaserScene = phaserScene;
-        this.timerText = this.phaserScene.add.text(x, y, '', {
-            fontSize: '48px',
-            fontFamily: 'Jua',
-            color: '#ffffff',
-            stroke: '#000000',
-            align: 'center',
-            fontStyle: 'bold',
-            strokeThickness: 2,
-        }).setOrigin(0.5, 0.5);
+        this.timerText = this.phaserScene.add
+            .text(x, y, "", {
+                fontSize: "48px",
+                fontFamily: "Jua",
+                color: "#ffffff",
+                stroke: "#000000",
+                align: "center",
+                fontStyle: "bold",
+                strokeThickness: 2,
+            })
+            .setOrigin(0.5, 0.5);
         this.timerText.setDepth(1000);
         this.timerText.setVisible(false);
         this.timerLeft = 0;
-        this.phaserScene.events.on('shutdown', () => {
+        this.phaserScene.events.on("shutdown", () => {
             this.stopTimer(false);
-        }
-        );
-        this.phaserScene.events.on('destroy', () => {
+        });
+        this.phaserScene.events.on("destroy", () => {
             this.stopTimer(false);
-        }
-        );
-
-
-        this.phaserScene.load.audio('timerUrgencySound', 'assets/sounds/BONGBellTimerHitShort04.wav');
-        this.phaserScene.load.once('filecomplete-audio-timerUrgencySound', () => {
-            this.timerUrgencySound = this.phaserScene.sound.add('timerUrgencySound');
         });
 
-        this.phaserScene.load.audio('timerFinishedSound', 'assets/sounds/ALARMAlertBuzzerShort01.wav');
-        this.phaserScene.load.once('filecomplete-audio-timerFinishedSound', () => {
-            this.timerFinishedSound = this.phaserScene.sound.add('timerFinishedSound');
-        });
+        this.phaserScene.load.audio(
+            "timerUrgencySound",
+            "assets/sounds/BONGBellTimerHitShort04.wav"
+        );
+        this.phaserScene.load.once(
+            "filecomplete-audio-timerUrgencySound",
+            () => {
+                this.timerUrgencySound =
+                    this.phaserScene.sound.add("timerUrgencySound");
+            }
+        );
+
+        this.phaserScene.load.audio(
+            "timerFinishedSound",
+            "assets/sounds/ALARMAlertBuzzerShort01.wav"
+        );
+        this.phaserScene.load.once(
+            "filecomplete-audio-timerFinishedSound",
+            () => {
+                this.timerFinishedSound =
+                    this.phaserScene.sound.add("timerFinishedSound");
+            }
+        );
 
         this.phaserScene.load.start();
     }
@@ -75,17 +88,14 @@ export class UITimer {
         // display seconds
         this.timerText.setText(`${this.timerLeft}`);
 
-
         if (this.timerLeft <= 0) {
             this.timerFinishedSound?.play();
             this.stopTimer(false);
-        }
-        else if (this.timerLeft <= 5 && !this.timerUrgencySound.isPlaying) {
-            this.timerText.setColor('#ff0000'); // Change text color to red
+        } else if (this.timerLeft <= 5 && !this.timerUrgencySound?.isPlaying) {
+            this.timerText.setColor("#ff0000"); // Change text color to red
             this.timerUrgencySound?.play();
-        }
-        else {
-            this.timerText.setColor('#ffffff'); // Reset text color to white
+        } else {
+            this.timerText.setColor("#ffffff"); // Reset text color to white
         }
     }
 
@@ -98,29 +108,28 @@ export class UITimer {
             return; // Timer is not running
         }
         this.timerTimer?.remove(false); // Stop the timer event
-        console.log('Timer stopped');
+        console.log("Timer stopped");
         this.timerStarted = false;
         this.timerText.setVisible(false);
-        this.timerText.setColor('#ffffff'); // Reset text color to white
-        this.timerText.setText(''); // Clear the text
+        this.timerText.setColor("#ffffff"); // Reset text color to white
+        this.timerText.setText(""); // Clear the text
         this.timerLeft = 0;
 
         if (interrupted) {
-            this.phaserScene.events.emit('timerInterrupted');
-        }
-        else {
-            console.log('Timer finished');
-            this.phaserScene.events.emit('timerFinished');
+            this.phaserScene.events.emit("timerInterrupted");
+        } else {
+            console.log("Timer finished");
+            this.phaserScene.events.emit("timerFinished");
         }
     }
 
     healthCheck(): boolean {
         if (!this.phaserScene) {
-            console.warn('[UITimer] Phaser scene is not active or not defined');
+            console.warn("[UITimer] Phaser scene is not active or not defined");
             return false;
         }
         if (!this.timerText) {
-            console.error('[UITimer] Timer text is not defined');
+            console.error("[UITimer] Timer text is not defined");
             return false;
         }
 

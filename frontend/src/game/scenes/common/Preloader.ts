@@ -14,6 +14,8 @@ export class Preloader extends Phaser.Scene {
         super({ key: "Preloader" });
     }
     preload() {
+        this.load.font("Jua", "assets/fonts/Jua-Regular.ttf");
+        this.load.font("FredokaOne", "assets/fonts/Fredoka-Regular.ttf");
         this.load.image("dice-albedo", "assets/dice/dice-albedo.png");
         this.load.obj("dice-obj", "assets/dice/dice.obj");
         this.load.image("Background", "assets/background/bg-2.jpg");

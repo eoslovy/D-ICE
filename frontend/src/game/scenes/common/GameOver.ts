@@ -8,8 +8,8 @@ import { addBackgroundImage } from './addBackgroundImage';
 import {GAME_TYPES} from './GameType';
 // Add interface for scene data
 interface GameOverSceneData {
-  score?: number;
-  gameType?: string;
+    score?: number;
+    gameType?: string;
 }
 
 export class GameOver extends Phaser.Scene {
@@ -48,8 +48,8 @@ export class GameOver extends Phaser.Scene {
     console.log('[GameOver] User ID:', userId);
     console.log('[GameOver] Room Code:', roomCode);
 
-    // Send score to backend
-    this.sendScoreToBackend(userId, roomCode);
+        // Send score to backend
+        this.sendScoreToBackend(userId, roomCode);
 
     // WebSocket 응답 리스너 설정
     userWebSocketManager.on('AGGREGATED_USER', (payload: AggregatedUserMessage) => {
