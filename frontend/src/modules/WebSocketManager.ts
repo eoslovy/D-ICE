@@ -15,7 +15,8 @@ type CustomManagingEvent =
     | "raw_message"
     | "unknown_requestId"
     | "error"
-    | "reconnect_failed";
+    | "reconnect_failed"
+    | "already_connected";
 
 abstract class WebSocketManager<
     M extends Record<string, any>
@@ -26,7 +27,7 @@ abstract class WebSocketManager<
     private reconnectAttempts: number = 0;
     private maxReconnectAttempts: number = 5;
     private reconnectTimer: number | null = null; // Use number for browser setTimeout
-    protected pendingRequests: Map<string, any> = new Map(); // Store pending requests timeout
+    private pendingMessages: Map<keyof M, any[]> = new Map(); // 각 type별 메시지 큐
 
     setServerURL(url: string): void {
         if (
@@ -51,6 +52,7 @@ abstract class WebSocketManager<
 
         if (this.ws && this.ws.readyState === WebSocket.OPEN) {
             console.log("[WebSocketManager] Already connected.");
+            this.emit("already_connected"); // Already connected event
             return;
         }
 
@@ -98,14 +100,64 @@ abstract class WebSocketManager<
             );
             const wsInstance = this.ws; // Capture instance before clearing
             this.ws = null; // Clear the instance
-            // Consider clearing pending requests or using timeouts
-            this.pendingRequests.forEach((timeoutId) => {
-                clearTimeout(timeoutId); // Clear all pending timeouts
-            });
-            this.pendingRequests.clear(); // Clear the pending requests map
+            // Clear the pending requests map
             this.handleDisconnect(event);
             this.emit("disconnect", event); // Emit disconnect after handling
         };
+
+        this.ws.onmessage = (event) => {
+            let msg: ReceiveMessage;
+            try {
+                msg = JSON.parse(event.data);
+                console.log(`[WebSocketManager] 수신된 메시지: ${msg}`);
+                this.queueOrEmit(msg);
+            } catch (e) {
+                console.error(
+                    "[WebSocketManager] 메시지 파싱 실패:",
+                    event.data,
+                    e
+                );
+                this.emit("raw_message", event.data);
+            }
+        };
+    }
+
+    private queueOrEmit(msg: ReceiveMessage) {
+        const type = msg.type as
+            | CustomManagingEvent
+            | EventEmitter.EventNames<keyof M & string>;
+        if (this.listenerCount(type) === 0) {
+            const queue = this.pendingMessages.get(type as string) ?? [];
+            queue.push(msg);
+            this.pendingMessages.set(type as string, queue);
+        } else {
+            this.emit(type, msg);
+        }
+    }
+
+    override on<
+        K extends
+            | CustomManagingEvent
+            | EventEmitter.EventNames<keyof M & string>
+    >(event: K, listener: (payload: M[K]) => void): this {
+        super.on(event, listener);
+
+        const queued = this.pendingMessages.get(event);
+        if (queued) {
+            queued.forEach((msg) => {
+                try {
+                    listener(msg);
+                } catch (e) {
+                    console.error(
+                        `[WebSocketManager] 큐 처리 중 에러 (${event}):`,
+                        e
+                    );
+                }
+            });
+            this.pendingMessages.delete(event);
+        }
+
+        return this;
     }
 
     private handleDisconnect(event?: CloseEvent): void {
@@ -170,18 +222,6 @@ abstract class WebSocketManager<
             this.ws?.send(JSON.stringify(message));
             // console.debug('[WebSocketManager] Request sent:', messageToSend);
 
-            // Optional: Implement request timeout logic here
-            if (this.hasRequestId(message)) {
-                this.pendingRequests.set(
-                    message.requestId,
-                    setTimeout(() => {
-                        console.warn(
-                            `[WebSocketManager] Request ${message.requestId} timed out.`
-                        );
-                        this.pendingRequests.delete(message.requestId); // Clean up pending request
-                    }, 5000)
-                ); // Example timeout of 5 seconds
-            }
             return true;
         } catch (error) {
             console.error(
@@ -243,3 +283,14 @@ abstract class WebSocketManager<
 
 // Or export the class if you need multiple instances
 export { WebSocketManager };
+
+
+
+
+
+
+
+
+
+
+

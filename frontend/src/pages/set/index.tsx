@@ -4,15 +4,9 @@ import { API } from "../../assets/api";
 import { v7 as uuidv7 } from "uuid";
 import adminWebSocketManager from "../../modules/AdminWebSocketManager";
 import { useWebSocket } from "../../modules/WebSocketContext";
-import BackgroundAnimation from "../../components/BackgroundAnimation";
 import GameCard from "../../components/GameCard";
-import DarkModeToggle from "../../components/DarkModeToggle";
 import { Settings, Loader } from "lucide-react";
-
-interface AdminJoinedMessage {
-    // Define the structure of AdminJoinedMessage here.  For example:
-    message: string;
-}
+import { adminStore } from "../../stores/adminStore";
 
 export default function Set() {
     const navigate = useNavigate();
@@ -28,11 +22,11 @@ export default function Set() {
 
             const { roomCode, administratorId } = data;
 
-            localStorage.setItem("administratorId", administratorId);
+            adminStore.getState().setAdministratorId(administratorId);
 
-            const ADMIN_WS_URL = `ws://${
-                import.meta.env.VITE_API_URL || "localhost:8080"
-            }/ws/game/admin/${roomCode}`;
+            const ADMIN_WS_URL = `${
+                import.meta.env.VITE_WEBSOCKET_URL
+            }/backbone/ws/game/admin/${roomCode}`;
             connectWebSocket("admin", ADMIN_WS_URL);
 
             adminWebSocketManager.on(
@@ -41,8 +35,10 @@ export default function Set() {
                     console.log("관리자 입장 성공:", payload);
 
                     // 방 코드, 라운드 수 저장 및 페이지 이동
-                    localStorage.setItem("roomCode", roomCode);
-                    localStorage.setItem("rounds", String(rounds));
+                    adminStore.getState().setStatus("WAITING");
+                    adminStore.getState().setRoomCode(roomCode);
+                    adminStore.getState().setTotalRound(rounds);
+                    requestId = uuidv7();
                     navigate(`/adminroom/${roomCode}`);
                 }
             );
@@ -54,16 +50,11 @@ export default function Set() {
         } catch (error) {
             console.error("방 생성 중 오류:", error);
             setIsCreating(false);
-        } finally {
-            requestId = uuidv7();
         }
     };
 
     return (
         <div className="game-container">
-            <BackgroundAnimation />
-            <DarkModeToggle />
-
             <GameCard>
                 <h1 className="game-title">
                     <Settings className="inline-flex mr-2" size={28} />
