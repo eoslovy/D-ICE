@@ -64,14 +64,14 @@ class AdminWebSocketManager extends WebSocketManager<AdminReceiveTypeMap> {
         return this.sendRequest(startGameMessage);
     }
 
-    sendNextGameAck(currentRound: number) : boolean {
+    sendNextGameAck(currentRound: number): boolean {
         const administratorId = this.getAdministratorId();
         if (!administratorId) return false;
         const nextGameAckMessage: NextGameAckMessage = {
             type: "NEXT_GAME_ACK",
             currentRound: currentRound,
             administratorId,
-        }
+        };
         return this.sendRequest(nextGameAckMessage);
     }
 }
@@ -79,6 +79,3 @@ class AdminWebSocketManager extends WebSocketManager<AdminReceiveTypeMap> {
 const adminWebSocketManager = new AdminWebSocketManager();
 
 export default adminWebSocketManager;
-
-
-
