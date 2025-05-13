@@ -2,6 +2,7 @@ package com.gamekjh.utils;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.Map;
 
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -17,16 +18,17 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class GameServerUtil {
 
-	HashMap<String, GameSession> gameSessionMap;
-	RedisRepository redisRepository;
+	private final Map<String, GameSession> gameSessionMap = new HashMap<>();
+	private final RedisRepository redisRepository;
 
 	public void joinGameConnection(GameType gameType, String roomCode, String roundCode, String userCode, WebSocketSession session) {
-		gameSessionMap.computeIfAbsent(roomCode, (id) -> {
-			if(!redisRepository.roomExistsAndGameTypeMatches(roomCode)) throw new RuntimeException("Room does not exist or GameType does not match");
-			gameSessionMap.putIfAbsent(roomCode, GameSession.creatGameSession(gameType));
-			gameSessionMap.get(roomCode).joinSession(userCode, session);
-			return gameSessionMap.get(roomCode);
+		GameSession game = gameSessionMap.computeIfAbsent(roomCode, id -> {
+			if (!redisRepository.roomExistsAndGameTypeMatches(roomCode))
+				throw new RuntimeException("Room does not exist or GameType does not match");
+			GameSession gameSession = GameSession.creatGameSession(gameType);
+			return gameSession;
 		});
+		game.getGameSession().put(userCode, session);
 	}
 
 	public GameSession getGameSession(String roomCode) {

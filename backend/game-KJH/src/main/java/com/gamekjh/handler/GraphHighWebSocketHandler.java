@@ -19,7 +19,7 @@ import com.gamekjh.utils.GameServerUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-@Component
+@Component("graphHighwebsockethandler")
 @Slf4j
 @RequiredArgsConstructor
 public class GraphHighWebSocketHandler extends TextWebSocketHandler {

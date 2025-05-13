@@ -1,5 +1,8 @@
 package com.gamekjh.repository;
 
+import org.springframework.stereotype.Repository;
+
+@Repository
 public class RedisRepositoryImpl implements RedisRepository {
 	@Override
 	public Boolean roomExistsAndGameTypeMatches(String roomId) {

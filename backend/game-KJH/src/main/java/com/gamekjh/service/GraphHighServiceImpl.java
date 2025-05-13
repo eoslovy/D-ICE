@@ -15,9 +15,11 @@ import com.gamekjh.dto.GraphHighServerMessage;
 import com.gamekjh.utils.GameServerUtil;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class GraphHighServiceImpl implements GraphHighService {
 
 	private final GameServerUtil gameServerUtil;
@@ -25,12 +27,14 @@ public class GraphHighServiceImpl implements GraphHighService {
 	@Override
 	public void updateScoreAndSendMessage(WebSocketSession session, String roomCode, GraphHighClientMessage message) throws
 		JsonProcessingException {
+		log.info(session.getId());
 		GameSession gameSession = gameServerUtil.getGameSession(roomCode);
 		if(gameSession.getGameInfo() instanceof GraphHigh){
 			GraphHigh graphHigh = (GraphHigh)gameSession.getGameInfo();
 			if(!graphHigh.updateRanking(message)) return;
 
 			GraphHighServerMessage graphHighServerMessage = graphHigh.getRankingTop3();
+			log.info("그래프 상위 3인 정리: "+graphHighServerMessage.toString());
 			TextMessage payload =new TextMessage(mapper.writeValueAsString(graphHighServerMessage));
 			gameSession.getGameSession().forEach((key, value) -> {
 				try {
