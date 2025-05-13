@@ -9,7 +9,6 @@ public enum GameType {
 	GameGraphHigh(()-> {
 		GraphHigh graphHigh = GraphHigh.builder().build();
 		graphHigh.init();
-
 		return graphHigh;
 	});
 
