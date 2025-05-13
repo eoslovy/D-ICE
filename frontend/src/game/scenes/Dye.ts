@@ -4,6 +4,7 @@ import { PopupText } from "../../modules/gameutils/PopupText";
 import { UITimer } from "../../modules/gameutils/UITimer";
 import { UICountdown } from "../../modules/gameutils/UICountdown";
 import { PopupSprite } from "../../modules/gameutils/PopupSptire"; // Assuming PopupSptire is a typo for PopupSprite
+import potgManager from "../../modules/POTGManager";
 
 export class Dye extends Scene {
     // Common settings
@@ -39,6 +40,8 @@ export class Dye extends Scene {
     private targetColorDisplay: Phaser.GameObjects.Rectangle;
     private markerColorDisplays: Phaser.GameObjects.Rectangle[];
 
+    private dye_bgm: Phaser.Sound.BaseSound;
+
     constructor() {
         super("Dye");
     }
@@ -70,6 +73,7 @@ export class Dye extends Scene {
     }
 
     preload() {
+        this.load.audio("dye_bgm", "assets/dye/dye_bgm.mp3");
         this.load.image("dye_pallete_1", "assets/dye/dye_pallete_1.png");
         this.load.image("dye_pallete_2", "assets/dye/dye_pallete_2.png");
         this.load.image("dye_pallete_3", "assets/dye/dye_pallete_3.png");
@@ -83,6 +87,8 @@ export class Dye extends Scene {
         this.countdown = new UICountdown(this);
         this.popupText = new PopupText(this);
         this.popupSprite = new PopupSprite(this);
+
+        this.dye_bgm = this.sound.add("dye_bgm", { loop: true });
 
         this.add
             .graphics()
@@ -471,6 +477,8 @@ export class Dye extends Scene {
         this.isRotating = false;
         this.isPinching = false;
 
+        this.dye_bgm?.play();
+
         for (let i = 0; i < this.numMarkers; i++) {
             this.markerColors[i]?.setTo(0, 0, 0);
             if (this.markerColorDisplays[i]) {
@@ -490,6 +498,14 @@ export class Dye extends Scene {
         console.log(
             `Target color: R=${this.targetColor.red} G=${this.targetColor.green} B=${this.targetColor.blue}`
         );
+
+        if (potgManager.getIsRecording()) {
+            const clearBeforeStart = async () => {
+                await potgManager.stopRecording();
+                potgManager.startCanvasRecording();
+            };
+            clearBeforeStart();
+        } else potgManager.startCanvasRecording();
     }
 
     endGame() {
@@ -498,6 +514,8 @@ export class Dye extends Scene {
         this.gameStarted = false;
         this.isRotating = false;
         this.isPinching = false;
+
+        this.dye_bgm?.stop();
 
         this.markers.forEach((marker, index) => {
             marker
@@ -537,6 +555,10 @@ export class Dye extends Scene {
     result() {
         const elapsedTime = Date.now() - this.gameStartedTime;
         const finalScore = this.getFinalScore();
+
+        if (potgManager.getIsRecording()) {
+            potgManager.stopRecording();
+        }
 
         // pop up result
         this.time.addEvent({
