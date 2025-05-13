@@ -5,6 +5,7 @@ import { PopupText } from "../../modules/gameutils/PopupText";
 import { UITimer } from "../../modules/gameutils/UITimer";
 import { UICountdown } from "../../modules/gameutils/UICountdown";
 import { ArrowRightSquare } from "lucide-react";
+import potgManager from "../../modules/POTGManager";
 
 export class Clicker extends Scene {
     // Common settings
@@ -120,6 +121,14 @@ export class Clicker extends Scene {
             callbackScope: this,
             loop: true,
         });
+
+        if (potgManager.getIsRecording()) {
+            const clearBeforeStart = async () => {
+                await potgManager.stopRecording();
+                potgManager.startCanvasRecording();
+            };
+            clearBeforeStart();
+        } else potgManager.startCanvasRecording();
     }
 
     spawnTarget() {
@@ -312,6 +321,10 @@ export class Clicker extends Scene {
     result() {
         const elapsedTime = Date.now() - this.gameStartedTime;
         const finalScore = this.getFinalScore();
+
+        if (potgManager.getIsRecording()) {
+            potgManager.stopRecording();
+        }
 
         // pop up result
         this.time.addEvent({
