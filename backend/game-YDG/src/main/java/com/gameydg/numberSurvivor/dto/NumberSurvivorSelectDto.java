@@ -8,8 +8,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class NumberSurvivorSelectDto {
-    private final String type = "NUMBER_SURVIVOR_SELECT";
-    private String userId;
-    private String roomId;
-    private Integer selectedNumber;
+	private final String type = "NUMBER_SURVIVOR_SELECT";
+	private String userId;
+	private String roomCode;
+	private Integer selectedNumber;
 }
