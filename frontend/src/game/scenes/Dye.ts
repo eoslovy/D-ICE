@@ -4,6 +4,7 @@ import { PopupText } from "../../modules/gameutils/PopupText";
 import { UITimer } from "../../modules/gameutils/UITimer";
 import { UICountdown } from "../../modules/gameutils/UICountdown";
 import { PopupSprite } from "../../modules/gameutils/PopupSptire"; // Assuming PopupSptire is a typo for PopupSprite
+import potgManager from "../../modules/POTGManager";
 
 export class Dye extends Scene {
     // Common settings
@@ -490,6 +491,14 @@ export class Dye extends Scene {
         console.log(
             `Target color: R=${this.targetColor.red} G=${this.targetColor.green} B=${this.targetColor.blue}`
         );
+
+        if (potgManager.getIsRecording()) {
+            const clearBeforeStart = async () => {
+                await potgManager.stopRecording();
+                potgManager.startCanvasRecording();
+            };
+            clearBeforeStart();
+        } else potgManager.startCanvasRecording();
     }
 
     endGame() {
@@ -537,6 +546,10 @@ export class Dye extends Scene {
     result() {
         const elapsedTime = Date.now() - this.gameStartedTime;
         const finalScore = this.getFinalScore();
+
+        if (potgManager.getIsRecording()) {
+            potgManager.stopRecording();
+        }
 
         // pop up result
         this.time.addEvent({
