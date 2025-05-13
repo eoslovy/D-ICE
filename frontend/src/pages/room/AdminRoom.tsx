@@ -13,7 +13,7 @@ export default function AdminRoom() {
     const [errorMessage, setErrorMessage] = useState("");
     const [userNickname, setUserNickname] = useState<string[]>([]);
     const [latestNickname, setLatestNickname] = useState<string | null>(null);
-    const [userCount, setUserCount] = useState<number | null>(null);
+    const [userCount, setUserCount] = useState<number | null>(adminStore.getState().userCount);
     let requestId = v7();
     const roomCode = adminStore.getState().roomCode;
     useEffect(() => {
