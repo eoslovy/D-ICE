@@ -67,7 +67,7 @@ public class GraphHighWebSocketHandler extends TextWebSocketHandler {
 			log.info("roomCode={}, userCode={}", roomCode, userCode);
 		}
 
-		session.sendMessage(new TextMessage("GraphHigh echo: " + payload));
+		//session.sendMessage(new TextMessage("GraphHigh echo: " + payload));
 	}
 
 	@Override
