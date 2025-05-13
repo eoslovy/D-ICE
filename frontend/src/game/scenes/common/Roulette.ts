@@ -176,7 +176,7 @@ export class Roulette extends Scene {
     const diff = ((targetIndex - currentCenterGameIdx + GAME_TYPES.length) % GAME_TYPES.length);
     const rounds = 2;
     const stopIndex = targetIndex + 1 + rounds * GAME_TYPES.length;
-    this.stopTargetY = (stopIndex * this.sliceHeight) - 23;
+    this.stopTargetY = (stopIndex * this.sliceHeight) - 25;
 
 
     // 초기 속도
