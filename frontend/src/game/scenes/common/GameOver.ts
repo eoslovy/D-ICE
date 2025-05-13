@@ -5,7 +5,7 @@ import { userStore } from '../../../stores/userStore';
 import userWebSocketManager from '../../../modules/UserWebSocketManager';
 import { UICountdown } from '../../../modules/gameutils/UICountdown';
 import { addBackgroundImage } from './addBackgroundImage';
-
+import {GAME_TYPES} from './GameType';
 // Add interface for scene data
 interface GameOverSceneData {
   score?: number;
@@ -21,6 +21,7 @@ export class GameOver extends Phaser.Scene {
   private countdown?: UICountdown;
   private isLastRound: boolean = false;
   private needVideoUpload: boolean = false; // 업로드 필요 여부 상태 추가
+  private gameTypeName: string = '';
   
   constructor() {
     super({ key: 'GameOver' });
@@ -34,6 +35,9 @@ export class GameOver extends Phaser.Scene {
       score: this.roundScore,
       gameType: this.gameType
     });
+
+    this.gameTypeName = 
+    GAME_TYPES.find(type => type.key === this.gameType)?.name || this.gameType;
 
     // 초기 화면 표시
     this.showInitialScreen();
@@ -113,16 +117,18 @@ export class GameOver extends Phaser.Scene {
     this.add.text(width / 2, height * 0.3, 
       '게임 종료!', 
       {
+        fontFamily: 'Jua',
         fontSize: '48px',
         color: '#ffffff',
         align: 'center'
       }
     ).setOrigin(0.5);
 
-    // 최종 점수
+    // 내 점수
     this.add.text(width / 2, height * 0.4, 
-      `최종 점수: ${this.roundScore}`, 
+      `내 점수: ${this.roundScore}`, 
       {
+        fontFamily: 'Jua',
         fontSize: '32px',
         color: '#ffffff',
         align: 'center'
@@ -131,8 +137,9 @@ export class GameOver extends Phaser.Scene {
 
     // 로딩 텍스트
     this.loadingText = this.add.text(width / 2, height * 0.5, 
-      '결과를 불러오는 중...', 
+      '통계를 불러오는 중...', 
       {
+        fontFamily: 'Jua',
         fontSize: '24px',
         color: '#ffffff',
         align: 'center'
@@ -159,11 +166,12 @@ export class GameOver extends Phaser.Scene {
     this.children.removeAll();
 
     addBackgroundImage(this);
-    
+
     // 제목
     this.add.text(width / 2, height * 0.15, 
-      '게임 종료!', 
+      `${this.gameTypeName}`, 
       {
+        fontFamily: 'Jua',
         fontSize: '48px',
         color: '#ffffff',
         align: 'center'
@@ -174,46 +182,58 @@ export class GameOver extends Phaser.Scene {
     this.add.text(width / 2, height * 0.25,
       `현재 라운드: ${this.backendResponse.currentRound}/${this.backendResponse.totalRound}`,
       {
+        fontFamily: 'Jua',
         fontSize: '32px',
         color: '#ffffff',
         align: 'center'
       }
     ).setOrigin(0.5);
 
-    // 점수 정보
-    const scoreInfo = this.add.container(width / 2, height * 0.35);
-    
-    const scoreText = this.add.text(0, 0,
-      `이번 라운드 점수: ${this.backendResponse.currentScore}\n` +
-      `총 점수: ${this.backendResponse.totalScore}`,
-      {
-        fontSize: '28px',
-        color: '#ffffff',
+    // 점수 정보 (가독성 개선)
+    const scoreBox = this.add.graphics();
+    const scoreBoxWidth = 420;
+    const scoreBoxHeight = 70;
+    scoreBox.fillStyle(0x1a223a, 0.85);
+    scoreBox.fillRoundedRect(width / 2 - scoreBoxWidth / 2, height * 0.33, scoreBoxWidth, scoreBoxHeight, 18);
+
+    const scoreText = 
+      `라운드 점수: ${this.backendResponse.currentScore}    전체 점수: ${this.backendResponse.totalScore}`;
+    this.add.text(width / 2, height * 0.33 + scoreBoxHeight / 2,
+      scoreText, {
+        fontFamily: 'Jua',
+        fontSize: '26px',
+        color: '#ffe066',
         align: 'center'
       }
     ).setOrigin(0.5);
 
-    scoreInfo.add(scoreText);
+    // 순위 정보 (가독성 개선)
+    const rankBox = this.add.graphics();
+    const rankBoxWidth = 420;
+    const rankBoxHeight = 70;
+    rankBox.fillStyle(0x1a223a, 0.85);
+    rankBox.fillRoundedRect(width / 2 - rankBoxWidth / 2, height * 0.43, rankBoxWidth, rankBoxHeight, 18);
 
-    // 순위 정보
-    this.add.text(width / 2, height * 0.45,
-      `이번 라운드 순위: ${this.backendResponse.roundRank}위\n` +
-      `전체 순위: ${this.backendResponse.overallRank}위`,
-      {
-        fontSize: '28px',
-        color: '#ffffff',
+    const rankText =
+      `라운드 순위: ${this.backendResponse.roundRank}위    전체 순위: ${this.backendResponse.overallRank}위`;
+    this.add.text(width / 2, height * 0.43 + rankBoxHeight / 2,
+      rankText, {
+        fontFamily: 'Jua',
+        fontSize: '26px',
+        color: '#42cafd',
         align: 'center'
       }
     ).setOrigin(0.5);
 
     // 라운드별 순위 그래프
-    this.createRankGraph(width / 2, height * 0.65);
+    this.createRankTable(width / 2, height * 0.55);
 
     // 업로드 상태 텍스트 생성 (handleVideoUpload 메서드 내에서)
     if (this.needVideoUpload) {
       this.uploadStatus = this.add.text(width / 2, height * 0.85,
         '게임 영상 업로드 중...', 
         {
+          fontFamily: 'Jua',
           fontSize: '20px',
           color: '#ffffff',
           align: 'center'
@@ -222,81 +242,55 @@ export class GameOver extends Phaser.Scene {
     }
   }
 
-  private createRankGraph(x: number, y: number) {
-    const ranks = this.backendResponse!.rankRecord.split('|').map(Number);
-    const graphWidth = 400;
-    const graphHeight = 200;
-    const padding = 40;
-    
-    // 그래프 배경
-    const graphics = this.add.graphics();
-    graphics.lineStyle(2, 0x666666);
-    
-    // Y축 (순위는 위아래가 반대)
-    graphics.beginPath();
-    graphics.moveTo(x - graphWidth/2, y - graphHeight/2);
-    graphics.lineTo(x - graphWidth/2, y + graphHeight/2);
-    graphics.strokePath();
-    
-    // X축
-    graphics.beginPath();
-    graphics.moveTo(x - graphWidth/2, y + graphHeight/2);
-    graphics.lineTo(x + graphWidth/2, y + graphHeight/2);
-    graphics.strokePath();
+  private createRankTable(x: number, y: number) {
+    if (!this.backendResponse || !this.backendResponse.roundRanking) return;
 
-    // 순위 선 그리기
-    graphics.lineStyle(3, 0x00ff00);
-    graphics.beginPath();
-    
-    const stepX = (graphWidth - padding * 2) / (ranks.length - 1);
-    const stepY = (graphHeight - padding * 2) / 4; // 1~5위
+    // roundRanking: [{ nickname: string, score: number }, ...] 형태라고 가정
+    const roundRanking = this.backendResponse.roundRanking as { nickname: string; score: number }[];
+    const tableWidth = 400;
+    const rowHeight = 48;
+    const colWidths = [60, 200, 120]; // 순위, 닉네임, 점수
 
-    ranks.forEach((rank, index) => {
-      const pointX = x - graphWidth/2 + padding + (stepX * index);
-      const pointY = y - graphHeight/2 + padding + (stepY * (rank - 1));
-      
-      if (index === 0) {
-        graphics.moveTo(pointX, pointY);
-      } else {
-        graphics.lineTo(pointX, pointY);
-      }
+    // 테이블 배경
+    const bg = this.add.graphics();
+    bg.fillStyle(0x222a3a, 0.7);
+    bg.fillRoundedRect(x - tableWidth / 2, y, tableWidth, rowHeight * 4, 16);
 
-      // 포인트 마커
-      this.add.circle(pointX, pointY, 5, 0x00ff00);
-      
-      // X축 라벨 (라운드 번호)
-      this.add.text(pointX, y + graphHeight/2 + 10, 
-        `R${index + 1}`, 
-        {
-          fontSize: '16px',
-          color: '#ffffff'
-        }
-      ).setOrigin(0.5, 0);
-    });
-    
-    graphics.strokePath();
+    // 헤더
+    const headerStyle = {
+      fontSize: '22px',
+      color: '#ffe066',
+      fontFamily: 'Jua',
+      fontStyle: 'bold'
+    };
+    this.add.text(x - tableWidth / 2 + colWidths[0] / 2, y + rowHeight / 2, "순위", headerStyle).setOrigin(0.5);
+    this.add.text(x - tableWidth / 2 + colWidths[0] + colWidths[1] / 2, y + rowHeight / 2, "닉네임", headerStyle).setOrigin(0.5);
+    this.add.text(x - tableWidth / 2 + colWidths[0] + colWidths[1] + colWidths[2] / 2, y + rowHeight / 2, "점수", headerStyle).setOrigin(0.5);
 
-    // Y축 라벨 (순위)
-    for (let i = 1; i <= 5; i++) {
-      const labelY = y - graphHeight/2 + padding + (stepY * (i - 1));
-      this.add.text(x - graphWidth/2 - 10, labelY,
-        `${i}위`,
-        {
-          fontSize: '16px',
-          color: '#ffffff'
-        }
-      ).setOrigin(1, 0.5);
+    // 상위 3등만 표시
+    for (let i = 0; i < 3; i++) {
+      const entry = roundRanking[i];
+      const rowY = y + rowHeight * (i + 1) + rowHeight / 2;
+      const textStyle = {
+        fontSize: '20px',
+        color: i === 0 ? '#ffd700' : i === 1 ? '#c0c0c0' : i === 2 ? '#cd7f32' : '#fff',
+        fontFamily: 'Jua'
+      };
+
+      this.add.text(x - tableWidth / 2 + colWidths[0] / 2, rowY, `${i + 1}`, textStyle).setOrigin(0.5);
+      this.add.text(
+        x - tableWidth / 2 + colWidths[0] + colWidths[1] / 2,
+        rowY,
+        entry?.nickname ?? '-',
+        textStyle
+      ).setOrigin(0.5);
+      this.add.text(
+        x - tableWidth / 2 + colWidths[0] + colWidths[1] + colWidths[2] / 2,
+        rowY,
+        entry?.score !== undefined ? String(entry.score) : '-',
+        textStyle
+      ).setOrigin(0.5);
     }
-
-    // 그래프 제목
-    this.add.text(x, y - graphHeight/2 - 20,
-      '라운드별 순위 변화',
-      {
-        fontSize: '24px',
-        color: '#ffffff',
-        align: 'center'
-      }
-    ).setOrigin(0.5);
   }
 
   private async handleVideoUpload() {
@@ -316,6 +310,7 @@ export class GameOver extends Phaser.Scene {
     this.uploadStatus = this.add.text(width / 2, height * 0.8,
       '게임 영상 업로드 중...', 
       {
+        fontFamily: 'Jua',
         fontSize: '20px',
         color: '#ffffff',
         align: 'center'
@@ -345,6 +340,7 @@ export class GameOver extends Phaser.Scene {
         this.uploadStatus = this.add.text(width / 2, height * 0.8,
           '게임 영상 업로드 완료!',
           {
+            fontFamily: 'Jua',
             fontSize: '20px',
             color: '#00ff00',
             align: 'center'
@@ -370,6 +366,7 @@ export class GameOver extends Phaser.Scene {
         this.uploadStatus = this.add.text(width / 2, height * 0.8,
           '게임 영상 업로드 실패',
           {
+            fontFamily: 'Jua',
             fontSize: '20px',
             color: '#ff0000',
             align: 'center'
@@ -396,6 +393,7 @@ export class GameOver extends Phaser.Scene {
       this.uploadStatus = this.add.text(width / 2, height * 0.8,
         errorMessage,
         {
+          fontFamily: 'Jua',
           fontSize: '20px',
           color: '#ff0000',
           align: 'center'
@@ -428,6 +426,7 @@ export class GameOver extends Phaser.Scene {
     bg.fillRoundedRect(-buttonWidth/2, -buttonHeight/2, buttonWidth, buttonHeight, 16);
     
     const text = this.add.text(0, 0, '다음 게임', {
+      fontFamily: 'Jua',
       fontSize: '24px',
       color: '#ffffff'
     }).setOrigin(0.5);
