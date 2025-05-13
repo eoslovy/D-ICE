@@ -43,13 +43,13 @@ export class Roulette extends Scene {
     // 아이템 생성
     for (let i = 0; i < this.totalItems; i++) {
       const game = GAME_TYPES[i % GAME_TYPES.length];
-      const y = (i - Math.floor(this.totalItems / 2)) * this.sliceHeight;
+      const y = (i-1) * this.sliceHeight;
       this.wheel.add(this.createWheelItem(game.name, y));
     }
 
     // 마스크: wheel 컨테이너 기준 중앙 3개만 보이게
     const maskWidth = width * 0.7;
-    const maskHeight = this.sliceHeight * this.visibleCount;
+    const maskHeight = this.sliceHeight * (this.visibleCount-1);
     const maskShape = this.add.graphics();
     maskShape.fillRect(
       width / 2 - maskWidth / 2,
@@ -159,11 +159,12 @@ export class Roulette extends Scene {
     this.spinPhase = 'spinning';
 
     // 목표 인덱스
-    const targetIndex = GAME_TYPES.findIndex(g => g.key === this.nextGame);
+    const targetIndex = GAME_TYPES.findIndex(g => g.key == this.nextGame);
     if (targetIndex === -1) {
       console.error('nextGame not found:', this.nextGame);
       return;
     }
+    console.log("targetIndex: ", targetIndex);
     this.stopTargetIndex = targetIndex;
 
     // 중앙에 nextGame이 오도록 stopTargetY 계산
@@ -173,9 +174,10 @@ export class Roulette extends Scene {
     const currentCenterGameIdx = (centerIndex) % GAME_TYPES.length;
     // nextGame이 중앙에 오도록 wheel.y를 이동
     const diff = ((targetIndex - currentCenterGameIdx + GAME_TYPES.length) % GAME_TYPES.length);
-    const rounds = 5;
-    const stopIndex = centerIndex + diff + rounds * GAME_TYPES.length;
-    this.stopTargetY = -((stopIndex) * this.sliceHeight) - 20;
+    const rounds = 2;
+    const stopIndex = targetIndex + 1 + rounds * GAME_TYPES.length;
+    this.stopTargetY = (stopIndex * this.sliceHeight) - 23;
+
 
     // 초기 속도
     this.spinVelocity = 55;
@@ -224,7 +226,7 @@ export class Roulette extends Scene {
         this.tweens.add({
           targets: this.wheel,
           y: this.stopTargetY,
-          duration: 1200,
+          duration: 3000,
           ease: 'Elastic.easeOut',
           onComplete: () => {
             this.handleSpinComplete();

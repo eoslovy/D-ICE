@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { userStore } from '../../../stores/userStore';
 import { addBackgroundImage } from './addBackgroundImage';
+import userWebSocketManager from '../../../modules/UserWebSocketManager';
 
 interface EndGameSceneData {
     totalScore: number;
@@ -26,6 +27,9 @@ export class EndGame extends Phaser.Scene {
         addBackgroundImage(this);
 
         this.showFinalResults(totalScore, rankRecord, overallRank);
+
+        console.log("웹소켓 연결 종료");
+        userWebSocketManager.disconnect();
     }
     private showFinalResults(totalScore: number, rankRecord: string, overallRank: number) {
         const width = this.cameras.main.width;
@@ -137,6 +141,7 @@ export class EndGame extends Phaser.Scene {
         button.on('pointerup', () => {
             userStore.getState().reset(); // zustand 상태 초기화
             localStorage.removeItem('userStore'); // userStore 제거
+            
             window.location.href = '/select';
         });
     }
