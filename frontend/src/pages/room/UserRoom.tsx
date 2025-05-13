@@ -21,10 +21,8 @@ export default function UserRoom() {
             navigate(`/game`);
         });
         return () => {
-            userWebSocketManager.off("ENTER_GAME", (payload: EnterGameMessage) => {
-                    console.log("ENTER_GAME 이벤트 리스너 해제:", payload);
-                }
-            );
+            userWebSocketManager.off("ENTER_GAME");
+            console.log("UserRoom 이벤트 리스너 해제");
         };
     }, []);
 
