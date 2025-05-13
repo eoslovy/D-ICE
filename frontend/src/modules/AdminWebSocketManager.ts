@@ -5,6 +5,9 @@ class AdminWebSocketManager extends WebSocketManager<AdminReceiveTypeMap> {
     connect(): void {
         super.connect();
     }
+    disconnect(): void {
+        super.disconnect();
+    }
 
     getAdministratorId(): string | null {
         const administratorId = adminStore.getState().administratorId;
