@@ -9,6 +9,7 @@ import userWebSocketManager from "../modules/UserWebSocketManager.ts";
 import { v7 as uuidv7 } from "uuid";
 import BackgroundAnimation from "../components/BackgroundAnimation";
 import DarkModeToggle from "../components/DarkModeToggle";
+import BackgroundMusicToggle from "../components/BackgroundMusicToggle.tsx";
 
 export default function WrapperLayout() {
     const navigate = useNavigate();
@@ -261,6 +262,7 @@ export default function WrapperLayout() {
         <div id="app" className="min-h-screen">
             <BackgroundAnimation />
             <DarkModeToggle />
+            <BackgroundMusicToggle />
             {isReady && !isModalOpen && <Outlet />}
             {/* 모달 창 */}
             {isModalOpen && (

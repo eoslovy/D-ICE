@@ -6,6 +6,10 @@ class AdminWebSocketManager extends WebSocketManager<AdminReceiveTypeMap> {
         super.connect();
     }
 
+    disconnect(): void {
+        super.disconnect();
+    }
+
     sendAdminReconnect(requestId: string, administratorId: string): void {
         const adminReconnectMessage: AdminReconnectMessage = {
             type: "ADMIN_RECONNECT",
@@ -68,6 +72,3 @@ class AdminWebSocketManager extends WebSocketManager<AdminReceiveTypeMap> {
 const adminWebSocketManager = new AdminWebSocketManager();
 
 export default adminWebSocketManager;
-
-
-
