@@ -1,6 +1,7 @@
 import { Scene } from "phaser";
 import { createChart, IChartApi, CandlestickData } from "lightweight-charts";
 import { LineStyle } from 'lightweight-charts';
+import { userStore} from '../../stores/userStore'
 
 interface ScoreMessage {
     userCode: string;
@@ -12,14 +13,17 @@ interface ScoreMessage {
 interface ScoreRankingResponse {
     scoreRanking: ScoreMessage[];
 }
-  
+const { roomCode, nickname, userId,  } = userStore.getState();
 const params = {
-    roomCode: "1",
-    roundCode: "2",
-    userCode: "3"
+    roomCode: roomCode,
+    roundCode: 0,
+    userCode: userId
 };
+
 export class GraphHigh extends Scene {
     private ws?: WebSocket;
+    private rankingMap: Map<string, Phaser.GameObjects.Text> = new Map();
+    private latestRanking: ScoreMessage[] = [];
     private chart!: IChartApi;
     private series!: ReturnType<IChartApi["addCandlestickSeries"]>;
     private tickBuffer: number[] = [];
@@ -34,6 +38,7 @@ export class GraphHigh extends Scene {
     private attempts: number[] = [];
     private attemptTexts: Phaser.GameObjects.Text[] = [];
     private scoreButton!: Phaser.GameObjects.Text;
+    private rankingTexts: Phaser.GameObjects.Container[] = [];
     private scheduleNextTick() {
         const delay = Phaser.Math.Between(70, 120); // 0.08 ~ 0.15초
         this.time.delayedCall(delay, () => {
@@ -111,11 +116,17 @@ export class GraphHigh extends Scene {
     create() {
 
         const params = {
-            roomCode: "1",
-            roundCode: "2",
-            userCode: "3"
+            roomCode: roomCode,
+            roundCode: 0,
+            userCode: userId
         };
-
+        for (let i = 0; i < 3; i++) {
+            const text = this.add.text(600, 100 + i * 40, '', {
+                font: '20px Arial',
+                color: '#ffffff'
+            });
+            this.rankingMap.set(`slot${i}`, text);
+        }
         const query = new URLSearchParams(params).toString();
         const WS_URL = `ws://localhost:8080/api/game/kjh/ws/graphhigh?${query}`;
 
@@ -125,10 +136,10 @@ export class GraphHigh extends Scene {
             console.log("✅ WebSocket 연결됨");
 
             const sendData: ScoreMessage = {
-                userCode: "abc124",
-                userName: "jae",
-                earnedScore: 1094,
-                totalScore: 1530
+                userCode: userId,
+                userName: nickname,
+                earnedScore: 0,
+                totalScore: 0
             };
 
             this.ws?.send(JSON.stringify(sendData));
@@ -138,11 +149,7 @@ export class GraphHigh extends Scene {
         this.ws.onmessage = (event: MessageEvent) => {
             try {
                 const data: ScoreRankingResponse = JSON.parse(event.data);
-                console.log("📥 수신된 scoreRanking:");
-
-                data.scoreRanking.forEach((entry, index) => {
-                    console.log(`${index + 1}. ${entry.userName} (${entry.userCode}) - earned: ${entry.earnedScore}, total: ${entry.totalScore}`);
-                });
+                this.renderRanking(data.scoreRanking);
             } catch (error) {
                 console.error("❌ JSON 파싱 실패:", error);
             }
@@ -292,6 +299,48 @@ export class GraphHigh extends Scene {
         return { time, open, high, low, close };
     }
 
+    private renderRanking(data: ScoreMessage[]) {
+        // 기존 제거
+        this.rankingTexts.forEach(c => c.destroy());
+        this.rankingTexts = [];
+    
+        const colors = ['#FFD700', '#C0C0C0', '#CD7F32']; // 금, 은, 동
+        const baseY = 80;
+        const startX = this.cameras.main.centerX;
+    
+        data.slice(0, 5).forEach((entry, index) => {
+            const rank = index + 1;
+            const y = baseY + index * 60;
+    
+            const rankText = this.add.text(0, 0, `${rank}.`, {
+                font: '24px Arial',
+                color: colors[index] || '#ffffff',
+                fontStyle: 'bold'
+            }).setOrigin(0, 0.5);
+    
+            const nameText = this.add.text(40, 0, `${entry.userName}`, {
+                font: '24px Arial',
+                color: '#ffffff',
+                fontStyle: 'bold'
+            }).setOrigin(0, 0.5);
+    
+            const scoreText = this.add.text(180, 0, `(${entry.earnedScore})`, {
+                font: '20px Arial',
+                color: '#aaaaaa'
+            }).setOrigin(0, 0.5);
+    
+            const container = this.add.container(startX - 120, y, [rankText, nameText, scoreText]);
+            this.rankingTexts.push(container);
+    
+            // Tween 효과 (scale 깜빡임)
+            this.tweens.add({
+                targets: container,
+                scale: { from: 1.2, to: 1 },
+                duration: 300,
+                ease: 'Back.easeOut',
+            });
+        });
+    }
     shutdown() {
         const container = document.getElementById(this.containerId);
         if (container) container.remove();
