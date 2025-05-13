@@ -10,7 +10,7 @@ import lombok.Getter;
 public enum GameType {
 	Reaction(40000),
 	Clicker(40000),
-	PerfectCircle(10000),
+	PerfectCircle(15000),
 	Mugungwha(40000),
 	Wirewalk(40000),
 	Josephus(40000),

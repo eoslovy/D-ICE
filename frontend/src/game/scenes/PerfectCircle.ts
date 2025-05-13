@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import POTGManager from '../../modules/POTGManager';
 
 interface Point {
   x: number;
@@ -9,16 +10,22 @@ export class PerfectCircle extends Phaser.Scene {
   private drawing = false;
   private points: Point[] = [];
   private graphics!: Phaser.GameObjects.Graphics;
-  private startTime!: number;
+  private sceneStartTime!: number;
   private timerText!: Phaser.GameObjects.Text;
-  private roundTimeLimit = 5; // 초 단위
+  private roundTimeLimit = 10; // 10초로 변경
   private score: number = 0;
   private guideCenterX!: number;
   private guideCenterY!: number;
   private guideRadius!: number;
 
+  
   constructor() {
     super('PerfectCircle');
+  }
+
+  init() {
+    // 씬이 시작될 때 시간 초기화
+    this.sceneStartTime = 0;  // 0부터 시작
   }
 
   create() {
@@ -56,7 +63,9 @@ export class PerfectCircle extends Phaser.Scene {
       this.drawing = true;
       this.points = [];
       this.graphics.clear();
-      this.startTime = this.time.now;
+  
+      // 원 그리기 시작할 때 녹화 시작
+      this.startRecording();
   
       // ⭐ 시작점 지정
       this.graphics.beginPath();
@@ -84,16 +93,14 @@ export class PerfectCircle extends Phaser.Scene {
       delay: 1000,
       loop: true,
       callback: () => {
-        if (this.drawing) {
-          const elapsedSeconds = (this.time.now - this.startTime) / 1000;
-          const remaining = Math.max(0, this.roundTimeLimit - Math.floor(elapsedSeconds));
-          this.timerText.setText(`남은 시간: ${remaining}`);
+        this.sceneStartTime += 1;  // 1초씩 증가
+        const remaining = Math.max(0, this.roundTimeLimit - this.sceneStartTime);
+        this.timerText.setText(`남은 시간: ${remaining}`);
   
-          if (remaining <= 0) {
-            this.drawing = false;
-            this.graphics.closePath(); // ⭐ 남은시간 초과 시 선 닫기
-            this.evaluateCircle();
-          }
+        if (remaining <= 0) {
+          this.drawing = false;
+          this.graphics.closePath();
+          this.evaluateCircle();
         }
       }
     });
@@ -165,10 +172,30 @@ export class PerfectCircle extends Phaser.Scene {
   
     // 3초 후 GameOver 씬으로
     this.time.delayedCall(3000, () => {
+      // 녹화 중지 추가
+      this.stopRecording();
+      
       this.scene.start('GameOver', { 
         score: this.score,
         gameType: 'PerfectCircle'
       });
     });
+  }
+
+  // 녹화 시작 함수 수정
+  private async startRecording() {
+    try {
+      const started = await POTGManager.startScreenRecording();
+      if (started) {
+        console.log('[PerfectCircle] 녹화가 시작되었습니다!');
+      }
+    } catch (error) {
+      console.error('[PerfectCircle] 녹화 시작 중 오류:', error);
+    }
+  }
+
+  // 녹화 중지 함수 수정
+  private stopRecording() {
+    POTGManager.stopRecording();
   }
 }
