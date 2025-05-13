@@ -1,7 +1,25 @@
 import { Scene } from "phaser";
 import { createChart, IChartApi, CandlestickData } from "lightweight-charts";
+import { LineStyle } from 'lightweight-charts';
 
+interface ScoreMessage {
+    userCode: string;
+    userName: string;
+    earnedScore: number;
+    totalScore: number;
+}
+  
+interface ScoreRankingResponse {
+    scoreRanking: ScoreMessage[];
+}
+  
+const params = {
+    roomCode: "1",
+    roundCode: "2",
+    userCode: "3"
+};
 export class GraphHigh extends Scene {
+    private ws?: WebSocket;
     private chart!: IChartApi;
     private series!: ReturnType<IChartApi["addCandlestickSeries"]>;
     private tickBuffer: number[] = [];
@@ -23,6 +41,8 @@ export class GraphHigh extends Scene {
             this.scheduleNextTick();
         });
     }
+    
+    
     constructor() {
         super("GraphHigh");
     }
@@ -89,6 +109,53 @@ export class GraphHigh extends Scene {
         }, 0);
     }
     create() {
+
+        const params = {
+            roomCode: "1",
+            roundCode: "2",
+            userCode: "3"
+        };
+
+        const query = new URLSearchParams(params).toString();
+        const WS_URL = `ws://localhost:8080/api/game/kjh/ws/graphhigh?${query}`;
+
+        this.ws = new WebSocket(WS_URL);
+
+        this.ws.onopen = () => {
+            console.log("✅ WebSocket 연결됨");
+
+            const sendData: ScoreMessage = {
+                userCode: "abc124",
+                userName: "jae",
+                earnedScore: 1094,
+                totalScore: 1530
+            };
+
+            this.ws?.send(JSON.stringify(sendData));
+            console.log("📤 데이터 전송됨:", sendData);
+        };
+
+        this.ws.onmessage = (event: MessageEvent) => {
+            try {
+                const data: ScoreRankingResponse = JSON.parse(event.data);
+                console.log("📥 수신된 scoreRanking:");
+
+                data.scoreRanking.forEach((entry, index) => {
+                    console.log(`${index + 1}. ${entry.userName} (${entry.userCode}) - earned: ${entry.earnedScore}, total: ${entry.totalScore}`);
+                });
+            } catch (error) {
+                console.error("❌ JSON 파싱 실패:", error);
+            }
+        };
+
+        this.ws.onerror = (error) => {
+            console.error("❌ WebSocket 에러:", error);
+        };
+
+        this.ws.onclose = (event) => {
+            console.log(`🔒 WebSocket 연결 종료 (code=${event.code})`);
+        };
+
         this.createChartContainer();
         this.setupChart();
 
@@ -125,6 +192,18 @@ export class GraphHigh extends Scene {
 
                 const current = Number(this.currentPrice.toFixed(2));
                 this.attempts.push(current);
+                
+                const markerTime = this.logicalTime;
+                const coordinate = this.chart.timeScale().timeToCoordinate(markerTime);
+                
+                const priceLine = this.series.createPriceLine({
+                    price: this.currentPrice,
+                    color: 'red',
+                    lineWidth: 1,
+                    lineStyle: LineStyle.Dashed,
+                    axisLabelVisible: true,
+                    title: `시도 ${this.attempts.length}`,
+                });
 
                 // 기록 표시 업데이트
                 const text = this.add.text(20, 60 + this.attempts.length * 30, `시도 ${this.attempts.length}: ${current}`, {
@@ -132,7 +211,14 @@ export class GraphHigh extends Scene {
                     color: '#ffffff'
                 });
                 this.attemptTexts.push(text);
-
+                const scorePayload: ScoreMessage = {
+                    userCode: "abc124",  // 또는 this.userCode 등으로 동적으로
+                    userName: "jae",
+                    earnedScore: current,
+                    totalScore: this.attempts.reduce((a, b) => a + b, 0)
+                };
+                this.ws?.send(JSON.stringify(scorePayload));
+                console.log("📤 점수 전송됨:", scorePayload);
                 // ✅ 파괴적인 이펙트: 강한 scale + 회전 + 알파 + 터지는 느낌
                 this.tweens.add({
                     targets: this.scoreButton,
