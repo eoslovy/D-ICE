@@ -106,7 +106,7 @@ class NumberSurvivorWebSocketManager extends WebSocketManager<NumberSurvivorRece
     constructor() {
         super();
         this.setServerURL(
-            "ws://${import.meta.env.VITE_WEBSOCKET_URL}/backbone/ws/gameydg-service/number-survivor"
+            `${import.meta.env.VITE_WEBSOCKET_URL}/game/ydg/ws/number-survivor`
         );
     }
 

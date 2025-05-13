@@ -17,7 +17,7 @@ export class GameOver extends Phaser.Scene {
     private backendResponse: AggregatedUserMessage | null = null;
     private loadingText: Phaser.GameObjects.Text | null = null;
     private uploadStatus: Phaser.GameObjects.Text | null = null;
-    private countdown?: UICountdown;
+    private countdown: UICountdown;
     private isLastRound: boolean = false;
     private needVideoUpload: boolean = false; // 업로드 필요 여부 상태 추가
 
@@ -67,14 +67,19 @@ export class GameOver extends Phaser.Scene {
         );
     }
 
+    create() {
+        const width = this.cameras.main.width;
+        const height = this.cameras.main.height;
+        if (!this.countdown) {
+            this.countdown = new UICountdown(this, width / 2, height * 0.8);
+        }
+    }
+
     private showCountdownAndNext() {
         const width = this.cameras.main.width;
         const height = this.cameras.main.height;
 
         // UICountdown 표시
-        if (!this.countdown) {
-            this.countdown = new UICountdown(this, width / 2, height * 0.8);
-        }
         this.countdown.startCountdown(10);
 
         // "다음 게임" 버튼 표시
@@ -496,4 +501,3 @@ export class GameOver extends Phaser.Scene {
         );
     }
 }
-
