@@ -4,6 +4,7 @@ import { PopupSprite } from "../../modules/gameutils/PopupSptire";
 import { PopupText } from "../../modules/gameutils/PopupText";
 import { UITimer } from "../../modules/gameutils/UITimer";
 import { UICountdown } from "../../modules/gameutils/UICountdown";
+import potgManager from "../../modules/POTGManager";
 
 export class Josephus extends Scene {
     // Common settings
@@ -167,6 +168,13 @@ export class Josephus extends Scene {
 
         // Start initial round
         this.anthorJosephusRound(-1);
+        if (potgManager.getIsRecording()) {
+            const clearBeforeStart = async () => {
+                await potgManager.stopRecording();
+                potgManager.startCanvasRecording();
+            };
+            clearBeforeStart();
+        } else potgManager.startCanvasRecording();
     }
 
     endGame() {
@@ -215,6 +223,10 @@ export class Josephus extends Scene {
     result() {
         const elapsedTime = Date.now() - this.gameStartedTime;
         const finalScore = this.getFinalScore();
+
+        if (potgManager.getIsRecording()) {
+            potgManager.stopRecording();
+        }
 
         // pop up result
         this.time.addEvent({
