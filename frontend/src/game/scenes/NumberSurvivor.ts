@@ -1533,12 +1533,6 @@ export class NumberSurvivor extends Scene {
             this.roundInfoText.setAlpha(0);
         }
         
-        // 서버에서 resetLocalStorage 플래그 확인
-        if (message.resetLocalStorage) {
-            console.log('[NumberSurvivor] Server requested localStorage reset');
-            // 게임 종료 시 userStore 상태 초기화
-            userStore.getState().reset();
-        }
         
         // 로컬 스토리지에서 탈락 상태 제거 (게임 종료 시 상태 초기화)
         try {
