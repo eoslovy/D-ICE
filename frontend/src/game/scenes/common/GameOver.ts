@@ -58,32 +58,31 @@ export class GameOver extends Phaser.Scene {
       this.needVideoUpload = !!payload.videoUploadUrl;
       this.updateUI();
 
-                // 집계 UI 및 분기 처리
-                if (this.needVideoUpload) {
-                    this.handleVideoUpload().then(() => {
-                        this.showCountdownAndNext();
-                    });
-                } else {
-                    this.showCountdownAndNext();
-                }
-            }
-        );
-    }
+      // 집계 UI 및 분기 처리
+      if (this.needVideoUpload) {
+        this.handleVideoUpload().then(() => {
+          this.showCountdownAndNext();
+        });
+      } else {
+        this.showCountdownAndNext();
+      }
+    });
+  }
 
-    create() {
-        const width = this.cameras.main.width;
-        const height = this.cameras.main.height;
-        if (!this.countdown) {
-            this.countdown = new UICountdown(this, width / 2, height * 0.8);
-        }
+  create() {
+    const width = this.cameras.main.width;
+    const height = this.cameras.main.height;
+    if (!this.countdown) {
+      this.countdown = new UICountdown(this, width / 2, height * 0.8);
     }
+  }
 
   private showCountdownAndNext() {
     const width = this.cameras.main.width;
     const height = this.cameras.main.height;
 
-        // UICountdown 표시
-        this.countdown.startCountdown(10);
+    // UICountdown 표시
+    if (this.countdown) this.countdown.startCountdown(10);
 
     // "다음 게임" 버튼 표시
     let preloaderButton: Phaser.GameObjects.Container | undefined;
