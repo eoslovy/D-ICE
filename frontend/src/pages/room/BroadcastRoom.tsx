@@ -34,10 +34,13 @@ export default function BroadcastRoom() {
             setIsLoading(false);
         });
 
-        adminWebSocketManager.on("AGGREGATED_ADMIN", (payload: AggregatedAdminMessage) => {
-            setData(payload);
-            setShowResults(true);
-        });
+        adminWebSocketManager.on(
+            "AGGREGATED_ADMIN",
+            (payload: AggregatedAdminMessage) => {
+                setData(payload);
+                setShowResults(true);
+            }
+        );
 
         adminWebSocketManager.on("END", (payload: EndMessage) => {
             setFinalData(payload);
@@ -80,8 +83,9 @@ export default function BroadcastRoom() {
     };
 
     const handleGoLobby = () => {
+        adminWebSocketManager.disconnect();
         localStorage.removeItem("adminStore");
-        navigate('/select');
+        navigate("/select");
     };
 
     return (
@@ -111,17 +115,24 @@ export default function BroadcastRoom() {
                         </div>
                         <div className="flex items-center">
                             <Clock className="mr-2" size={20} />
-                            <span>라운드: {currentRound}/{totalRound}</span>
+                            <span>
+                                라운드: {currentRound}/{totalRound}
+                            </span>
                         </div>
                     </div>
 
                     <div className="mb-8">
                         <h2 className="game-subtitle">
                             {nextGame === null ? (
-                                <div className="animate-pulse">다음 게임 선택 중...</div>
+                                <div className="animate-pulse">
+                                    다음 게임 선택 중...
+                                </div>
                             ) : (
                                 <div>
-                                    다음 게임: <span className="text-quinary">{nextGame}</span>
+                                    다음 게임:{" "}
+                                    <span className="text-quinary">
+                                        {nextGame}
+                                    </span>
                                 </div>
                             )}
                         </h2>
@@ -131,10 +142,14 @@ export default function BroadcastRoom() {
                         <button
                             onClick={startGame}
                             disabled={isLoading}
-                            className={`btn btn-primary w-full flex items-center justify-center ${isLoading ? "opacity-70 cursor-not-allowed" : ""}`}
+                            className={`btn btn-primary w-full flex items-center justify-center ${
+                                isLoading ? "opacity-70 cursor-not-allowed" : ""
+                            }`}
                         >
                             {isLoading ? (
-                                <span className="animate-pulse">게임 중...</span>
+                                <span className="animate-pulse">
+                                    게임 중...
+                                </span>
                             ) : (
                                 <>
                                     <Play size={20} className="mr-2" />

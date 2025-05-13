@@ -631,7 +631,7 @@
 
 .dark .rankings-body {
   background-color: #2b2e4a;
-  color: #ebebd3;
+  color: #1e1e1e;
 }
 
 .dark .rank-item:hover {
@@ -639,24 +639,24 @@
 }
 
 .dark .rank-number {
-  color: #ebebd3;
+  color: #1e1e1e;
 }
 
 .dark .rank-name {
-  color: #ebebd3;
+  color: #1e1e1e;
 }
 
 .dark .rank-score {
-  color: #c5c5c5;
+  color: #1e1e1e;
 }
 
 .dark .podium-title {
-  color: #ebebd3;
+  color: #1e1e1e;
 }
 
 .dark .video-button {
   background-color: #3a3f5d;
-  color: #ebebd3;
+  color: #1e1e1e;
 }
 
 .dark .video-button:hover {
@@ -665,5 +665,5 @@
 
 .dark .video-toggle-inactive {
   background-color: #3a3f5d;
-  color: #ebebd3;
+  color: #1e1e1e;
 }
