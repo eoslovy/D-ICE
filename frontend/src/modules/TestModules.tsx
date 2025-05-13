@@ -215,6 +215,63 @@ export default function TestModules(props: TestModulesProps) {
     userWebSocketManager.emit('WAIT', testData);
   };
 
+  const testAggregation = () => {
+    const testData = {
+      type: "AGGREGATED_USER",
+      currentRound: 5, // 현재 round
+      totalRound: 5, // 전체 round
+      gameType: testGameTypeInput,//게임이름
+      currentScore: 100, // int 이번 round 점수
+      totalScore: 500,
+      rankRecord: "1|2|4|1|5", // 구분자 | 라운드별 순위 기록
+      roundRank: 1, 
+      overallRank: 3,
+      roundRanking: [
+        { 
+          "rank": 1, // 동차 면 같은 등수로
+          "userId": 1,
+          "nickname": "user1",
+          "score": 100 // 라운드별 계수 생각해봐야함
+        },
+        { 
+          "rank": 2,
+          "userId": 2,
+          "nickname": "user2",
+          "score": 96 // 라운드별 계수 생각해봐야함
+        },
+        { 
+          "rank": 2,
+          "userId": 3,
+          "nickname": "user3",
+          "score": 96 // 라운드별 계수 생각해봐야함
+        }
+      ],
+      overallRanking: [
+        {
+          "rank": 1,
+          "userId": 1,
+          "nickname": "user1",
+          "socre": 300
+        },
+        {
+          "rank": 2,
+          "userId": 2,
+          "nickname": "user2",
+          "socre": 286
+        },
+        {
+          "rank": 3,
+          "userId": 3,
+          "nickname": "user3",
+          "socre": 276
+        }
+      ],
+      "videoUploadUrl": "" // s3 presigned url POST|PUT용
+    }
+    // WebSocket 이벤트 에뮬레이션
+    userWebSocketManager.emit('AGGREGATED_USER', testData);
+  };
+
   // --- Styles ---
   const consoleStyle: React.CSSProperties = {
     position: 'fixed',
@@ -402,6 +459,14 @@ export default function TestModules(props: TestModulesProps) {
               disabled={!testGameTypeInput.trim()}
             >
               Test Game Start
+            </button>
+          </div>
+          <div style={sectionStyle}>
+            <button 
+              onClick={testAggregation}
+              style={buttonStyle}
+            >
+              Test Aggregation
             </button>
           </div>
 
