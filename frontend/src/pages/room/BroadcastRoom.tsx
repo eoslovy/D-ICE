@@ -47,17 +47,17 @@ export default function BroadcastRoom() {
         });
 
         return () => {
-            adminWebSocketManager.off("NEXT_GAME", () => {});
-            adminWebSocketManager.off("AGGREGATED_ADMIN", () => {});
-            adminWebSocketManager.off("END", () => {});
+            adminWebSocketManager.off("NEXT_GAME");
+            adminWebSocketManager.off("AGGREGATED_ADMIN");
+            adminWebSocketManager.off("END");
+            console.log("BroadcastRoom 이벤트 리스너 해제");
         };
     }, []);
 
     const startGame = async () => {
         try {
-            
             const startReq = adminWebSocketManager.sendStartGame(requestId);
-            if (startReq === true){
+            if (startReq === true) {
                 console.log("게임 시작 요청 성공", nextGame);
                 setIsLoading(true);
                 requestId = uuidv7();
@@ -85,6 +85,7 @@ export default function BroadcastRoom() {
     const handleGoLobby = () => {
         adminWebSocketManager.disconnect();
         localStorage.removeItem("adminStore");
+        sessionStorage.removeItem("isFinal");
         navigate("/select");
     };
 

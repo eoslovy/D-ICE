@@ -334,6 +334,7 @@
   /* 포디움 아바타 스타일 */
   .podium-avatar {
     @apply rounded-full flex items-center justify-center mb-2 overflow-hidden border-4;
+    color: #1e1e1e
   }
 
   .podium-avatar-first {
