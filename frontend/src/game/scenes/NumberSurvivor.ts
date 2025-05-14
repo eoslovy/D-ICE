@@ -1,6 +1,7 @@
 import { Scene } from 'phaser';
 import numberSurvivorWebSocketManager from '../../modules/NumberSurvivorWebSocketManager';
 import { userStore } from '../../stores/userStore';
+import numberSurvivorPOTGService from '../../modules/NumberSurvivorPOTGService';
 
 // [서비스용] 게임 설정 상수 - 최종 정리
 const GAME_CONFIG = {
@@ -49,6 +50,7 @@ interface GameOverMessage {
     type: "GAME_OVER";
     winners: PlayerInfo[];
     resetLocalStorage?: boolean;
+    roundResults?: RoundResult[];
 }
 
 interface WaitingMessage {
@@ -1276,51 +1278,32 @@ export class NumberSurvivor extends Scene {
 
     // [서비스용] 리소스 정리 함수
     private cleanupResources() {
-        console.log('[NumberSurvivor] Cleanup resources called');
+        console.log('[NumberSurvivor] Cleaning up resources...');
         
-        // 타이머 정리 전 체크
-        if (this.scene.isActive()) {
-            this.cleanupTimer();
-        }
+        // 1. 모든 타이머 정리
+        this.cleanupTimer();
         
-        // 자동 시작 타이머 제거
-        if (this.autoStartTimer) {
-            this.autoStartTimer.destroy();
-            this.autoStartTimer = undefined;
-        }
+        // 2. 모든 이벤트 리스너 제거
+        this.input.keyboard?.removeAllListeners();
+        this.input.removeAllListeners();
         
-        // 버튼 정리
-        if (this.numberButtons && this.numberButtons.length > 0) {
-            this.numberButtons.forEach(button => {
-                if (button && button.active) {
-                    button.destroy();
-                }
-            });
-            this.numberButtons = [];
-        }
+        // 3. 모든 텍스트 객체 제거
+        if (this.messageText) this.messageText.destroy();
+        if (this.eliminatedMessage) this.eliminatedMessage.destroy();
+        if (this.roundInfoText) this.roundInfoText.destroy();
         
-        // 상태 메시지 컨테이너 정리
-        if (this.statusMessageContainer && this.statusMessageContainer.active) {
-            this.statusMessageContainer.destroy();
-            this.statusMessageContainer = undefined;
-        }
+        // 4. 모든 버튼 비활성화 및 제거
+        this.disableNumberButtons();
+        this.numberButtons.forEach(button => {
+            if (button) button.destroy();
+        });
+        this.numberButtons = [];
         
-        // WebSocket 리스너 제거 - 서버 메시지 타입 사용
-        if (numberSurvivorWebSocketManager) {
-            numberSurvivorWebSocketManager.removeListener('ROUND_START', this.handleRoundStart);
-            numberSurvivorWebSocketManager.removeListener('ROUND_RESULT', this.handleRoundResult);
-            numberSurvivorWebSocketManager.removeListener('GAME_OVER', this.handleGameOver);
-            numberSurvivorWebSocketManager.removeListener('WAITING', this.handleWaiting);
-            
-            // 새로운 메시지 타입 리스너 제거
-            numberSurvivorWebSocketManager.removeListener('WAITING_COUNTDOWN', this.handleWaitingCountdown);
-            numberSurvivorWebSocketManager.removeListener('PREPARE_START', this.handlePrepareStart);
-            numberSurvivorWebSocketManager.removeListener('PREPARE_COUNTDOWN', this.handlePrepareCountdown);
-            numberSurvivorWebSocketManager.removeListener('GAME_PREPARING', this.handleGamePreparing);
-            numberSurvivorWebSocketManager.removeListener('GAME_IN_PROGRESS', this.handleGameInProgress);
-        }
+        // 5. 게임 상태 초기화
+        this.gameState = 'gameover';
+        this.playerAlive = true;
         
-        this.wsConnected = false;
+        console.log('[NumberSurvivor] Resources cleaned up successfully');
     }
 
     // [서비스용] 서버 연결 시도 함수
@@ -1514,61 +1497,43 @@ export class NumberSurvivor extends Scene {
     }
 
     // [서비스용] 게임 종료 처리 함수
-    private handleGameOver(message: GameOverMessage) {
+    private async handleGameOver(message: GameOverMessage) {
         console.log('[NumberSurvivor] Game Over received:', message);
         console.log('[NumberSurvivor] Winners:', message.winners);
         console.log('[NumberSurvivor] Current userId:', this.userId);
         
+        // 게임 상태 즉시 변경
         this.gameState = 'gameover';
         
-        // 숫자 버튼 비활성화
+        // 1. 즉시 UI 비활성화
         this.disableNumberButtons();
-
-        // 게임 상태 명시적 초기화
         this.cleanupTimer();
         
-        // 상태 메시지 초기화 (탈락 메시지와 라운드 정보 제거)
+        // 2. 상태 메시지 초기화
         if (this.eliminatedMessage && this.roundInfoText) {
             this.eliminatedMessage.setAlpha(0);
             this.roundInfoText.setAlpha(0);
         }
         
-        
-        // 로컬 스토리지에서 탈락 상태 제거 (게임 종료 시 상태 초기화)
+        // 3. 로컬 스토리지 정리
         try {
             const storageKey = `eliminatedPlayer_${this.userId}_${this.roomCode}`;
             localStorage.removeItem(storageKey);
             console.log(`[NumberSurvivor] Removed elimination state from localStorage on game over, key: ${storageKey}`);
-            
-            // 게임 종료 시 플레이어 상태 초기화 (다음 게임을 위해)
             this.playerAlive = true;
         } catch (error) {
             console.error('[NumberSurvivor] Error clearing elimination state on game over:', error);
         }
         
-        // 우승자 정보 표시
+        // 4. 우승자 정보 처리
         const winnerNames = message.winners.map(w => w.nickname).join(', ');
-        
-        // 우승 여부 확인 (문자열 타입으로 명확히 비교)
-        let isWinner = false;
-        
-        // 우승자 목록에서 내 userId와 일치하는지 확인
-        for (const winner of message.winners) {
-            // 안전한 타입 비교를 위해 문자열로 변환 후 비교
-            if (String(winner.userId) === String(this.userId)) {
-                isWinner = true;
-                break;
-            }
-        }
-        
+        const isWinner = message.winners.some(w => String(w.userId) === String(this.userId));
         console.log(`[NumberSurvivor] Am I winner? ${isWinner}, my userId: ${this.userId}`);
         
-        // 게임 종료 배경 효과 (모든 플레이어에게 표시)
+        // 5. 게임 종료 UI 표시
         this.showGameOverBackground();
         
-        // 우승 축하 메시지 및 효과 표시
         if (this.messageText) {
-            // 우승자 축하 메시지
             const congratsMessage = isWinner 
                 ? `축하합니다! 당신이 우승했습니다!` 
                 : `게임 종료! 우승자: ${winnerNames}`;
@@ -1576,42 +1541,55 @@ export class NumberSurvivor extends Scene {
             this.messageText.setText(congratsMessage);
             this.messageText.setFontSize('36px');
             
-            // 디버깅용 텍스트 추가
-            this.add.text(
-                GAME_CONFIG.CENTER_X,
-                70,
-                `우승자: ${winnerNames}, 내 ID: ${this.userId}`,
-                {
-                    fontSize: '18px',
-                    color: '#ffffff',
-                    backgroundColor: '#000000',
-                    padding: { x: 10, y: 5 }
-                }
-            ).setOrigin(0.5).setDepth(100);
-            
-            // 우승자일 경우 색상 변경 및 특별 효과
+            // 우승/패배 효과
             if (isWinner) {
-                this.messageText.setColor('#ffdd00'); // 골드 색상
+                this.messageText.setColor('#ffdd00');
                 this.showWinnerEffect();
             } else {
-                this.messageText.setColor('#88ff88'); // 연한 녹색
-                // 패배자 효과 추가
+                this.messageText.setColor('#88ff88');
                 this.showLoserEffect();
             }
         }
         
-        // 1등은 100점, 나머지는 0점으로 점수 부여
+        // 6. POTG 녹화 시작
+        try {
+            if (message.roundResults && message.roundResults.length > 0) {
+                console.log('[NumberSurvivor] Starting POTG recording...');
+                await numberSurvivorPOTGService.startRecording(message.roundResults);
+                console.log('[NumberSurvivor] POTG recording completed');
+            } else {
+                console.warn('[NumberSurvivor] No round results available for POTG recording');
+            }
+        } catch (error) {
+            console.error('[NumberSurvivor] Error during POTG recording:', error);
+        }
+        
+        // 7. 점수 계산
         const score = isWinner ? 100 : 0;
 
-        // 5초 후 GameOver 씬으로 전환 (모든 플레이어 공통)
-        this.time.delayedCall(5000, () => {
-            this.scene.start('GameOver', {
-                score: score,
-                gameType: 'NumberSurvivor'
-            });
-            
-            // 현재 씬을 일시 정지 (게임 오버 씬 뒤에서 계속 실행되지 않도록)
-            this.scene.pause();
+        // 8. 씬 전환 준비 (POTG 녹화 완료 후)
+        this.time.delayedCall(3000, () => {
+            try {
+                // 모든 리소스 정리
+                this.cleanupResources();
+                
+                // GameOver 씬으로 전환
+                this.scene.start('GameOver', {
+                    score: score,
+                    gameType: 'NumberSurvivor',
+                });
+                
+                // 현재 씬 정리
+                this.scene.stop();
+            } catch (error) {
+                console.error('[NumberSurvivor] Error during scene transition:', error);
+                // 에러 발생 시에도 씬 전환 시도
+                this.scene.start('GameOver', {
+                    score: score,
+                    gameType: 'NumberSurvivor',
+                    error: true
+                });
+            }
         });
     }
     
