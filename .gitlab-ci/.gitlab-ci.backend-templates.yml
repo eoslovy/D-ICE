@@ -33,8 +33,8 @@ workflow:
   tags:
     - $GITLAB_USER_EMAIL
   script:
-    - echo "🔧 직접: ENV_FILE_CONTENT"               # → production
-    - echo "🔁 간접: $(eval echo \$$ENV_FILE_CONTENT)"  # → production
+    - echo "ENV_FILE_CONTENT"
+    - echo "$(eval echo \$$ENV_FILE_CONTENT)"
     - echo "🔨 Docker 이미지 빌드 및 테스트 중..."
     - docker build --platform ${BUILD_ARCHITECTURE} -t ${DOCKERHUB_USERNAME:-default}/$REGISTRY_PATH-${SERVICE_NAME}:$CI_COMMIT_SHORT_SHA ${BUILD_CONTEXT}
     #- echo "✅ 빌드 완료: $IMAGE_NAME:$CI_COMMIT_SHORT_SHA
