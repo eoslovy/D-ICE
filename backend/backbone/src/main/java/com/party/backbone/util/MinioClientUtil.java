@@ -67,8 +67,9 @@ public class MinioClientUtil {
 		}
 		String putPresignedUrl = minioInternalClient.getPresignedObjectUrl(
 			getPresignedObjectUrlArgs(roomCode, roundNum.toString(), userId, Method.PUT));
-		log.info("put presigned url 발급 {}", putPresignedUrl);
-		return replaceUrl(putPresignedUrl);
+		String replaced = replaceUrl(putPresignedUrl);
+		log.info("put presigned url 발급 {}", replaced);
+		return replaced;
 	}
 
 	public String newGetPresignedUrl(String roomCode, Integer roundNum, String userId) throws
@@ -89,8 +90,9 @@ public class MinioClientUtil {
 		}
 		String getPresignedUrl = minioInternalClient.getPresignedObjectUrl(
 			getPresignedObjectUrlArgs(roomCode, roundNum.toString(), userId, Method.GET));
-		log.info("get presigned url 발급 :{}", getPresignedUrl);
-		return replaceUrl(getPresignedUrl);
+		String replaced = replaceUrl(getPresignedUrl);
+		log.info("get presigned url 발급 :{}", replaced);
+		return replaced;
 	}
 
 	public String replaceUrl(String url) {
