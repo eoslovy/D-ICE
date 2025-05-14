@@ -10,9 +10,10 @@ import { Users, Play } from "lucide-react";
 
 export default function AdminRoom() {
     const navigate = useNavigate();
+    const [errorMessage, setErrorMessage] = useState("");
     const [userNickname, setUserNickname] = useState<string[]>([]);
     const [latestNickname, setLatestNickname] = useState<string | null>(null);
-    const [userCount, setUserCount] = useState<number | null>(null);
+    const [userCount, setUserCount] = useState<number | null>(adminStore.getState().userCount);
     let requestId = v7();
     const roomCode = adminStore.getState().roomCode;
     useEffect(() => {
@@ -23,6 +24,7 @@ export default function AdminRoom() {
                 console.log("새로운 유저 입장:", payload);
 
                 setUserCount(payload.userCount);
+                adminStore.getState().setUserCount(payload.userCount);
                 setLatestNickname(payload.nickname);
 
                 setUserNickname((prev) =>
@@ -34,23 +36,42 @@ export default function AdminRoom() {
         );
 
         return () => {
-            adminWebSocketManager.off("USER_JOINED_ADMIN", (payload: UserJoinedAdminMessage) => {
-                console.log("USER_JOINED_ADMIN 이벤트 리스너 해제:", payload);
-            });
+            adminWebSocketManager.off(
+                "USER_JOINED_ADMIN",
+                (payload: UserJoinedAdminMessage) => {
+                    console.log(
+                        "USER_JOINED_ADMIN 이벤트 리스너 해제:",
+                        payload
+                    );
+                }
+            );
         };
     }, []);
 
     const initGame = async () => {
+        if (userCount === 0 || userCount === null) {
+            setErrorMessage(
+                "게임을 시작하려면 최소한 한 명의 참여자가 있어야 합니다."
+            );
+            return;
+        }
         try {
-            // 임시로 라운드 수 1로 고정
-            adminWebSocketManager.sendSessionInit(requestId, adminStore.getState().totalRound);
+            const initReq = adminWebSocketManager.sendSessionInit(requestId, adminStore.getState().totalRound);
             // 게임 중계 방으로 이동
-            adminStore.getState().setStatus("INGAME");
-            navigate(`/broadcast/${roomCode}`);
+            if (initReq === true){
+                console.error("INIT 요청 성공");
+                adminStore.getState().setStatus("INGAME");
+                navigate(`/broadcast/${roomCode}`);
+                requestId = v7();
+            } else {
+                setErrorMessage(
+                    "게임 시작 요청에 실패했습니다. 다시 시도해주세요."
+                );
+                console.error("INIT 요청 실패");
+            }
         } catch (error) {
+            setErrorMessage("게임 시작 중 알 수 없는 오류가 발생했습니다.");
             console.error("게임 시작 중 오류:", error);
-        } finally {
-            requestId = v7();
         }
     };
 
@@ -110,8 +131,8 @@ export default function AdminRoom() {
                     게임 시작
                 </button>
 
-                {userCount === 0 && (
-                    <p className="text-sm text-warning mt-2">
+                {errorMessage && (
+                    <p className="text-warning">
                         게임을 시작하려면 최소한 한 명의 참여자가 있어야 합니다.
                     </p>
                 )}

@@ -3,113 +3,109 @@ import { v7 as uuidv7 } from "uuid";
 import adminWebSocketManager from "../../modules/AdminWebSocketManager";
 import GameCard from "../../components/GameCard";
 import RoomCode from "../../components/RoomCode";
-import Result from "../../components/Result";
-import FinalResult from "../../components/FinalResult";
+// import Result from "../../components/Result";
+// import FinalResult from "../../components/FinalResult";
+import Result from "../../components/Results";
 import { Users, Play, Clock } from "lucide-react";
 import { adminStore } from "../../stores/adminStore";
+import { useNavigate } from "react-router-dom";
 
 export default function BroadcastRoom() {
     const roomCode = adminStore.getState().roomCode;
     const userCount = adminStore.getState().userCount;
     const totalRound = adminStore.getState().totalRound;
+
     const [currentRound, setCurrentRound] = useState(1);
     const [nextGame, setNextGame] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
-
-    //현재 추가된 결과 통신
     const [data, setData] = useState<AggregatedAdminMessage | null>(null);
     const [finalData, setFinalData] = useState<EndMessage | null>(null);
     const [showResults, setShowResults] = useState(false);
     const [showFinalResult, setShowFinalResult] = useState(false);
 
+    const navigate = useNavigate();
     let requestId = uuidv7();
 
     useEffect(() => {
-        console.log("NEXT_GAME 이벤트 리스너 등록");
         adminWebSocketManager.on("NEXT_GAME", (payload: NextGameMessage) => {
-            console.log("NEXT_GAME 응답 성공:", payload);
             setCurrentRound(payload.currentRound);
             setNextGame(payload.gameType);
+            adminStore.getState().setGameType(payload.gameType);
             setIsLoading(false);
         });
 
-        // 게임 결과 이벤트 리스너 (실제 이벤트 이름은 API에 맞게 수정 필요)
         adminWebSocketManager.on(
             "AGGREGATED_ADMIN",
             (payload: AggregatedAdminMessage) => {
-                console.log("게임 결과 수신:", payload);
-                setData({
-                    currentRound: payload.currentRound,
-                    gameType: payload.gameType,
-                    roundRanking: payload.roundRanking,
-                    overallRanking: payload.overallRanking,
-                    firstPlace: payload.firstPlace,
-                    lastPlace: payload.lastPlace,
-                    totalRound: payload.totalRound,
-                    type: payload.type,             
-                    requestId: payload.requestId,   
-                  });
+                setData(payload);
                 setShowResults(true);
             }
         );
 
-        adminWebSocketManager.on(
-            "END",
-            (payload: EndMessage) => {
-                console.log("게임 결과 수신:", payload);
-                setFinalData({
-                    type: "END",
-                    overallRanking : payload.overallRanking
-                })
-                setShowResults(true);
-            }
-        );
+        adminWebSocketManager.on("END", (payload: EndMessage) => {
+            setFinalData(payload);
+        });
 
         return () => {
-            adminWebSocketManager.off(
-                "NEXT_GAME",
-                (payload: NextGameMessage) => {
-                    console.log("NEXT_GAME 이벤트 리스너 해제:", payload);
-                }
-            );
+            adminWebSocketManager.off("NEXT_GAME", () => {});
+            adminWebSocketManager.off("AGGREGATED_ADMIN", () => {});
+            adminWebSocketManager.off("END", () => {});
         };
     }, []);
 
     const startGame = async () => {
         try {
-            setIsLoading(true);
-            console.log("게임 시작 요청:", roomCode);
-            adminWebSocketManager.sendStartGame(requestId);
+            const startReq = adminWebSocketManager.sendStartGame(requestId);
+            if (startReq === true) {
+                console.log("게임 시작 요청 성공", nextGame);
+                setIsLoading(true);
+                requestId = uuidv7();
+            } else {
+                setIsLoading(false);
+                console.log("게임 시작 요청 실패", nextGame);
+            }
         } catch (error) {
             console.error("게임 시작 중 오류:", error);
             setIsLoading(false);
-        } finally {
-            requestId = uuidv7();
         }
     };
 
     const handleContinue = () => {
         setShowResults(false);
-        if (isFinalResult) {
-            setShowFinalResult(true);  // FinalResult를 보여주도록 설정
+
+        const finishedRound = data?.currentRound ?? 0;
+        const isFinal = finishedRound === totalRound;
+
+        if (isFinal) {
+            setShowFinalResult(true);
         }
     };
 
-    const isFinalResult =
-        currentRound ===
-        parseInt(localStorage.getItem("totalRound") || "1", 10);
+    const handleGoLobby = () => {
+        adminWebSocketManager.disconnect();
+        localStorage.removeItem("adminStore");
+        sessionStorage.removeItem("isFinal");
+        navigate("/select");
+    };
 
     return (
         <div className="game-container">
-            {showResults ? (
+            {showResults && !showFinalResult ? (
                 <div className="relative z-10 w-full max-w-4xl p-6 mx-auto rounded-2xl shadow-lg bg-opacity-95 backdrop-blur-sm bg-quaternary">
                     <Result data={data} onContinue={handleContinue} />
-                    {showFinalResult && <FinalResult finalData={finalData} onContinue={handleContinue} />}
+                </div>
+            ) : showFinalResult ? (
+                <div className="relative z-10 w-full max-w-4xl p-6 mx-auto rounded-2xl shadow-lg bg-opacity-95 backdrop-blur-sm bg-quaternary">
+                    <Result
+                        data={data}
+                        finalData={finalData}
+                        goLobby={handleGoLobby}
+                        isFinalView={true}
+                    />
                 </div>
             ) : (
                 <GameCard>
                     <h1 className="game-title">D-Ice Game</h1>
-
                     <RoomCode code={roomCode} />
 
                     <div className="game-info mb-6">
@@ -152,7 +148,7 @@ export default function BroadcastRoom() {
                         >
                             {isLoading ? (
                                 <span className="animate-pulse">
-                                    시작 중...
+                                    게임 중...
                                 </span>
                             ) : (
                                 <>

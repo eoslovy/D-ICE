@@ -3,6 +3,8 @@ package com.party.backbone.room;
 import static com.party.backbone.room.util.RankingUtils.*;
 
 import java.io.IOException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.util.List;
 import java.util.Map;
 
@@ -12,6 +14,7 @@ import org.springframework.web.socket.WebSocketSession;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.party.backbone.room.dto.ScoreAggregationResult;
+import com.party.backbone.util.MinioClientUtil;
 import com.party.backbone.websocket.handler.SessionRegistry;
 import com.party.backbone.websocket.message.server.AggregatedAdminMessage;
 import com.party.backbone.websocket.message.server.AggregatedUserMessage;
@@ -21,6 +24,12 @@ import com.party.backbone.websocket.model.GameType;
 import com.party.backbone.websocket.model.PlaceInfo;
 import com.party.backbone.websocket.model.RankingInfo;
 
+import io.minio.errors.ErrorResponseException;
+import io.minio.errors.InsufficientDataException;
+import io.minio.errors.InternalException;
+import io.minio.errors.InvalidResponseException;
+import io.minio.errors.ServerException;
+import io.minio.errors.XmlParserException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -28,12 +37,22 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 @RequiredArgsConstructor
 public class RoundAggregationService {
-	final RoomRedisRepository roomRepository;
-	final SessionRegistry sessionRegistry;
-	final ObjectMapper objectMapper;
+	private final RoomRedisRepository roomRepository;
+	private final SessionRegistry sessionRegistry;
+	private final ObjectMapper objectMapper;
+	private final MinioClientUtil minioClientUtil;
 	final int DEFAULT_RANKING_COUNT = 3;
 
-	public void aggregateRound(String roomCode) throws IOException {
+	public void aggregateRound(String roomCode) throws
+		IOException,
+		ServerException,
+		InsufficientDataException,
+		ErrorResponseException,
+		NoSuchAlgorithmException,
+		InvalidKeyException,
+		InvalidResponseException,
+		XmlParserException,
+		InternalException {
 		ScoreAggregationResult aggregation = roomRepository.aggregateScores(roomCode);
 		if (aggregation == null)
 			return;
@@ -55,7 +74,16 @@ public class RoundAggregationService {
 
 	private void sendUserMessages(String roomCode, ScoreAggregationResult aggregation,
 		Map<String, Integer> roundRanks, Map<String, Integer> overallRanks, List<RankingInfo> roundTop3,
-		List<RankingInfo> overallTop3) throws IOException {
+		List<RankingInfo> overallTop3) throws
+		IOException,
+		ServerException,
+		InsufficientDataException,
+		ErrorResponseException,
+		NoSuchAlgorithmException,
+		InvalidKeyException,
+		InvalidResponseException,
+		XmlParserException,
+		InternalException {
 		int currentRound = aggregation.currentRound();
 		int totalRound = aggregation.totalRound();
 
@@ -71,7 +99,8 @@ public class RoundAggregationService {
 				currentRound, totalRound,
 				aggregation.gameType(), currentScore,
 				totalScore, rankRecord, roundRank, overallRank,
-				roundTop3, overallTop3, ""
+				roundTop3, overallTop3, (roundRank == 1 || roundRank == roundRanks.size()) ?
+				minioClientUtil.newPutPresignedUrl(roomCode, currentRound, userId) : ""
 			);
 
 			WebSocketSession session = sessionRegistry.get(userId);
@@ -89,7 +118,16 @@ public class RoundAggregationService {
 		List<Map.Entry<String, ? extends Number>> sortedRound,
 		List<Map.Entry<String, ? extends Number>> sortedOverall,
 		Map<String, Integer> roundRanks, Map<String, Integer> overallRanks, List<RankingInfo> roundTop3,
-		List<RankingInfo> overallTop3) throws IOException {
+		List<RankingInfo> overallTop3) throws
+		ServerException,
+		InsufficientDataException,
+		ErrorResponseException,
+		IOException,
+		NoSuchAlgorithmException,
+		InvalidKeyException,
+		InvalidResponseException,
+		XmlParserException,
+		InternalException {
 		int currentRound = aggregation.currentRound();
 		int totalRound = aggregation.totalRound();
 		Map<String, String> nicknameMap = aggregation.nicknameMap();
@@ -97,9 +135,10 @@ public class RoundAggregationService {
 		String firstPlaceId = getFirstByRank(roundRanks);
 		String lastPlaceId = getLastByRank(roundRanks);
 
-		// TODO: videoUrl 로직 구현 필요
-		PlaceInfo firstPlaceInfo = new PlaceInfo(firstPlaceId, nicknameMap.get(firstPlaceId), "");
-		PlaceInfo lastPlaceInfo = new PlaceInfo(lastPlaceId, nicknameMap.get(lastPlaceId), "");
+		PlaceInfo firstPlaceInfo = new PlaceInfo(firstPlaceId, nicknameMap.get(firstPlaceId),
+			minioClientUtil.newGetPresignedUrl(roomCode, currentRound, firstPlaceId));
+		PlaceInfo lastPlaceInfo = new PlaceInfo(lastPlaceId, nicknameMap.get(lastPlaceId),
+			minioClientUtil.newGetPresignedUrl(roomCode, currentRound, lastPlaceId));
 
 		AggregatedAdminMessage aggregatedAdminMessage = new AggregatedAdminMessage(
 			currentRound, totalRound,

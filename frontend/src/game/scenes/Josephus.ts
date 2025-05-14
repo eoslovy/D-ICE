@@ -4,6 +4,7 @@ import { PopupSprite } from "../../modules/gameutils/PopupSptire";
 import { PopupText } from "../../modules/gameutils/PopupText";
 import { UITimer } from "../../modules/gameutils/UITimer";
 import { UICountdown } from "../../modules/gameutils/UICountdown";
+import potgManager from "../../modules/POTGManager";
 
 export class Josephus extends Scene {
     // Common settings
@@ -145,7 +146,7 @@ export class Josephus extends Scene {
                 (this.cameras.main.height * 4) / 5,
                 "최후의 생존자는 누구?",
                 {
-                    fontFamily: "Arial",
+                    fontFamily: "Jua",
                     fontSize: "72px",
                     color: "#ffffff",
                     align: "center",
@@ -165,7 +166,15 @@ export class Josephus extends Scene {
             repeat: -1,
         });
 
+        // Start initial round
         this.anthorJosephusRound(-1);
+        if (potgManager.getIsRecording()) {
+            const clearBeforeStart = async () => {
+                await potgManager.stopRecording();
+                potgManager.startCanvasRecording();
+            };
+            clearBeforeStart();
+        } else potgManager.startCanvasRecording();
     }
 
     endGame() {
@@ -190,7 +199,7 @@ export class Josephus extends Scene {
                         stroke: "#000000",
                         strokeThickness: 2,
                         align: "center",
-                        fontFamily: "Arial",
+                        fontFamily: "Fredoka",
                         fontStyle: "bold",
                     }
                 );
@@ -215,22 +224,20 @@ export class Josephus extends Scene {
         const elapsedTime = Date.now() - this.gameStartedTime;
         const finalScore = this.getFinalScore();
 
-        this.popupText.popupText(
-            `Score: ${finalScore}`,
-            this.cameras.main.centerX,
-            this.cameras.main.centerY + 100,
-            3000,
-            {
-                fontSize: "80px",
-                color: "#ffffff",
-                stroke: "#000000",
-                strokeThickness: 2,
-                align: "center",
-                fontFamily: "Arial",
-                fontStyle: "bold",
-            }
-        );
-        // pop up result modal
+        if (potgManager.getIsRecording()) {
+            potgManager.stopRecording();
+        }
+
+        // pop up result
+        this.time.addEvent({
+            delay: 1000,
+            callback: () => {
+                this.scene.start("GameOver", {
+                    score: finalScore,
+                    gameType: "Josephus",
+                });
+            },
+        });
     }
 
     update(time: number, delta: number) {
@@ -240,6 +247,7 @@ export class Josephus extends Scene {
     }
 
     anthorJosephusRound(loserIndex: number) {
+        // A round of Josephus
         if (!this.gameStarted || this.gameEnded) {
             return;
         }
@@ -289,6 +297,7 @@ export class Josephus extends Scene {
     }
 
     josephusDoomed() {
+        // Judge if the selected Josephus is alive
         if (!this.gameStarted || this.gameEnded) {
             return;
         }
@@ -325,6 +334,11 @@ export class Josephus extends Scene {
                     repeat: -1,
                 });
 
+                // Explosion effect
+                const posX = this.josephusList[i].x;
+                const posY = this.josephusList[i].y;
+                this.popupSprite.popupSprite("mine", posX, posY, 500);
+
                 if (loserIndex === this.josephusIndex) {
                     this.josephus_doomed?.play();
                     this.popupText.popupText(
@@ -338,7 +352,7 @@ export class Josephus extends Scene {
                             stroke: "#000000",
                             strokeThickness: 2,
                             align: "center",
-                            fontFamily: "Arial",
+                            fontFamily: "Jua",
                             fontStyle: "bold",
                         }
                     );
@@ -356,20 +370,20 @@ export class Josephus extends Scene {
             "생존!!",
             this.cameras.main.centerX,
             this.cameras.main.centerY,
-            1000,
+            500,
             {
                 fontSize: "128px",
                 color: "#00ff00",
                 stroke: "#000000",
                 strokeThickness: 2,
                 align: "center",
-                fontFamily: "Arial",
+                fontFamily: "Jua",
                 fontStyle: "bold",
             }
         );
 
         this.time.addEvent({
-            delay: 2000,
+            delay: 1000,
             callbackScope: this,
             callback: () => {
                 this.anthorJosephusRound(loserIndex);
