@@ -53,12 +53,13 @@ export default function WrapperLayout() {
         navigate("/select", { replace: true });
     };
 
-  // User WebSocket 연결 및 모달 처리
-  const userConnectAndNavigate = (roomCode: string) => {
-
-    const handleUserConnect = () => {
-      const USER_WS_URL = `${import.meta.env.VITE_WEBSOCKET_URL}/backbone/ws/game/user/${roomCode}`;
-      connectWebSocket("user", USER_WS_URL);
+    // User WebSocket 연결 및 모달 처리
+    const userConnectAndNavigate = (roomCode: string) => {
+        const handleUserConnect = () => {
+            const USER_WS_URL = `${
+                import.meta.env.VITE_WEBSOCKET_URL
+            }/backbone/ws/game/user/${roomCode}`;
+            connectWebSocket("user", USER_WS_URL);
 
             userWebSocketManager.on("reconnect_failed", () => {
                 console.error("User WebSocket reconnect failed");
@@ -107,29 +108,31 @@ export default function WrapperLayout() {
         setModalRoomCode(roomCode);
         setIsModalOpen(true);
 
-    const handleAdminConnect = () => {
-      const ADMIN_WS_URL = `${import.meta.env.VITE_WEBSOCKET_URL}/backbone/ws/game/admin/${roomCode}`;
-      connectWebSocket("admin", ADMIN_WS_URL);
+        const handleAdminConnect = () => {
+            const ADMIN_WS_URL = `${
+                import.meta.env.VITE_WEBSOCKET_URL
+            }/backbone/ws/game/admin/${roomCode}`;
+            connectWebSocket("admin", ADMIN_WS_URL);
 
             adminWebSocketManager.on("reconnect_failed", () => {
                 console.error("Admin WebSocket reconnect failed");
                 handleWebSocketError();
             });
 
-      adminWebSocketManager.on("connect", () => {
-        console.log("Admin WebSocket 연결 성공");
-        handleAdminReJoin();
-      });
-    };
-    const handleAdminReJoin = () => {
-      try {
-        const adminReconnectRes = adminWebSocketManager.sendAdminReconnect(requestId);
-        if(adminReconnectRes === true){
-          console.log("ADMIN_RECONNECT 요청 성공");
-        }else{
-          console.log("ADMIN_RECONNECT 요청 실패");
-        }
-        
+            adminWebSocketManager.on("connect", () => {
+                console.log("Admin WebSocket 연결 성공");
+                handleAdminReJoin();
+            });
+        };
+        const handleAdminReJoin = () => {
+            try {
+                const adminReconnectRes =
+                    adminWebSocketManager.sendAdminReconnect(requestId);
+                if (adminReconnectRes === true) {
+                    console.log("ADMIN_RECONNECT 요청 성공");
+                } else {
+                    console.log("ADMIN_RECONNECT 요청 실패");
+                }
 
                 adminWebSocketManager.on("ADMIN_RECONNECTED", () => {
                     console.log("Admin Reconnect 성공");
@@ -267,7 +270,7 @@ export default function WrapperLayout() {
             {/* 모달 창 */}
             {isModalOpen && (
                 <div className="modal flex items-center justify-center min-h-screen">
-                    <div className="modal-content p-6 rounded-lg shadow-lg text-center">
+                    <div className="modal-content p-6 rounded-lg shadow-lg text-center z-10">
                         <h2 className="text-2xl font-bold mb-4">
                             {modalType === "user"
                                 ? "유저 접속 확인"
