@@ -15,6 +15,7 @@ import { Josephus } from "./scenes/Josephus";
 import { Dye } from "./scenes/Dye";
 import { Knight } from "./scenes/Knight";
 import { NumberSurvivor } from './scenes/NumberSurvivor';
+import { GraphHigh } from './scenes/GraphHigh';
 
 const config: Phaser.Types.Core.GameConfig = {
     type: Phaser.AUTO,
@@ -59,6 +60,7 @@ const config: Phaser.Types.Core.GameConfig = {
         Dye,
         Knight,
         NumberSurvivor,
+        GraphHigh,
         EndGame,
     ],
 };

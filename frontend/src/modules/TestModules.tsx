@@ -89,11 +89,11 @@ export default function TestModules(props: TestModulesProps) {
             );
         };
 
-        const handlePermissionDenied = () => {
-            console.warn("[TestModules] POTG Permission Denied");
-            setIsPotgRecording(false);
-            setPotgError("Screen recording permission denied.");
-        };
+    const handlePermissionDenied = () => {
+      console.warn("[TestModules] POTG Permission Denied");
+      setIsPotgRecording(false);
+      setPotgError("Screen recording permission denied.");
+    };
 
         // Add listeners
         potgManager.on("recording_started", handleRecordingStarted);

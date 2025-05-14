@@ -13,6 +13,7 @@ export class Preloader extends Phaser.Scene {
     constructor() {
         super({ key: "Preloader" });
     }
+
     preload() {
         this.load.font("Jua", "assets/fonts/Jua-Regular.ttf");
         this.load.font("FredokaOne", "assets/fonts/Fredoka-Regular.ttf");
@@ -105,7 +106,7 @@ export class Preloader extends Phaser.Scene {
         this.waitingText?.destroy();
         // 다이스 제거
         //this.diceMiniGame?.destroy();
-
+        /*
         this.scene.start("Roulette", {
             nextGame: userStore.getState().gameType,
             onComplete: () => {
@@ -114,6 +115,7 @@ export class Preloader extends Phaser.Scene {
                 this.scene.start(userStore.getState().gameType);
             },
         });
+         */
     }
 
     create() {  
