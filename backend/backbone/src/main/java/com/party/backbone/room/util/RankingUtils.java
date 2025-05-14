@@ -1,5 +1,6 @@
 package com.party.backbone.room.util;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -7,6 +8,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
+import com.party.backbone.room.dto.FinalResult;
 import com.party.backbone.websocket.model.RankingInfo;
 
 public class RankingUtils {
@@ -34,10 +36,29 @@ public class RankingUtils {
 		return result;
 	}
 
-	public static List<RankingInfo> buildAllRanking(List<Entry<String, ? extends Number>> sortedEntries,
-		Map<String, Integer> rankMap,
-		Map<String, String> nickMap) {
-		return buildTopK(sortedEntries, rankMap, nickMap, sortedEntries.size());
+	public static List<RankingInfo> calculateFinalRanks(List<FinalResult> results) {
+		List<FinalResult> sorted = new ArrayList<>(results);
+		sorted.sort((a, b) -> Integer.compare(b.score(), a.score()));
+
+		List<RankingInfo> rankingList = new ArrayList<>();
+		int rank = 1;
+
+		for (int i = 0; i < sorted.size(); i++) {
+			FinalResult current = sorted.get(i);
+
+			if (i > 0 && current.score() != sorted.get(i - 1).score()) {
+				rank = i + 1;
+			}
+
+			rankingList.add(new RankingInfo(
+				current.userId(),
+				current.nickname(),
+				current.score(),
+				rank
+			));
+		}
+
+		return rankingList;
 	}
 
 	public static List<RankingInfo> buildTopK(List<Entry<String, ? extends Number>> sortedEntries,
