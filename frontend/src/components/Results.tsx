@@ -82,6 +82,7 @@ export default function Result({
         if (isFinalView && finalData) {
             setVideoEnded(true); // 최종 결과에서는 비디오 표시 안함
             setShowConfetti(true);
+            sessionStorage.setItem("isFinal", "true");
 
             // 순위 계산 및 정렬
             const withRanks = [...finalData.overallRanking]
