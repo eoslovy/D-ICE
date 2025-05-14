@@ -512,7 +512,7 @@ export default function Result({
                         >
                             {hasAnyVideo && currentVideoUrl && (
                                 <>
-                                    <div className="video-wrapper max-h-[67vh] mb-4">
+                                    <div className="video-wrapper max-h-[60vh] mb-4">
                                         <video
                                             ref={videoRef}
                                             src={currentVideoUrl}
