@@ -14,7 +14,8 @@ import { Wirewalk } from "./scenes/Wirewalk";
 import { Josephus } from "./scenes/Josephus";
 import { Dye } from "./scenes/Dye";
 import { Knight } from "./scenes/Knight";
-import { NumberSurvivor } from './scenes/NumberSurvivor';
+import { NumberSurvivor } from "./scenes/NumberSurvivor";
+import { Panopticon } from "./scenes/Panopticon";
 
 const config: Phaser.Types.Core.GameConfig = {
     type: Phaser.AUTO,
@@ -59,6 +60,7 @@ const config: Phaser.Types.Core.GameConfig = {
         Dye,
         Knight,
         NumberSurvivor,
+        Panopticon,
         EndGame,
     ],
 };
