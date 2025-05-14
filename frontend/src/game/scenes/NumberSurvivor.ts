@@ -13,8 +13,8 @@ const GAME_CONFIG = {
     COLUMNS: 3,
     get CENTER_X() { return this.WIDTH / 2 + 10; }, // 살짝 오른쪽으로 조정 (+10)
     get CENTER_Y() { return this.HEIGHT / 2 + 50; }, // 살짝 아래로 조정 (+50)
-    MESSAGE_Y: 80,     // 메시지 위치
-    TIMER_Y: 140       // 타이머 위치
+    MESSAGE_Y: 80,    // 메시지 위치 
+    TIMER_Y: 140       // 타이머 위치 
 } as const;
 
 // [서비스용] 타입 정의
@@ -29,11 +29,6 @@ interface RoundResult {
     numberSelections: { [key: number]: PlayerInfo[] };
     survivors: PlayerInfo[];
     eliminated: PlayerInfo[];
-}
-
-interface MyResult {
-    message: string;
-    isAlive: boolean;
 }
 
 interface RoundStartMessage {
@@ -93,6 +88,7 @@ export class NumberSurvivor extends Scene {
     private statusMessageContainer?: Phaser.GameObjects.Container;
     private eliminatedMessage?: Phaser.GameObjects.Text;
     private roundInfoText?: Phaser.GameObjects.Text;
+    private keypadContainer?: Phaser.GameObjects.Container;
     
     constructor() {
         super({ key: 'NumberSurvivor' });
@@ -198,6 +194,17 @@ export class NumberSurvivor extends Scene {
     create() {
         console.log('[NumberSurvivor] Create called');
         
+        // 1. 실제 캔버스 크기 가져오기
+        const { width, height } = this.scale;
+        const centerX = width / 2;
+        const centerY = height / 2;
+
+        // 2. 계산기 컨테이너를 실제 중앙에 배치
+        this.keypadContainer = this.add.container(centerX, centerY);
+
+        // 3. 리사이즈 이벤트 처리
+        this.scale.on('resize', this.handleResize, this);
+        
         // 게임 초기 상태 설정 - 게임 시작시 항상 살아있는 상태로 초기화하는 코드 제거
         // 대신 init()에서 설정된 playerAlive 값을 유지하도록 함
         console.log('[NumberSurvivor] Create - Player alive status:', this.playerAlive);
@@ -232,6 +239,22 @@ export class NumberSurvivor extends Scene {
 
         // 자동 게임 시작 타이머 설정
         this.setupAutoStartTimer();
+    }
+
+    private handleResize(gameSize: Phaser.Structs.Size) {
+        if (this.keypadContainer) {
+            this.keypadContainer.setPosition(
+                gameSize.width / 2,
+                gameSize.height / 2
+            );
+        }
+        // 메시지, 타이머, 원도 중앙에 맞게 이동
+        if (this.messageText) this.messageText.setX(gameSize.width / 2);
+        if (this.timerText) this.timerText.setX(gameSize.width / 2);
+        const timerBg = this.children.list.find(obj => (obj as any).type === 'Arc' && (obj as any).y === GAME_CONFIG.TIMER_Y) as Phaser.GameObjects.Arc | undefined;
+        if (timerBg) timerBg.x = gameSize.width / 2;
+        const messageBg = this.children.list.find(obj => (obj as any).type === 'Rectangle' && (obj as any).y === GAME_CONFIG.MESSAGE_Y) as Phaser.GameObjects.Rectangle | undefined;
+        if (messageBg) messageBg.x = gameSize.width / 2;
     }
 
     // 자동 게임 시작 타이머 설정 - 더 이상 사용하지 않음 (서버 측에서 처리)
@@ -287,7 +310,7 @@ export class NumberSurvivor extends Scene {
 
         // 상단 메시지 텍스트 배경
         const messageBg = this.add.rectangle(
-            GAME_CONFIG.CENTER_X, 
+            this.scale.width / 2, // 중앙 X좌표
             GAME_CONFIG.MESSAGE_Y,
             GAME_CONFIG.WIDTH * 0.9, // 너비
             60, // 높이
@@ -296,7 +319,7 @@ export class NumberSurvivor extends Scene {
 
         // 메시지 텍스트
         this.messageText = this.add.text(
-            GAME_CONFIG.CENTER_X, 
+            this.scale.width / 2, // 중앙 X좌표
             GAME_CONFIG.MESSAGE_Y, 
             '게임 시작을 기다리는 중...', 
             {
@@ -311,7 +334,7 @@ export class NumberSurvivor extends Scene {
 
         // 타이머 텍스트 배경
         const timerBg = this.add.circle(
-            GAME_CONFIG.CENTER_X,
+            this.scale.width / 2, // 중앙 X좌표
             GAME_CONFIG.TIMER_Y,
             40,
             0x222266
@@ -319,7 +342,7 @@ export class NumberSurvivor extends Scene {
 
         // 타이머 텍스트
         this.timerText = this.add.text(
-            GAME_CONFIG.CENTER_X, 
+            this.scale.width / 2, // 중앙 X좌표
             GAME_CONFIG.TIMER_Y, 
             '', 
             {
@@ -372,18 +395,17 @@ export class NumberSurvivor extends Scene {
 
     // [서비스용] 숫자 입력 UI 생성
     private createNumberInput() {
-        // 키패드 컨테이너 위치 조정 - 아래로 더 내림
-        const keypadContainer = this.add.container(GAME_CONFIG.CENTER_X, GAME_CONFIG.CENTER_Y);
-        
-        // 입력 값 표시 영역 - 위치 조정
+        if (!this.keypadContainer) return;
+
+        // 입력 표시 영역 (컨테이너 기준 상대 좌표)
         const inputBg = this.add.rectangle(
-            0, 
-            -250, // 위치 조정
-            GAME_CONFIG.BUTTON_SIZE * 3, 
-            GAME_CONFIG.BUTTON_SIZE * 0.8, 
+            0,          // x는 0 (컨테이너 중앙)
+            -250,       // y는 위로 250px
+            GAME_CONFIG.BUTTON_SIZE * 3,
+            GAME_CONFIG.BUTTON_SIZE * 0.8,
             0x222266
-        ).setStrokeStyle(3, 0x4444AA);
-        
+        );
+
         const inputText = this.add.text(
             0, 
             -250, // 위치 조정
@@ -396,7 +418,7 @@ export class NumberSurvivor extends Scene {
             }
         ).setOrigin(0.5);
         
-        keypadContainer.add([inputBg, inputText]);
+        this.keypadContainer.add([inputBg, inputText]);
         
         let currentInput = '';
         
@@ -438,7 +460,7 @@ export class NumberSurvivor extends Scene {
             }).setOrigin(0.5);
             
             button.add([bg, text]);
-            keypadContainer.add(button);
+            this.keypadContainer.add(button);
             this.numberButtons.push(button);
         }
         
@@ -471,7 +493,7 @@ export class NumberSurvivor extends Scene {
         }).setOrigin(0.5);
         
         zeroButton.add([zeroBg, zeroText]);
-        keypadContainer.add(zeroButton);
+        this.keypadContainer.add(zeroButton);
         this.numberButtons.push(zeroButton);
         
         // 지우기 버튼 (왼쪽)
@@ -494,14 +516,14 @@ export class NumberSurvivor extends Scene {
                 inputText.setText(currentInput);
             });
         
-        const clearText = this.add.text(0, 0, "C", {
-            fontSize: '46px',
+        const clearText = this.add.text(0, 0, "지우기", {
+            fontSize: '30px',
             color: '#ffffff',
             fontStyle: 'bold'
         }).setOrigin(0.5);
         
         clearButton.add([clearBg, clearText]);
-        keypadContainer.add(clearButton);
+        this.keypadContainer.add(clearButton);
         this.numberButtons.push(clearButton);
         
         // 제출 버튼 (오른쪽)
@@ -535,14 +557,14 @@ export class NumberSurvivor extends Scene {
                 }
             });
         
-        const submitText = this.add.text(0, 0, "→", {
-            fontSize: '46px',
+        const submitText = this.add.text(0, 0, "제출", {
+            fontSize: '30px',
             color: '#ffffff',
             fontStyle: 'bold'
         }).setOrigin(0.5);
         
         submitButton.add([submitBg, submitText]);
-        keypadContainer.add(submitButton);
+        this.keypadContainer.add(submitButton);
         this.numberButtons.push(submitButton);
     }
 
