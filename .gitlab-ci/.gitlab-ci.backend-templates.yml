@@ -8,7 +8,6 @@ workflow:
         CERT_DOMAIN: d-ice.co.kr
         BUILD_ARCHITECTURE: linux/arm64
         DEPLOY_MODE: build
-        ENV_FILE_CONTENT: ENV_FILE_PROD
     - if: '$CI_COMMIT_BRANCH == "master" && $CI_PIPELINE_SOURCE == "web"'
       variables:
         HOST_SERVER: d-ice.co.kr
@@ -17,7 +16,6 @@ workflow:
         CERT_DOMAIN: d-ice.co.kr
         BUILD_ARCHITECTURE: linux/arm64
         DEPLOY_MODE: build
-        ENV_FILE_CONTENT: ENV_FILE_PROD
     - when: always
       variables:
         HOST_SERVER: test.d-ice.co.kr
@@ -26,13 +24,18 @@ workflow:
         CERT_DOMAIN: test.d-ice.co.kr
         BUILD_ARCHITECTURE: linux/amd64
         DEPLOY_MODE: build-test
-        ENV_FILE_CONTENT: ENV_FILE_TEST
 
 .backend-default-build:
   stage: build
   tags:
     - $GITLAB_USER_EMAIL
   script:
+    - |
+      if [[ "$CI_COMMIT_BRANCH" == "master" ]]; then
+      export ENV_FILE_CONTENT="$ENV_FILE_PROD"
+      else
+      export ENV_FILE_CONTENT="$ENV_FILE_TEST"
+      fi
     - echo "ENV_FILE_CONTENT"
     - echo "$(eval echo \$$ENV_FILE_CONTENT)"
     - echo "🔨 Docker 이미지 빌드 및 테스트 중..."
@@ -54,6 +57,12 @@ workflow:
     - $GITLAB_USER_EMAIL
   stage: push
   script:
+    - |
+      if [[ "$CI_COMMIT_BRANCH" == "master" ]]; then
+      export ENV_FILE_CONTENT="$ENV_FILE_PROD"
+      else
+      export ENV_FILE_CONTENT="$ENV_FILE_TEST"
+      fi
     - docker images
     - docker login -u "$DOCKERHUB_USERNAME" -p "$DOCKERHUB_TOKEN"
     - docker push ${DOCKERHUB_USERNAME:-default}/$REGISTRY_PATH-${SERVICE_NAME}:$CI_COMMIT_SHORT_SHA
@@ -81,6 +90,12 @@ workflow:
       export HOST_KEY=$TEST_KEY
       fi
   script:
+    - |
+      if [[ "$CI_COMMIT_BRANCH" == "master" ]]; then
+      export ENV_FILE_CONTENT="$ENV_FILE_PROD"
+      else
+      export ENV_FILE_CONTENT="$ENV_FILE_TEST"
+      fi
     # 1️⃣ SSH Key 설정
     #- apt-get update && apt-get install -y openssh-client basez
     - mkdir -p ~/.ssh
