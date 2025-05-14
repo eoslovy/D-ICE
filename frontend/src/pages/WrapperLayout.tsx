@@ -28,6 +28,7 @@ export default function WrapperLayout() {
         "/select",
         "/lobby",
         "/roomSettings",
+        "/test",
         /^\/join\/\d{6}$/, // /join/:roomCode 6자리 숫자를 매칭하는 정규식
     ];
     const path = window.location.pathname;
