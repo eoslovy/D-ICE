@@ -36,15 +36,8 @@ export default function AdminRoom() {
         );
 
         return () => {
-            adminWebSocketManager.off(
-                "USER_JOINED_ADMIN",
-                (payload: UserJoinedAdminMessage) => {
-                    console.log(
-                        "USER_JOINED_ADMIN 이벤트 리스너 해제:",
-                        payload
-                    );
-                }
-            );
+            adminWebSocketManager.off("USER_JOINED_ADMIN");
+            console.log("AdminRoom 이벤트 리스너 해제");
         };
     }, []);
 

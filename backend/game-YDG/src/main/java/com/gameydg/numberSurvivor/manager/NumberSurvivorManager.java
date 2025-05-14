@@ -36,6 +36,9 @@ public class NumberSurvivorManager {
 	// 기본 게임 제한 시간 (1분 = 60,000ms)
 	private static final long DEFAULT_GAME_DURATION_LIMIT = 60000;
 
+	// 모든 라운드 저장 필드
+	private final Map<String, List<RoundResultDto>> roundResults = new ConcurrentHashMap<>();
+
 	// 게임 제한 시간 설정
 	public void setGameDurationLimit(String roomCode, long durationMs) {
 		gameDurationLimits.put(roomCode, durationMs);
@@ -220,5 +223,20 @@ public class NumberSurvivorManager {
 			return 0;
 		}
 		return rooms.get(roomCode).size();
+	}
+
+	// 최종 결과 추가 메서드
+	public void addRoundResult(String roomCode, RoundResultDto result) {
+		roundResults.computeIfAbsent(roomCode, k -> new ArrayList<>()).add(result);
+	}
+
+	// 최종 결과 조회 메서드
+	public List<RoundResultDto> getRoundResults(String roomCode) {
+		return roundResults.getOrDefault(roomCode, new ArrayList<>());
+	}
+
+	// 최종 게임 종료 후 결과 초기화 메서드
+	public void clearRoundResults(String roomCode) {
+		roundResults.remove(roomCode);
 	}
 }

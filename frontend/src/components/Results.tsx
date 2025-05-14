@@ -82,6 +82,7 @@ export default function Result({
         if (isFinalView && finalData) {
             setVideoEnded(true); // 최종 결과에서는 비디오 표시 안함
             setShowConfetti(true);
+            sessionStorage.setItem("isFinal", "true");
 
             // 순위 계산 및 정렬
             const withRanks = [...finalData.overallRanking]
@@ -102,12 +103,35 @@ export default function Result({
 
     // 비디오 자동 재생 처리
     useEffect(() => {
-        if (videoRef.current && activeVideo) {
-            videoRef.current?.play().catch((err) => {
-                console.log("비디오 자동 재생 실패:", err);
-            });
+    if (!videoRef.current || !activeVideo) return;
+
+    const videoEl = videoRef.current;
+    let retryCount = 0;
+    let timeoutId: ReturnType<typeof setTimeout> | null = null;
+
+    const tryPlay = () => {
+        videoEl.load(); // src 재로드
+        videoEl.play().catch((err) => {
+            console.warn("비디오 재생 실패:", err);
+
+            if (retryCount < 3) {
+                retryCount += 1;
+                timeoutId = setTimeout(tryPlay, 1000);
+            } else {
+                console.error("비디오 재생 재시도 횟수 초과");
+            }
+        });
+    };
+
+    tryPlay();
+
+    // clean-up: 언마운트되거나 activeVideo가 바뀔 때 타이머 제거
+    return () => {
+        if (timeoutId) {
+            clearTimeout(timeoutId);
         }
-    }, [activeVideo]);
+    };
+}, [activeVideo]);
 
     // 현재 라운드가 마지막 라운드인지 확인
     const isFinalRound = data?.currentRound === data?.totalRound;
@@ -276,111 +300,6 @@ export default function Result({
                                 </div>
                             </div>
                         )}
-
-                    {/* 최종 결과 포디움 (최종 결과일 때만 표시) */}
-                    {isFinalView && (
-                        <div style={fadeInStyle}>
-                            {/* 상위 3명 포디움 */}
-                            <div className="podium-container">
-                                <h3 className="podium-title">🏆 우승자 🏆</h3>
-
-                                <div className={`podium-layout podium-mobile`}>
-                                    {/* 2등 */}
-                                    {topThreePlayers.length > 1 && (
-                                        <div
-                                            className={`podium-position podium-second podium-second-mobile`}
-                                        >
-                                            <div className="podium-avatar podium-avatar-second">
-                                                <div className="podium-avatar-text podium-avatar-text-second">
-                                                    {topThreePlayers[1].nickname.charAt(
-                                                        0
-                                                    )}
-                                                </div>
-                                            </div>
-                                            <div className="podium-info">
-                                                <Medal
-                                                    className="podium-icon-second"
-                                                    size={24}
-                                                />
-                                                <div className="podium-name">
-                                                    {
-                                                        topThreePlayers[1]
-                                                            .nickname
-                                                    }
-                                                </div>
-                                                <div className="podium-score">
-                                                    {topThreePlayers[1].score}점
-                                                </div>
-                                            </div>
-                                            <div className="podium-base podium-base-second podium-base-second-mobile"></div>
-                                        </div>
-                                    )}
-
-                                    {/* 1등 */}
-                                    {topThreePlayers.length > 0 && (
-                                        <div
-                                            className={`podium-position podium-first podium-first-mobile`}
-                                        >
-                                            <div className="podium-avatar podium-avatar-first podium-avatar-first-mobile">
-                                                <div className="podium-avatar-text podium-avatar-text-first">
-                                                    {topThreePlayers[0].nickname.charAt(
-                                                        0
-                                                    )}
-                                                </div>
-                                            </div>
-                                            <div className="podium-info">
-                                                <Crown
-                                                    className="podium-icon-first"
-                                                    size={28}
-                                                />
-                                                <div className="podium-name podium-name-first">
-                                                    {
-                                                        topThreePlayers[0]
-                                                            .nickname
-                                                    }
-                                                </div>
-                                                <div>
-                                                    {topThreePlayers[0].score}점
-                                                </div>
-                                            </div>
-                                            <div className="podium-base podium-base-first podium-base-first-mobile"></div>
-                                        </div>
-                                    )}
-
-                                    {/* 3등 */}
-                                    {topThreePlayers.length > 2 && (
-                                        <div
-                                            className={`podium-position podium-third podium-third-mobile`}
-                                        >
-                                            <div className="podium-avatar podium-avatar-third">
-                                                <div className="podium-avatar-text podium-avatar-text-third">
-                                                    {topThreePlayers[2].nickname.charAt(
-                                                        0
-                                                    )}
-                                                </div>
-                                            </div>
-                                            <div className="podium-info">
-                                                <Medal
-                                                    className="podium-icon-third"
-                                                    size={24}
-                                                />
-                                                <div className="podium-name">
-                                                    {
-                                                        topThreePlayers[2]
-                                                            .nickname
-                                                    }
-                                                </div>
-                                                <div className="podium-score">
-                                                    {topThreePlayers[2].score}점
-                                                </div>
-                                            </div>
-                                            <div className="podium-base podium-base-third podium-base-third-mobile"></div>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-                    )}
 
                     {/* 순위표 섹션 (모바일에서 영상이 끝난 후에만 표시) */}
                     {(videoEnded || !hasAnyVideo || isFinalView) && (
@@ -661,92 +580,91 @@ export default function Result({
 
                     {/* 최종 결과일 때의 포디움 섹션 */}
                     {isFinalView && (
-                        <div className="grid grid-cols-1 gap-6">
-                            {/* 상위 3명 포디움 */}
-                            <div className={`podium-layout podium-desktop`}>
-                                {/* 2등 */}
-                                {topThreePlayers.length > 1 && (
-                                    <div
-                                        className={`podium-position podium-second podium-second-desktop`}
-                                    >
-                                        <div className="podium-avatar podium-avatar-second">
-                                            <div className="podium-avatar-text podium-avatar-text-second">
-                                                {topThreePlayers[1].nickname.charAt(
-                                                    0
-                                                )}
+                        <div className="flex flex-col items-center justify-center w-full">
+                            <div className="podium-container">
+                                <h3 className="podium-title">🏆 우승자 🏆</h3>
+                                <div className="relative flex justify-center items-end w-full h-64 px-8">
+                                    {/* 2등 */}
+                                    {topThreePlayers.length > 1 && (
+                                        <div className="absolute bottom-0 left-1/4 transform -translate-x-1/2 w-1/6 flex flex-col items-center">
+                                            <div className="podium-avatar podium-avatar-second">
+                                                <div className="podium-avatar-text podium-avatar-text-second">
+                                                    2
+                                                </div>
                                             </div>
+                                            <div className="podium-info">
+                                                <Medal
+                                                    className="podium-icon-second mx-auto"
+                                                    size={24}
+                                                />
+                                                <div className="podium-name text-center">
+                                                    {
+                                                        topThreePlayers[1]
+                                                            .nickname
+                                                    }
+                                                </div>
+                                                <div className="podium-score text-center">
+                                                    {topThreePlayers[1].score}점
+                                                </div>
+                                            </div>
+                                            <div className="w-full h-32 bg-gray-200 dark:bg-gray-700 rounded-t-lg mt-2"></div>
                                         </div>
-                                        <div className="podium-info">
-                                            <Medal
-                                                className="podium-icon-second"
-                                                size={28}
-                                            />
-                                            <div className="podium-name podium-name-first">
-                                                {topThreePlayers[1].nickname}
-                                            </div>
-                                            <div>
-                                                {topThreePlayers[1].score}점
-                                            </div>
-                                        </div>
-                                        <div className="podium-base podium-base-second podium-base-second-desktop"></div>
-                                    </div>
-                                )}
+                                    )}
 
-                                {/* 1등 */}
-                                {topThreePlayers.length > 0 && (
-                                    <div
-                                        className={`podium-position podium-first podium-first-desktop`}
-                                    >
-                                        <div className="podium-avatar podium-avatar-first podium-avatar-first-desktop">
-                                            <div className="podium-avatar-text podium-avatar-text-first">
-                                                {topThreePlayers[0].nickname.charAt(
-                                                    0
-                                                )}
+                                    {/* 1등 */}
+                                    {topThreePlayers.length > 0 && (
+                                        <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-1/5 flex flex-col items-center z-10">
+                                            <div className="podium-avatar podium-avatar-first w-16 h-16">
+                                                <div className="podium-avatar-text podium-avatar-text-first">
+                                                    1
+                                                </div>
                                             </div>
+                                            <div className="podium-info">
+                                                <Crown
+                                                    className="podium-icon-first mx-auto"
+                                                    size={28}
+                                                />
+                                                <div className="podium-name podium-name-first text-center">
+                                                    {
+                                                        topThreePlayers[0]
+                                                            .nickname
+                                                    }
+                                                </div>
+                                                <div className="text-lg text-center">
+                                                    {topThreePlayers[0].score}점
+                                                </div>
+                                            </div>
+                                            <div className="w-full h-48 bg-yellow-200 dark:bg-yellow-800 rounded-t-lg mt-2"></div>
                                         </div>
-                                        <div className="podium-info">
-                                            <Crown
-                                                className="podium-icon-first"
-                                                size={32}
-                                            />
-                                            <div className="podium-name podium-name-first">
-                                                {topThreePlayers[0].nickname}
-                                            </div>
-                                            <div className="text-lg">
-                                                {topThreePlayers[0].score}점
-                                            </div>
-                                        </div>
-                                        <div className="podium-base podium-base-first podium-base-first-desktop"></div>
-                                    </div>
-                                )}
+                                    )}
 
-                                {/* 3등 */}
-                                {topThreePlayers.length > 2 && (
-                                    <div
-                                        className={`podium-position podium-third podium-third-desktop`}
-                                    >
-                                        <div className="podium-avatar podium-avatar-third">
-                                            <div className="podium-avatar-text podium-avatar-text-third">
-                                                {topThreePlayers[2].nickname.charAt(
-                                                    0
-                                                )}
+                                    {/* 3등 */}
+                                    {topThreePlayers.length > 2 && (
+                                        <div className="absolute bottom-0 right-1/4 transform translate-x-1/2 w-1/6 flex flex-col items-center">
+                                            <div className="podium-avatar podium-avatar-third">
+                                                <div className="podium-avatar-text podium-avatar-text-third">
+                                                    3
+                                                </div>
                                             </div>
+                                            <div className="podium-info">
+                                                <Medal
+                                                    className="podium-icon-third mx-auto"
+                                                    size={24}
+                                                />
+                                                <div className="podium-name text-center">
+                                                    {
+                                                        topThreePlayers[2]
+                                                            .nickname
+                                                    }
+                                                </div>
+                                                <div className="podium-score text-center">
+                                                    {topThreePlayers[2].score}점
+                                                </div>
+                                            </div>
+                                            <div className="w-full h-20 bg-amber-100 dark:bg-amber-900 rounded-t-lg mt-2"></div>
                                         </div>
-                                        <div className="podium-info">
-                                            <Medal
-                                                className="podium-icon-third"
-                                                size={28}
-                                            />
-                                            <div className="podium-name podium-name-first">
-                                                {topThreePlayers[2].nickname}
-                                            </div>
-                                            <div>
-                                                {topThreePlayers[2].score}점
-                                            </div>
-                                        </div>
-                                        <div className="podium-base podium-base-third podium-base-third-desktop"></div>
-                                    </div>
-                                )}
+                                    )}
+                                </div>
                             </div>
                         </div>
                     )}
@@ -972,3 +890,5 @@ export default function Result({
         </div>
     );
 }
+
+

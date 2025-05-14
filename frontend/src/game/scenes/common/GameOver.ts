@@ -48,10 +48,11 @@ export class GameOver extends Phaser.Scene {
     console.log('[GameOver] User ID:', userId);
     console.log('[GameOver] Room Code:', roomCode);
 
-        // Send score to backend
-        this.sendScoreToBackend(userId, roomCode);
+    // Send score to backend
+    this.sendScoreToBackend(userId, roomCode);
 
     // WebSocket 응답 리스너 설정
+    console.log("AGGREGATED_USER 이벤트 리스너 등록");
     userWebSocketManager.on('AGGREGATED_USER', (payload: AggregatedUserMessage) => {
       this.backendResponse = payload;
       this.isLastRound = payload.currentRound === payload.totalRound;
@@ -66,6 +67,11 @@ export class GameOver extends Phaser.Scene {
       } else {
         this.showCountdownAndNext();
       }
+    });
+
+    this.events.on('shutdown', () => {
+      userWebSocketManager.off("AGGREGATED_USER");
+      console.log("AGGREGATED_USER 이벤트 리스너 해제");
     });
   }
 

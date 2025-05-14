@@ -185,7 +185,7 @@ export class PerfectCircle extends Phaser.Scene {
   // 녹화 시작 함수 수정
   private async startRecording() {
     try {
-      const started = await POTGManager.startScreenRecording();
+      const started = await POTGManager.startCanvasRecording();
       if (started) {
         console.log('[PerfectCircle] 녹화가 시작되었습니다!');
       }

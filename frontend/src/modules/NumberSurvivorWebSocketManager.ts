@@ -26,8 +26,10 @@ interface RoundResult {
 interface GameOverMessage {
     type: "GAME_OVER";
     winners: any[];
+    roundResults?: any[];
     resetLocalStorage?: boolean;
     closeConnection?: boolean;
+    delayBeforeClose?: number;
 }
 
 interface WaitingMessage {
@@ -180,17 +182,25 @@ class NumberSurvivorWebSocketManager extends WebSocketManager<NumberSurvivorRece
                     message.type === "GAME_OVER" &&
                     (message as GameOverMessage).closeConnection
                 ) {
+                    const gameOverMsg = message as GameOverMessage;
                     console.log(
                         "[NumberSurvivorWebSocketManager] Closing connection due to game over"
                     );
+                    
                     this.emit<keyof NumberSurvivorReceiveTypeMap>(
                         message.type as keyof NumberSurvivorReceiveTypeMap,
                         message
                     );
 
+                    const delayBeforeClose = gameOverMsg.delayBeforeClose || 3000;
+                    
+                    console.log(`[NumberSurvivorWebSocketManager] Will close connection after ${delayBeforeClose}ms`);
+                    
                     setTimeout(() => {
+                        console.log("[NumberSurvivorWebSocketManager] Closing connection now");
                         this.disconnect();
-                    }, 500);
+                    }, delayBeforeClose);
+                    
                     return;
                 }
 
