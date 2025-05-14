@@ -68,8 +68,7 @@ public class RoundAggregationService {
 		List<RankingInfo> overallTop3 = buildTopK(sortedOverall, overallRanks, nicknameMap, DEFAULT_RANKING_COUNT);
 
 		sendUserMessages(roomCode, aggregation, roundRanks, overallRanks, roundTop3, overallTop3);
-		sendAdminMessages(roomCode, aggregation, sortedRound, sortedOverall, roundRanks, overallRanks, roundTop3,
-			overallTop3);
+		sendAdminMessages(roomCode, aggregation, roundRanks, overallRanks, roundTop3, overallTop3);
 	}
 
 	private void sendUserMessages(String roomCode, ScoreAggregationResult aggregation,
@@ -87,6 +86,8 @@ public class RoundAggregationService {
 		int currentRound = aggregation.currentRound();
 		int totalRound = aggregation.totalRound();
 
+		int maxRoundRank = roundRanks.values().stream().max(Integer::compare).orElse(1);
+
 		for (String userId : aggregation.roundScoreMap().keySet()) {
 			int roundRank = roundRanks.get(userId);
 			int overallRank = overallRanks.get(userId);
@@ -99,7 +100,7 @@ public class RoundAggregationService {
 				currentRound, totalRound,
 				aggregation.gameType(), currentScore,
 				totalScore, rankRecord, roundRank, overallRank,
-				roundTop3, overallTop3, (roundRank == 1 || roundRank == roundRanks.size()) ?
+				roundTop3, overallTop3, (roundRank == 1 || roundRank == maxRoundRank) ?
 				minioClientUtil.newPutPresignedUrl(roomCode, currentRound, userId) : ""
 			);
 
@@ -115,8 +116,6 @@ public class RoundAggregationService {
 	}
 
 	private void sendAdminMessages(String roomCode, ScoreAggregationResult aggregation,
-		List<Map.Entry<String, ? extends Number>> sortedRound,
-		List<Map.Entry<String, ? extends Number>> sortedOverall,
 		Map<String, Integer> roundRanks, Map<String, Integer> overallRanks, List<RankingInfo> roundTop3,
 		List<RankingInfo> overallTop3) throws
 		ServerException,
@@ -158,9 +157,9 @@ public class RoundAggregationService {
 			administratorId, roomCode, currentRound, totalRound);
 
 		if (currentRound == totalRound) {
+			var finalResults = roomRepository.getFinalResults(roomCode);
 			roomRepository.endGame(roomCode);
-			EndMessage endMessage = new EndMessage(
-				buildAllRanking(sortedOverall, overallRanks, nicknameMap));
+			EndMessage endMessage = new EndMessage(calculateFinalRanks(finalResults));
 			adminSession.sendMessage(new TextMessage(objectMapper.writeValueAsString(endMessage)));
 			log.info("[EndMessage] Sent EndMessage to admin {} of room {} — totalRound={} completed",
 				administratorId, roomCode, totalRound);
