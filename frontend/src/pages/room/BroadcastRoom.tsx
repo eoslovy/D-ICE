@@ -47,9 +47,10 @@ export default function BroadcastRoom() {
         });
 
         return () => {
-            adminWebSocketManager.off("NEXT_GAME", () => {});
-            adminWebSocketManager.off("AGGREGATED_ADMIN", () => {});
-            adminWebSocketManager.off("END", () => {});
+            adminWebSocketManager.off("NEXT_GAME");
+            adminWebSocketManager.off("AGGREGATED_ADMIN");
+            adminWebSocketManager.off("END");
+            console.log("BroadcastRoom 이벤트 리스너 해제");
         };
     }, []);
 
