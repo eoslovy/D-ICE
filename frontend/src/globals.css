@@ -159,7 +159,7 @@
 
   /* Result 컴포넌트 스타일 */
   .result-container {
-    @apply w-full max-w-4xl mx-auto pt-8;
+    @apply w-full max-w-4xl mx-auto;
     position: relative;
     z-index: 10;
   }
