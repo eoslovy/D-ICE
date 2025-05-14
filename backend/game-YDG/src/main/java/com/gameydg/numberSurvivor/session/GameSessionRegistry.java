@@ -161,4 +161,40 @@ public class GameSessionRegistry {
 			log.info("[세션 레지스트리] 세션 해제 [사용자ID: {}]", userId);
 		}
 	}
+
+	// 방의 모든 연결 종료
+	public void closeConnections(String roomCode) {
+		if (!gameManager.getRooms().containsKey(roomCode)) {
+			log.warn("[세션 레지스트리] 연결 종료 실패 - 존재하지 않는 방 [방ID: {}]", roomCode);
+			return;
+		}
+
+		// 1. 세션 맵의 복사본 생성
+		Map<String, WebSocketSession> sessionsCopy = new ConcurrentHashMap<>(sessions);
+		Set<PlayerDto> players = new HashSet<>(gameManager.getRooms().get(roomCode));
+		List<String> closedUserIds = new ArrayList<>();
+
+		// 2. 세션 종료 처리
+		for (PlayerDto player : players) {
+			WebSocketSession session = sessionsCopy.get(player.getUserId());
+			if (session != null && session.isOpen()) {
+				try {
+					synchronized (session) {
+						session.close();
+					}
+					closedUserIds.add(player.getUserId());
+					log.info("[세션 레지스트리] 연결 종료 [방ID: {}, 사용자ID: {}]", roomCode, player.getUserId());
+				} catch (IOException e) {
+					log.error("[세션 레지스트리] 연결 종료 실패 [방ID: {}, 사용자ID: {}]", roomCode, player.getUserId(), e);
+				}
+			}
+		}
+
+		// 3. 세션 맵에서 제거 (동기화 블록 사용)
+		synchronized (this) {
+			closedUserIds.forEach(sessions::remove);
+		}
+
+		log.info("[세션 레지스트리] 방 연결 종료 완료 [방ID: {}, 종료된 연결: {}개]", roomCode, closedUserIds.size());
+	}
 } 
