@@ -1,4 +1,4 @@
-workflow:
+.default-vars:
   rules:
     - if: '$CI_COMMIT_BRANCH == "master" && $CI_PIPELINE_SOURCE == "push"'
       variables:
@@ -8,6 +8,7 @@ workflow:
         CERT_DOMAIN: d-ice.co.kr
         BUILD_ARCHITECTURE: linux/arm64
         DEPLOY_MODE: build
+        ENV_FILE_CONTENT: $ENV_FILE_TESTCONTENT
     - if: '$CI_COMMIT_BRANCH == "master" && $CI_PIPELINE_SOURCE == "web"'
       variables:
         HOST_SERVER: d-ice.co.kr
@@ -16,6 +17,7 @@ workflow:
         CERT_DOMAIN: d-ice.co.kr
         BUILD_ARCHITECTURE: linux/arm64
         DEPLOY_MODE: build
+        ENV_FILE_CONTENT: $ENV_FILE_TESTCONTENT
     - when: always
       variables:
         HOST_SERVER: test.d-ice.co.kr
@@ -24,8 +26,10 @@ workflow:
         CERT_DOMAIN: test.d-ice.co.kr
         BUILD_ARCHITECTURE: linux/amd64
         DEPLOY_MODE: build-test
+        ENV_FILE_CONTENT: $ENV_FILE_PRODCONTENT
 
 .backend-default-build:
+  extends: .default-vars
   stage: build
   tags:
     - $GITLAB_USER_EMAIL
@@ -35,6 +39,7 @@ workflow:
     #- echo "✅ 빌드 완료: $IMAGE_NAME:$CI_COMMIT_SHORT_SHA
 
 .backend-default-push:
+  extends: .default-vars
   rules:
     - if: '$CI_COMMIT_BRANCH == "dev" && $CI_PIPELINE_SOURCE == "push"'
       when: always
@@ -54,6 +59,7 @@ workflow:
     - docker push ${DOCKERHUB_USERNAME:-default}/$REGISTRY_PATH-${SERVICE_NAME}:$CI_COMMIT_SHORT_SHA
 
 .backend-default-deploy:
+  extends: .default-vars
   rules:
     - if: '$CI_COMMIT_BRANCH == "dev" && $CI_PIPELINE_SOURCE == "push"'
       when: always
@@ -83,9 +89,9 @@ workflow:
     - chmod 600 bastion.pem
     - echo "$ENV_FILE_CONTENT" > .env
       # 2️⃣ 배포 서버에 Docker 로그인 정보 전송
-      #- ssh -T -o StrictHostKeyChecking=no -i bastion.pem ubuntu@$HOST_SERVER "echo \"$DOCKER_HUB_TOKEN\" | docker login --username \"$DOCKER_HUB_USERNAME\" --password-stdin"
+    #- ssh -T -o StrictHostKeyChecking=no -i bastion.pem ubuntu@$HOST_SERVER "echo \"$DOCKER_HUB_TOKEN\" | docker login --username \"$DOCKER_HUB_USERNAME\" --password-stdin"
     - cat docker-compose.deploy.yml
-      # 3️⃣ 환경변수가 반영된 `docker-compose.yml`을 배포 서버로 전송
+    # 3️⃣ 환경변수가 반영된 `docker-compose.yml`을 배포 서버로 전송
     - envsubst < docker-compose.deploy.yml > docker-compose.processed.yml
     - cat docker-compose.processed.yml
     - scp -o StrictHostKeyChecking=no -i bastion.pem .env ubuntu@$HOST_SERVER:/home/ubuntu/.env
