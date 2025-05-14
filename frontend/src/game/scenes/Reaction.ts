@@ -10,6 +10,7 @@ export class Reaction extends Phaser.Scene {
     private countdown!: UICountdown;
     private readyTimeoutEvent?: Phaser.Time.TimerEvent;
     private waitingTimerEvent?: Phaser.Time.TimerEvent;
+    private reactionMaxTime = 1000;
 
     constructor() {
         super("Reaction");
@@ -93,9 +94,9 @@ export class Reaction extends Phaser.Scene {
         this.infoText.setFontFamily("Jua");
         this.startTime = this.time.now;
 
-        // 2초 안에 클릭 안 하면 timeout 처리
+        // 1초 안에 클릭 안 하면 timeout 처리
         this.readyTimeoutEvent = this.time.delayedCall(
-            2000,
+            this.reactionMaxTime,
             this.onTimeout,
             [],
             this
@@ -112,7 +113,7 @@ export class Reaction extends Phaser.Scene {
             this.infoText.setText("너무 빨랐어요!");
             this.infoText.setFontFamily("Jua");
 
-            // 3초 카운트다운 후 재시작
+            // 2초 카운트다운 후 재시작
             this.countdown.startCountdown(2);
             this.events.once("countdownFinished", () => {
                 this.startWaiting();
@@ -128,7 +129,7 @@ export class Reaction extends Phaser.Scene {
             this.infoText.setText("시간 초과!");
             this.infoText.setFontFamily("Jua");
 
-            // 3초 카운트다운 후 재시작
+            // 2초 카운트다운 후 재시작
             this.countdown.startCountdown(2);
             this.events.once("countdownFinished", () => {
                 this.startWaiting();
@@ -188,7 +189,9 @@ export class Reaction extends Phaser.Scene {
         // 5초 뒤 GameOver 씬으로 자동 이동
         this.time.delayedCall(5000, () => {
             this.scene.start("GameOver", {
-                score: min,
+                score: Math.round(
+                    ((this.reactionMaxTime - min) / this.reactionMaxTime) * 100
+                ),
                 gameType: "Reaction",
             });
         });
