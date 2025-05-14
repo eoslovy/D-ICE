@@ -55,9 +55,8 @@ export default function BroadcastRoom() {
 
     const startGame = async () => {
         try {
-            
             const startReq = adminWebSocketManager.sendStartGame(requestId);
-            if (startReq === true){
+            if (startReq === true) {
                 console.log("게임 시작 요청 성공", nextGame);
                 setIsLoading(true);
                 requestId = uuidv7();
@@ -85,6 +84,7 @@ export default function BroadcastRoom() {
     const handleGoLobby = () => {
         adminWebSocketManager.disconnect();
         localStorage.removeItem("adminStore");
+        sessionStorage.removeItem("isFinal");
         navigate("/select");
     };
 
