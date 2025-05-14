@@ -103,12 +103,35 @@ export default function Result({
 
     // 비디오 자동 재생 처리
     useEffect(() => {
-        if (videoRef.current && activeVideo) {
-            videoRef.current?.play().catch((err) => {
-                console.log("비디오 자동 재생 실패:", err);
-            });
+    if (!videoRef.current || !activeVideo) return;
+
+    const videoEl = videoRef.current;
+    let retryCount = 0;
+    let timeoutId: ReturnType<typeof setTimeout> | null = null;
+
+    const tryPlay = () => {
+        videoEl.load(); // src 재로드
+        videoEl.play().catch((err) => {
+            console.warn("비디오 재생 실패:", err);
+
+            if (retryCount < 3) {
+                retryCount += 1;
+                timeoutId = setTimeout(tryPlay, 1000);
+            } else {
+                console.error("비디오 재생 재시도 횟수 초과");
+            }
+        });
+    };
+
+    tryPlay();
+
+    // clean-up: 언마운트되거나 activeVideo가 바뀔 때 타이머 제거
+    return () => {
+        if (timeoutId) {
+            clearTimeout(timeoutId);
         }
-    }, [activeVideo]);
+    };
+}, [activeVideo]);
 
     // 현재 라운드가 마지막 라운드인지 확인
     const isFinalRound = data?.currentRound === data?.totalRound;
@@ -867,3 +890,5 @@ export default function Result({
         </div>
     );
 }
+
+
