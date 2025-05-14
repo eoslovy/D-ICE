@@ -29,7 +29,6 @@ workflow:
         ENV_FILE_CONTENT: $ENV_FILE_TEST
 
 .backend-default-build:
-  extends: .default-vars
   stage: build
   tags:
     - $GITLAB_USER_EMAIL
@@ -41,7 +40,6 @@ workflow:
     #- echo "✅ 빌드 완료: $IMAGE_NAME:$CI_COMMIT_SHORT_SHA
 
 .backend-default-push:
-  extends: .default-vars
   rules:
     - if: '$CI_COMMIT_BRANCH == "dev" && $CI_PIPELINE_SOURCE == "push"'
       when: always
@@ -61,7 +59,6 @@ workflow:
     - docker push ${DOCKERHUB_USERNAME:-default}/$REGISTRY_PATH-${SERVICE_NAME}:$CI_COMMIT_SHORT_SHA
 
 .backend-default-deploy:
-  extends: .default-vars
   rules:
     - if: '$CI_COMMIT_BRANCH == "dev" && $CI_PIPELINE_SOURCE == "push"'
       when: always
