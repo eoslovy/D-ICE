@@ -24,7 +24,7 @@ export default function Set() {
 
             adminStore.getState().setAdministratorId(administratorId);
             
-            const ADMIN_WS_URL = `${import.meta.env.VITE_WEBSOCKET_URL}/ws/game/admin/${roomCode}`;
+            const ADMIN_WS_URL = `${import.meta.env.VITE_WEBSOCKET_URL}/backbone/ws/game/admin/${roomCode}`;
             connectWebSocket("admin", ADMIN_WS_URL);
 
             adminWebSocketManager.on(
@@ -36,19 +36,24 @@ export default function Set() {
                     adminStore.getState().setStatus("WAITING");
                     adminStore.getState().setRoomCode(roomCode);
                     adminStore.getState().setTotalRound(rounds);
+                    requestId = uuidv7();
                     navigate(`/adminroom/${roomCode}`);
                 }
             );
 
             adminWebSocketManager.on("connect", () => {
                 console.log("WebSocket 연결 성공");
-                adminWebSocketManager.sendAdminJoin(requestId);
+                const adminJoinReq = adminWebSocketManager.sendAdminJoin(requestId);
+                if(adminJoinReq === true){
+                    console.log("ADMIN_JOIN 요청 성공");
+                }else{
+                    console.log("ADMIN_JOIN 요청 실패");
+                }
+                
             });
         } catch (error) {
             console.error("방 생성 중 오류:", error);
             setIsCreating(false);
-        } finally {
-            requestId = uuidv7();
         }
     };
 
