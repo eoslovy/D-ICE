@@ -5,6 +5,7 @@ import { PopupText } from "../../modules/gameutils/PopupText";
 import { UITimer } from "../../modules/gameutils/UITimer";
 import { UICountdown } from "../../modules/gameutils/UICountdown";
 import { ArrowRightSquare } from "lucide-react";
+import potgManager from "../../modules/POTGManager";
 
 export class Clicker extends Scene {
     // Common settings
@@ -39,7 +40,7 @@ export class Clicker extends Scene {
         this.collectedScore = 0;
         this.gameStarted = false;
         this.gameEnded = false;
-        this.gameDuration = 30;
+        this.gameDuration = 20;
 
         // Clear any Phaser timer events
         this.time.removeAllEvents();
@@ -120,9 +121,18 @@ export class Clicker extends Scene {
             callbackScope: this,
             loop: true,
         });
+
+        if (potgManager.getIsRecording()) {
+            const clearBeforeStart = async () => {
+                await potgManager.stopRecording();
+                potgManager.startCanvasRecording();
+            };
+            clearBeforeStart();
+        } else potgManager.startCanvasRecording();
     }
 
     spawnTarget() {
+        // Spawn a target at a random position
         if (!this.gameStarted || this.gameEnded) return;
 
         const width = this.cameras.main.width;
@@ -175,6 +185,7 @@ export class Clicker extends Scene {
     }
 
     clickTarget(target: Phaser.GameObjects.Arc) {
+        // Handle target click
         if (!target.active || !this.gameStarted || this.gameEnded) return;
 
         const points = target.getData("points");
@@ -183,6 +194,7 @@ export class Clicker extends Scene {
 
         this.createParticleEffect(target.x, target.y, target.fillColor);
 
+        // Case work for points
         if (points < 0) {
             this.clicker_fail?.play();
             this.popupText.popupText(
@@ -196,7 +208,7 @@ export class Clicker extends Scene {
                     stroke: "#000000",
                     strokeThickness: 2,
                     align: "center",
-                    fontFamily: "Arial",
+                    fontFamily: "Jua",
                     fontStyle: "bold",
                 }
             );
@@ -208,7 +220,7 @@ export class Clicker extends Scene {
                 stroke: "#000000",
                 strokeThickness: 2,
                 align: "center",
-                fontFamily: "Arial",
+                fontFamily: "Jua",
                 fontStyle: "bold",
             });
         }
@@ -225,6 +237,7 @@ export class Clicker extends Scene {
     }
 
     createParticleEffect(x: number, y: number, color: number) {
+        // Create a particle effect at the target's position
         const emitter = this.add.particles(x, y, "square", {
             speed: 200,
             lifespan: 800,
@@ -266,7 +279,7 @@ export class Clicker extends Scene {
                 stroke: "#000000",
                 strokeThickness: 2,
                 align: "center",
-                fontFamily: "Arial",
+                fontFamily: "Fredoka",
                 fontStyle: "bold",
             }
         );
@@ -285,7 +298,7 @@ export class Clicker extends Scene {
                         stroke: "#000000",
                         strokeThickness: 2,
                         align: "center",
-                        fontFamily: "Arial",
+                        fontFamily: "Fredoka",
                         fontStyle: "bold",
                     }
                 );
@@ -300,7 +313,7 @@ export class Clicker extends Scene {
         // collected Score 150 is 100 points
         const score = Math.min(
             100,
-            (Math.log(this.collectedScore + 1) * 100) / Math.log(1024)
+            (Math.log(this.collectedScore + 1) * 100) / Math.log(512)
         );
         return Math.floor(score);
     }
@@ -309,22 +322,20 @@ export class Clicker extends Scene {
         const elapsedTime = Date.now() - this.gameStartedTime;
         const finalScore = this.getFinalScore();
 
-        this.popupText.popupText(
-            `Score: ${finalScore}`,
-            this.cameras.main.centerX,
-            this.cameras.main.centerY + 100,
-            3000,
-            {
-                fontSize: "80px",
-                color: "#ffffff",
-                stroke: "#000000",
-                strokeThickness: 2,
-                align: "center",
-                fontFamily: "Arial",
-                fontStyle: "bold",
-            }
-        );
-        // pop up result modal
+        if (potgManager.getIsRecording()) {
+            potgManager.stopRecording();
+        }
+
+        // pop up result
+        this.time.addEvent({
+            delay: 1000,
+            callback: () => {
+                this.scene.start("GameOver", {
+                    score: finalScore,
+                    gameType: "Clicker",
+                });
+            },
+        });
     }
 
     update(time: number, delta: number) {

@@ -7,6 +7,10 @@ class UserWebSocketManager extends WebSocketManager<UserReceiveTypeMap> {
         super.connect();
     }
 
+    disconnect(): void {
+        super.disconnect();
+    }
+
     sendUserReconnect(requestId: string, userId: string): void {
         const userReconnectMessage: UserReconnectMessage = {
             type: "USER_RECONNECT",

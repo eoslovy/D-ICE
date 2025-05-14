@@ -1,27 +1,15 @@
 import Phaser from 'phaser';
-import potgManager from '../../modules/POTGManager';
+import potgManager from '../../../modules/POTGManager';
 import { v7 as uuidv7 } from 'uuid';
-import { userStore } from '../../stores/userStore';
-import userWebSocketManager from '../../modules/UserWebSocketManager';
-
+import { userStore } from '../../../stores/userStore';
+import userWebSocketManager from '../../../modules/UserWebSocketManager';
+import { UICountdown } from '../../../modules/gameutils/UICountdown';
+import { addBackgroundImage } from './addBackgroundImage';
+import {GAME_TYPES} from './GameType';
 // Add interface for scene data
 interface GameOverSceneData {
-  score?: number;
-  gameType?: string;
-}
-
-interface BackendResponse {
-  type: "AGGREGATED_USER";
-  requestId: string; //UUIDv7
-  currentRound: number; // 현재 round
-  totalRound: number; // 전체 round
-  gameType: string; //게임이름
-  currentScore: number; // int 이번 round 점수
-  totalScore: number;
-  rankRecord: string; // 구분자 | 라운드별 순위 기록
-  roundRank: number;
-  overallRank: number;
-  videoUploadUrl: string; // s3 presigned url POST|PUT용
+    score?: number;
+    gameType?: string;
 }
 
 export class GameOver extends Phaser.Scene {
@@ -30,6 +18,10 @@ export class GameOver extends Phaser.Scene {
   private backendResponse: AggregatedUserMessage | null = null;
   private loadingText: Phaser.GameObjects.Text | null = null;
   private uploadStatus: Phaser.GameObjects.Text | null = null;
+  private countdown?: UICountdown;
+  private isLastRound: boolean = false;
+  private needVideoUpload: boolean = false; // 업로드 필요 여부 상태 추가
+  private gameTypeName: string = '';
   
   constructor() {
     super({ key: 'GameOver' });
@@ -43,7 +35,10 @@ export class GameOver extends Phaser.Scene {
       score: this.roundScore,
       gameType: this.gameType
     });
-    
+
+    this.gameTypeName = 
+    GAME_TYPES.find(type => type.key === this.gameType)?.name || this.gameType;
+
     // 초기 화면 표시
     this.showInitialScreen();
     
@@ -53,43 +48,92 @@ export class GameOver extends Phaser.Scene {
     console.log('[GameOver] User ID:', userId);
     console.log('[GameOver] Room Code:', roomCode);
 
-    // Send score to backend
-    this.sendScoreToBackend(userId, roomCode);
+        // Send score to backend
+        this.sendScoreToBackend(userId, roomCode);
 
     // WebSocket 응답 리스너 설정
     userWebSocketManager.on('AGGREGATED_USER', (payload: AggregatedUserMessage) => {
       this.backendResponse = payload;
+      this.isLastRound = payload.currentRound === payload.totalRound;
+      this.needVideoUpload = !!payload.videoUploadUrl;
       this.updateUI();
-      this.handleVideoUpload();
-      
-      if(payload.currentRound == payload.totalRound){
-        this.EndGame();
+
+      // 집계 UI 및 분기 처리
+      if (this.needVideoUpload) {
+        this.handleVideoUpload().then(() => {
+          this.showCountdownAndNext();
+        });
+      } else {
+        this.showCountdownAndNext();
       }
     });
   }
-  
-  private showInitialScreen() {
+
+  create() {
+    const width = this.cameras.main.width;
+    const height = this.cameras.main.height;
+    if (!this.countdown) {
+      this.countdown = new UICountdown(this, width / 2, height * 0.8);
+    }
+  }
+
+  private showCountdownAndNext() {
     const width = this.cameras.main.width;
     const height = this.cameras.main.height;
 
-    // 배경
-    this.add.rectangle(0, 0, width, height, 0x000000, 0.8)
-      .setOrigin(0);
+    // UICountdown 표시
+    if (this.countdown) this.countdown.startCountdown(10);
+
+    // "다음 게임" 버튼 표시
+    let preloaderButton: Phaser.GameObjects.Container | undefined;
+    const removeButton = () => {
+      if (preloaderButton) {
+        preloaderButton.destroy();
+        preloaderButton = undefined;
+      }
+    };
+    preloaderButton = this.createPreloaderButton(width / 2, height * 0.9);
+    
+    let finished = false;
+    const goNext = () => {
+      if (finished) return;
+      finished = true;
+      this.countdown?.stopCountdown(false);
+      removeButton();
+      if (this.isLastRound) {
+        this.EndGame();
+      } else {
+        this.scene.start('Preloader');
+      }
+    };
+
+    preloaderButton.on('pointerdown', goNext);
+    this.events.once('countdownFinished', goNext);
+  }
+  
+  private showInitialScreen() {
+
+    const width = this.cameras.main.width;
+    const height = this.cameras.main.height;
+
+    addBackgroundImage(this);
 
     // 게임 오버 텍스트
     this.add.text(width / 2, height * 0.3, 
       '게임 종료!', 
       {
+        fontFamily: 'Jua',
         fontSize: '48px',
         color: '#ffffff',
         align: 'center'
       }
     ).setOrigin(0.5);
 
-    // 최종 점수
+    // 내 점수
     this.add.text(width / 2, height * 0.4, 
-      `최종 점수: ${this.roundScore}`, 
+      `내 점수: ${this.roundScore}`, 
       {
+        fontFamily: 'Jua',
         fontSize: '32px',
         color: '#ffffff',
         align: 'center'
@@ -98,8 +142,9 @@ export class GameOver extends Phaser.Scene {
 
     // 로딩 텍스트
     this.loadingText = this.add.text(width / 2, height * 0.5, 
-      '결과를 불러오는 중...', 
+      '통계를 불러오는 중...', 
       {
+        fontFamily: 'Jua',
         fontSize: '24px',
         color: '#ffffff',
         align: 'center'
@@ -114,12 +159,6 @@ export class GameOver extends Phaser.Scene {
       yoyo: true,
       repeat: -1
     });
-
-    // 메인 메뉴 버튼
-    this.createMenuButton(width / 2, height * 0.8);
-
-    // 다음 게임 버튼
-    this.createPreloaderButton(width / 2, height * 0.9);
   }
 
   private updateUI() {
@@ -131,14 +170,13 @@ export class GameOver extends Phaser.Scene {
     // 기존 UI 요소들 제거
     this.children.removeAll();
 
-    // 배경
-    this.add.rectangle(0, 0, width, height, 0x000000, 0.8)
-      .setOrigin(0);
+    addBackgroundImage(this);
 
     // 제목
     this.add.text(width / 2, height * 0.15, 
-      '게임 종료!', 
+      `${this.gameTypeName}`, 
       {
+        fontFamily: 'Jua',
         fontSize: '48px',
         color: '#ffffff',
         align: 'center'
@@ -149,137 +187,119 @@ export class GameOver extends Phaser.Scene {
     this.add.text(width / 2, height * 0.25,
       `현재 라운드: ${this.backendResponse.currentRound}/${this.backendResponse.totalRound}`,
       {
+        fontFamily: 'Jua',
         fontSize: '32px',
         color: '#ffffff',
         align: 'center'
       }
     ).setOrigin(0.5);
 
-    // 점수 정보
-    const scoreInfo = this.add.container(width / 2, height * 0.35);
-    
-    const scoreText = this.add.text(0, 0,
-      `이번 라운드 점수: ${this.backendResponse.currentScore}\n` +
-      `총 점수: ${this.backendResponse.totalScore}`,
-      {
-        fontSize: '28px',
-        color: '#ffffff',
+    // 점수 정보 (가독성 개선)
+    const scoreBox = this.add.graphics();
+    const scoreBoxWidth = 420;
+    const scoreBoxHeight = 70;
+    scoreBox.fillStyle(0x1a223a, 0.85);
+    scoreBox.fillRoundedRect(width / 2 - scoreBoxWidth / 2, height * 0.33, scoreBoxWidth, scoreBoxHeight, 18);
+
+    const scoreText = 
+      `라운드 점수: ${this.backendResponse.currentScore}    전체 점수: ${this.backendResponse.totalScore}`;
+    this.add.text(width / 2, height * 0.33 + scoreBoxHeight / 2,
+      scoreText, {
+        fontFamily: 'Jua',
+        fontSize: '26px',
+        color: '#ffe066',
         align: 'center'
       }
     ).setOrigin(0.5);
 
-    scoreInfo.add(scoreText);
+    // 순위 정보 (가독성 개선)
+    const rankBox = this.add.graphics();
+    const rankBoxWidth = 420;
+    const rankBoxHeight = 70;
+    rankBox.fillStyle(0x1a223a, 0.85);
+    rankBox.fillRoundedRect(width / 2 - rankBoxWidth / 2, height * 0.43, rankBoxWidth, rankBoxHeight, 18);
 
-    // 순위 정보
-    this.add.text(width / 2, height * 0.45,
-      `이번 라운드 순위: ${this.backendResponse.roundRank}위\n` +
-      `전체 순위: ${this.backendResponse.overallRank}위`,
-      {
-        fontSize: '28px',
-        color: '#ffffff',
+    const rankText =
+      `라운드 순위: ${this.backendResponse.roundRank}위    전체 순위: ${this.backendResponse.overallRank}위`;
+    this.add.text(width / 2, height * 0.43 + rankBoxHeight / 2,
+      rankText, {
+        fontFamily: 'Jua',
+        fontSize: '26px',
+        color: '#42cafd',
         align: 'center'
       }
     ).setOrigin(0.5);
 
     // 라운드별 순위 그래프
-    this.createRankGraph(width / 2, height * 0.65);
+    this.createRankTable(width / 2, height * 0.55);
 
     // 업로드 상태 텍스트 생성 (handleVideoUpload 메서드 내에서)
-    this.uploadStatus = this.add.text(width / 2, height * 0.85,
-      '게임 영상 업로드 중...', 
-      {
-        fontSize: '20px',
-        color: '#ffffff',
-        align: 'center'
-      }
-    ).setOrigin(0.5);
-
-    // 메인 메뉴 버튼
-    this.createMenuButton(width / 2, height * 0.9);
-
-    // 다음 게임 버튼
-    this.createPreloaderButton(width / 2, height * 0.95);
+    if (this.needVideoUpload) {
+      this.uploadStatus = this.add.text(width / 2, height * 0.85,
+        '게임 영상 업로드 중...', 
+        {
+          fontFamily: 'Jua',
+          fontSize: '20px',
+          color: '#ffffff',
+          align: 'center'
+        }
+      ).setOrigin(0.5);
+    }
   }
 
-  private createRankGraph(x: number, y: number) {
-    const ranks = this.backendResponse!.rankRecord.split('|').map(Number);
-    const graphWidth = 400;
-    const graphHeight = 200;
-    const padding = 40;
-    
-    // 그래프 배경
-    const graphics = this.add.graphics();
-    graphics.lineStyle(2, 0x666666);
-    
-    // Y축 (순위는 위아래가 반대)
-    graphics.beginPath();
-    graphics.moveTo(x - graphWidth/2, y - graphHeight/2);
-    graphics.lineTo(x - graphWidth/2, y + graphHeight/2);
-    graphics.strokePath();
-    
-    // X축
-    graphics.beginPath();
-    graphics.moveTo(x - graphWidth/2, y + graphHeight/2);
-    graphics.lineTo(x + graphWidth/2, y + graphHeight/2);
-    graphics.strokePath();
+  private createRankTable(x: number, y: number) {
+    if (!this.backendResponse || !this.backendResponse.roundRanking) return;
 
-    // 순위 선 그리기
-    graphics.lineStyle(3, 0x00ff00);
-    graphics.beginPath();
-    
-    const stepX = (graphWidth - padding * 2) / (ranks.length - 1);
-    const stepY = (graphHeight - padding * 2) / 4; // 1~5위
+    // roundRanking: [{ nickname: string, score: number }, ...] 형태라고 가정
+    const roundRanking = this.backendResponse.roundRanking as { nickname: string; score: number }[];
+    const tableWidth = 400;
+    const rowHeight = 48;
+    const colWidths = [60, 200, 120]; // 순위, 닉네임, 점수
 
-    ranks.forEach((rank, index) => {
-      const pointX = x - graphWidth/2 + padding + (stepX * index);
-      const pointY = y - graphHeight/2 + padding + (stepY * (rank - 1));
-      
-      if (index === 0) {
-        graphics.moveTo(pointX, pointY);
-      } else {
-        graphics.lineTo(pointX, pointY);
-      }
+    // 테이블 배경
+    const bg = this.add.graphics();
+    bg.fillStyle(0x222a3a, 0.7);
+    bg.fillRoundedRect(x - tableWidth / 2, y, tableWidth, rowHeight * 4, 16);
 
-      // 포인트 마커
-      this.add.circle(pointX, pointY, 5, 0x00ff00);
-      
-      // X축 라벨 (라운드 번호)
-      this.add.text(pointX, y + graphHeight/2 + 10, 
-        `R${index + 1}`, 
-        {
-          fontSize: '16px',
-          color: '#ffffff'
-        }
-      ).setOrigin(0.5, 0);
-    });
-    
-    graphics.strokePath();
+    // 헤더
+    const headerStyle = {
+      fontSize: '22px',
+      color: '#ffe066',
+      fontFamily: 'Jua',
+      fontStyle: 'bold'
+    };
+    this.add.text(x - tableWidth / 2 + colWidths[0] / 2, y + rowHeight / 2, "순위", headerStyle).setOrigin(0.5);
+    this.add.text(x - tableWidth / 2 + colWidths[0] + colWidths[1] / 2, y + rowHeight / 2, "닉네임", headerStyle).setOrigin(0.5);
+    this.add.text(x - tableWidth / 2 + colWidths[0] + colWidths[1] + colWidths[2] / 2, y + rowHeight / 2, "점수", headerStyle).setOrigin(0.5);
 
-    // Y축 라벨 (순위)
-    for (let i = 1; i <= 5; i++) {
-      const labelY = y - graphHeight/2 + padding + (stepY * (i - 1));
-      this.add.text(x - graphWidth/2 - 10, labelY,
-        `${i}위`,
-        {
-          fontSize: '16px',
-          color: '#ffffff'
-        }
-      ).setOrigin(1, 0.5);
+    // 상위 3등만 표시
+    for (let i = 0; i < 3; i++) {
+      const entry = roundRanking[i];
+      const rowY = y + rowHeight * (i + 1) + rowHeight / 2;
+      const textStyle = {
+        fontSize: '20px',
+        color: i === 0 ? '#ffd700' : i === 1 ? '#c0c0c0' : i === 2 ? '#cd7f32' : '#fff',
+        fontFamily: 'Jua'
+      };
+
+      this.add.text(x - tableWidth / 2 + colWidths[0] / 2, rowY, `${i + 1}`, textStyle).setOrigin(0.5);
+      this.add.text(
+        x - tableWidth / 2 + colWidths[0] + colWidths[1] / 2,
+        rowY,
+        entry?.nickname ?? '-',
+        textStyle
+      ).setOrigin(0.5);
+      this.add.text(
+        x - tableWidth / 2 + colWidths[0] + colWidths[1] + colWidths[2] / 2,
+        rowY,
+        entry?.score !== undefined ? String(entry.score) : '-',
+        textStyle
+      ).setOrigin(0.5);
     }
-
-    // 그래프 제목
-    this.add.text(x, y - graphHeight/2 - 20,
-      '라운드별 순위 변화',
-      {
-        fontSize: '24px',
-        color: '#ffffff',
-        align: 'center'
-      }
-    ).setOrigin(0.5);
   }
 
   private async handleVideoUpload() {
-    if (!this.backendResponse?.videoUploadUrl) {
+    if (!this.needVideoUpload || !this.backendResponse?.videoUploadUrl) {
       console.log('[GameOver] No video upload URL provided');
       return;
     }
@@ -295,6 +315,7 @@ export class GameOver extends Phaser.Scene {
     this.uploadStatus = this.add.text(width / 2, height * 0.8,
       '게임 영상 업로드 중...', 
       {
+        fontFamily: 'Jua',
         fontSize: '20px',
         color: '#ffffff',
         align: 'center'
@@ -324,6 +345,7 @@ export class GameOver extends Phaser.Scene {
         this.uploadStatus = this.add.text(width / 2, height * 0.8,
           '게임 영상 업로드 완료!',
           {
+            fontFamily: 'Jua',
             fontSize: '20px',
             color: '#00ff00',
             align: 'center'
@@ -349,6 +371,7 @@ export class GameOver extends Phaser.Scene {
         this.uploadStatus = this.add.text(width / 2, height * 0.8,
           '게임 영상 업로드 실패',
           {
+            fontFamily: 'Jua',
             fontSize: '20px',
             color: '#ff0000',
             align: 'center'
@@ -375,6 +398,7 @@ export class GameOver extends Phaser.Scene {
       this.uploadStatus = this.add.text(width / 2, height * 0.8,
         errorMessage,
         {
+          fontFamily: 'Jua',
           fontSize: '20px',
           color: '#ff0000',
           align: 'center'
@@ -394,29 +418,6 @@ export class GameOver extends Phaser.Scene {
         rankRecord: this.backendResponse.rankRecord,
         overallRank: this.backendResponse.overallRank
     });
-}
-  private createMenuButton(x: number, y: number) {
-    const buttonWidth = 200;
-    const buttonHeight = 50;
-
-    const button = this.add.container(x, y);
-    
-    const bg = this.add.graphics();
-    bg.fillStyle(0x4a4a4a, 1);
-    bg.fillRoundedRect(-buttonWidth/2, -buttonHeight/2, buttonWidth, buttonHeight, 16);
-    
-    const text = this.add.text(0, 0, '메인 메뉴', {
-      fontSize: '24px',
-      color: '#ffffff'
-    }).setOrigin(0.5);
-    
-    button.add([bg, text]);
-    button.setSize(buttonWidth, buttonHeight);
-    button.setInteractive();
-    
-    button.on('pointerup', () => {
-      this.scene.start('MainMenu');
-    });
   }
 
   private createPreloaderButton(x: number, y: number) {
@@ -430,6 +431,7 @@ export class GameOver extends Phaser.Scene {
     bg.fillRoundedRect(-buttonWidth/2, -buttonHeight/2, buttonWidth, buttonHeight, 16);
     
     const text = this.add.text(0, 0, '다음 게임', {
+      fontFamily: 'Jua',
       fontSize: '24px',
       color: '#ffffff'
     }).setOrigin(0.5);
@@ -437,10 +439,8 @@ export class GameOver extends Phaser.Scene {
     button.add([bg, text]);
     button.setSize(buttonWidth, buttonHeight);
     button.setInteractive();
-    
-    button.on('pointerup', () => {
-      this.scene.start('Preloader');
-    });
+  
+    return button;
 }
   
   private sendScoreToBackend(userId: string | null, roomCode: string | null) {

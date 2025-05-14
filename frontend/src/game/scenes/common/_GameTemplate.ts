@@ -1,10 +1,10 @@
 import { Scene } from 'phaser';
-import { LoadManifestFromJSON } from '../../modules/gameutils/LoadSpritesManifest';
-import { PopupSprite } from '../../modules/gameutils/PopupSptire';
-import { PopupText } from '../../modules/gameutils/PopupText';
-import { UITimer } from '../../modules/gameutils/UITimer';
-import { UICountdown } from '../../modules/gameutils/UICountdown';
-import { EventBus } from '../EventBus';
+import { LoadManifestFromJSON } from '../../../modules/gameutils/LoadSpritesManifest';
+import { PopupSprite } from '../../../modules/gameutils/PopupSptire';
+import { PopupText } from '../../../modules/gameutils/PopupText';
+import { UITimer } from '../../../modules/gameutils/UITimer';
+import { UICountdown } from '../../../modules/gameutils/UICountdown';
+import { EventBus } from '../../EventBus';
 
 export class MyAwesomeGame extends Scene {
     // Common settings
@@ -87,7 +87,7 @@ export class MyAwesomeGame extends Scene {
                     stroke: '#000000',
                     strokeThickness: 2,
                     align: 'center',
-                    fontFamily: 'Arial',
+                    fontFamily: 'Jua',
                     fontStyle: 'bold',
                 });
                 this.result();
