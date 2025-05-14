@@ -109,6 +109,7 @@ public class NumberSurvivorGameLogic {
 			}
 
 			RoundResultDto result = gameManager.processRound(roomCode);
+			gameManager.addRoundResult(roomCode, result);
 
 			if (!timeoutPlayers.isEmpty()) {
 				result.getEliminated().addAll(timeoutPlayers);
@@ -198,6 +199,9 @@ public class NumberSurvivorGameLogic {
 				log.error("[게임 로직] 게임 초기화 중 오류 [방ID: {}]", roomCode, e);
 			}
 		}, 1, TimeUnit.SECONDS);
+
+		// 게임 데이터 정리
+		gameManager.clearRoundResults(roomCode);
 	}
 
 	// 다음 라운드를 위해 플레이어 상태 초기화

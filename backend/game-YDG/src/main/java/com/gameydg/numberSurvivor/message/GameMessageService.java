@@ -6,11 +6,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 
 import org.springframework.stereotype.Service;
 import org.springframework.web.socket.WebSocketSession;
 
 import com.gameydg.numberSurvivor.dto.PlayerDto;
+import com.gameydg.numberSurvivor.dto.RoundResultDto;
 import com.gameydg.numberSurvivor.manager.NumberSurvivorManager;
 import com.gameydg.numberSurvivor.repository.RoomRedisRepository;
 import com.gameydg.numberSurvivor.session.GameSessionRegistry;
@@ -148,8 +151,10 @@ public class GameMessageService {
 	}
 
 	// 게임 오버 메시지 전송
-	public void sendGameOverMessage(String roomCode, boolean isTimeLimit) throws IOException {
+	public CompletableFuture<Void> sendGameOverMessage(String roomCode, boolean isTimeLimit) {
 		List<PlayerDto> winners = gameManager.getWinners(roomCode);
+		List<RoundResultDto> roundResults = gameManager.getRoundResults(roomCode);
+
 		log.info("[메시지 서비스] 게임 종료 메시지 전송 [방ID: {}, 우승자: {}명, 시간제한종료: {}]",
 			roomCode, winners.size(), isTimeLimit);
 
@@ -158,16 +163,25 @@ public class GameMessageService {
 		gameOverMessage.put("type", "GAME_OVER");
 		gameOverMessage.put("winners", winners);
 		gameOverMessage.put("resetLocalStorage", true);
-		gameOverMessage.put("closeConnection", true);
 		gameOverMessage.put("isTimeLimit", isTimeLimit);
+		gameOverMessage.put("roundResults", roundResults);
 
-		executorService.submit(() -> {
+		return CompletableFuture.runAsync(() -> {
 			try {
+				// 메시지 전송
 				sessionRegistry.broadcastMessage(roomCode, gameOverMessage);
+				
+				// 잠시 대기
+				Thread.sleep(200);
+				
+				// 연결 종료
+				sessionRegistry.closeConnections(roomCode);
+				
 			} catch (Exception e) {
-				log.error("[메시지 서비스] 게임 종료 메시지 전송 중 오류 [방ID: {}]", roomCode, e);
+				log.error("[메시지 서비스] 게임 종료 처리 중 오류 [방ID: {}]", roomCode, e);
+				throw new CompletionException(e);
 			}
-		});
+		}, executorService);
 	}
 
 	// 모든 플레이어가 죽었을 때 새 게임 메시지 전송

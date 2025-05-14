@@ -1,0 +1,27 @@
+[
+    {
+        "key": "panopticon_prisoner_1",
+        "type": "image",
+        "path": "assets/panopticon/panopticon_prisoner_1.png"
+    },
+    {
+        "key": "panopticon_prisoner_2",
+        "type": "image",
+        "path": "assets/panopticon/panopticon_prisoner_2.png"
+    },
+    {
+        "key": "panopticon_jail",
+        "type": "image",
+        "path": "assets/panopticon/panopticon_jail.png"
+    },
+    {
+        "key": "panopticon_tower",
+        "type": "image",
+        "path": "assets/panopticon/panopticon_tower.png"
+    },
+    {
+        "key": "panopticon_bg",
+        "type": "image",
+        "path": "assets/panopticon/panopticon_bg.png"
+    }
+]
