@@ -28,7 +28,7 @@ export const router = createBrowserRouter([
                 element: <App />,
             },
             {
-                path: "/join/:roomCode",
+                path: "/join",
                 element: <Join />,
             },
             {
