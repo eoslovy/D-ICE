@@ -30,6 +30,7 @@ function GenerateQrCode({ roomCode, isDarkMode = false }: GenerateQrCodeProps) {
     
     const origin = window.location.origin;
     const joinUrl = `${origin}/join?roomCode=${roomCode}`;
+    navigator.clipboard.writeText(joinUrl);
     setUrl(joinUrl);
   }, [roomCode]);
 
