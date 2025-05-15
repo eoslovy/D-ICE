@@ -63,6 +63,7 @@ export class Dice extends Phaser.Scene {
                     to: 1,
                     duration: duration,
                     onUpdate: () => {
+                        // rotation 속도 조절
                         dice.modelRotation.x -= 0.07;
                         dice.modelRotation.y -= 0.13;
                     },
