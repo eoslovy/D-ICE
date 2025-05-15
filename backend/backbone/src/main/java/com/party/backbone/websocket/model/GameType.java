@@ -18,7 +18,11 @@ public enum GameType {
 	Knight(30000),
 	Panopticon(30000),
 	NumberSurvivor(70000),
-	Dice(30000);
+	ColorHunterG(25000),
+	Dice(30000),
+	NumberSurvivor(70000),
+	;
+
 	private static final GameType[] GAME_TYPES = values();
 
 	private final long duration;
