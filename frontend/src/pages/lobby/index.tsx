@@ -50,7 +50,7 @@ export default function Lobby() {
 
     const handleDisconnect = (payload: unknown) => {
         const { code } = payload as { code: number; reason: string };
-        if (code === 1003) {
+        if (code === 1008) {
             console.error("방 코드가 유효하지 않습니다. 연결 실패.");
             setErrorMessage("방 번호가 유효하지 않습니다. 다시 확인해 주세요.");
             setIsJoining(false);
