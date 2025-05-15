@@ -48,8 +48,7 @@ export default function TestModules(props: TestModulesProps) {
     const [rawMessageError, setRawMessageError] = useState<string | null>(null);
 
     // --- State for Test Game Start ---
-    const [testGameTypeInput, setTestGameTypeInput] =
-        useState<string>("Reaction");
+    const [testGameTypeInput, setTestGameTypeInput] = useState<string>("Dice");
 
     // --- POTG Event Listeners ---
     useEffect(() => {
