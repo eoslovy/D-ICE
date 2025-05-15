@@ -198,3 +198,144 @@
    - 테스트 자체는 매우 가벼운데 테스트 시작하는데 매우 오랜시간이 걸렸다.
    - CompletableFuture로의 전환도 생각해봐야할 것 같다.
 2. Mockito를 제대로 사용할 줄 모르고 원하는 동작을 하게 하려다보니(sessionId 생성 내지 userIds 설정) 구현체를 직접 Mock하려고 시도했고 결국 RoomRedisRepository와 SessionRegistry를 interface화 했다.
+
+## 20250506 집계 로직
+- round 별 집계 로직을 어떻게 구현할 것인가?
+1. 게임이 시작될 때 redis에 언제 집계할 지 timeout을 걸어두고 expiration을 subscribe한다.
+2. @Scheduled 어노테이션을 활용해 무언가를 polling 한다.
+3. RabbitMQ 같은 delayed message queue 도입
+
+| 기준 \ 방식      | Redis TTL      | `@Scheduled`    | RabbitMQ          |
+| ------------ | -------------- | --------------- | ----------------- |
+| **신뢰도**      | ❌ at most once | ✅ at least once | ✅ exactly once 수준 |
+| **정밀도**      | ✅ ms 단위        | ❌ polling 주기 제한 | ✅ ms 단위           |
+| **구현 난이도**   | 낮음             | 낮음              | 높음                |
+| **외부 의존성**   | Redis만         | 없음              | RabbitMQ 필요       |
+| **분산 환경 대응** | ❌              | ⚠ 락 필요          | ✅ 기본 내장           |
+
+- 사실 처음엔 Redis TTL로 간단히 구현하려다가 at most once라는 점을 깜빡했다.
+- 새로운 인프라를 도입하는 건 좀 부담스러워서 @Scheuled를 바탕으로 polling 하는 쪽으로 구현했다.
+- 다만 크게 두가지 고려해야 할 점이 있었다.
+    1. polling 주기에 따라 집계 시각이 약간 오차가 생길 수 있다.
+
+    2. 멀티 인스턴스를 고려하면 분산 락이 필요하다.
+- 지난 프로젝트에서 분산 락을 redis를 통해 직접 구현해봤었는데 이번엔 라이브러리를 사용해봤다.
+- 작업의 복잡도나 현재 인프라 상황을 고려했을 때 [ShedLock](https://github.com/lukas-krecan/ShedLock)을 사용하면 쉽고 간단하게 @Scheduled와 통합하여 분산 락 구현이 가능했다.
+
+## 20250508 GameMessageHandler
+### 문제
+- 요청에 대해 중복 처리를 방지하는 것이 모든 요청에 대해 공통적으로 필요했다.
+- 그러면서도 각각의 Handler의 동작은 달라야 했고 관리자인지 사용자인지에 따라 다른 동작이 필요했다.
+
+### 해결 방법
+- 템플릿 메서드 패턴 적용
+    - handle 메서드를 템플릿 메서드 패턴으로 구성하여, 공통 처리 흐름을 고정하고 세부 동작은 doHandle로 위임.
+        ``` java
+            public final void handle(T message, String roomCode, WebSocketSession session) throws IOException {
+                checkIdempotencyBefore(message, roomCode);
+                validateAdministrator(message, roomCode);
+                validateUser(message, roomCode);
+                doHandle(message, roomCode, session);
+                markProcessedAfter(message, roomCode);
+            }
+        ```
+    - 공통 흐름:
+        ```
+        중복 요청 검사 (idempotency)
+        관리자 / 사용자 검증
+        실제 메시지 처리 (doHandle)
+        처리 완료 마킹 (idempotency)
+        ```
+- 다형성을 활용한 메시지 타입 분기
+    - 메시지 인터페이스 계층을 기반으로 다음과 같은 조건 분기 처리:
+        ```
+        AdminMessage → 관리자 ID 검증
+        UserMessage → 사용자 ID 검증
+        IdempotentMessage → 요청 중복 검사 및 마킹
+        ```
+    - Java의 패턴 매칭 기반 instanceof (instanceof Foo bar) 문법을 활용하여 타입 체크 및 다운캐스팅 처리.
+
+- Redis 기반의 멱등성(idempotency) 처리
+    - IdempotencyRedisRepository를 통해 메시지의 requestId를 Redis에 저장하여 중복 요청 방지 구현.
+
+    - 처리 전 checkIdempotencyBefore로 체크한 후 성공적으로 동작하면 markProcessedAfter 로 해당 requestId를 저장해두는 식으로 구분하여 흐름 보장.
+
+- 책임 분리와 확장성 고려
+    - 메시지 처리 로직은 doHandle에 위임되므로, 서브클래스에서는 핵심 로직만 구현하면 됨.
+
+
+
+## 20250509 event 큐잉
+- 프론트에서 Scene이 넘어간 후에 listener를 등록하여 메시지를 수신했음에도 처리가 이뤄지지 않는 이슈가 있었다.
+- 메시지를 받았을 때 해당 메시지 타입에 대한 listener가 등록되어 있지 않으면 (eventemitter3 기준 listenerCount() 함수 사용) 메시지를 타입별로 매핑한 queue에 쌓아둔다. (Record<MessageType, string[]>) 리스너를 등록하는 함수인 on을 override 하여 queue 확인 후 해당 메시지를 먼저 처리하고 event listener를 등록하도록 변경했다.
+
+    ``` ts
+    this.ws.onmessage = (event) => {
+            let msg: ReceiveMessage;
+            try {
+                console.log(`[WebSocketManager] 수신된 메시지: ${event.data}`);
+                msg = JSON.parse(event.data);
+                this.queueOrEmit(msg);
+            } catch (e) {
+                console.error(
+                    "[WebSocketManager] 메시지 파싱 실패:",
+                    event.data,
+                    e
+                );
+                this.emit("raw_message", event.data);
+            }
+        };
+    ```
+
+    ``` ts
+    private queueOrEmit(msg: ReceiveMessage) {
+        const type = msg.type as
+            | CustomManagingEvent
+            | EventEmitter.EventNames<keyof M & string>;
+        if (this.listenerCount(type) === 0) {
+            const queue = this.pendingMessages.get(type as string) ?? [];
+            queue.push(msg);
+            this.pendingMessages.set(type as string, queue);
+        } else {
+            this.emit(type, msg);
+        }
+    }
+    ```
+
+    ``` ts
+    override on<
+        K extends
+            | CustomManagingEvent
+            | EventEmitter.EventNames<keyof M & string>
+    >(event: K, listener: (payload: M[K]) => void): this {
+        super.on(event, listener);
+
+        const queued = this.pendingMessages.get(event);
+        if (queued) {
+            queued.forEach((msg) => {
+                try {
+                    listener(msg);
+                } catch (e) {
+                    console.error(
+                        `[WebSocketManager] 큐 처리 중 에러 (${event}):`,
+                        e
+                    );
+                }
+            });
+            this.pendingMessages.delete(event);
+        }
+
+        return this;
+    }
+    ```
+
+## 20250513 Ping
+### 문제 상황
+- Admin 웹소켓 연결이 게임과 게임이 넘어갈 쯤이 되면 1006 종료 코드와 함께 연결이 종료됐다.
+- 서버에 특별한 문제가 있지도 않았고 유저와의 연결이 유지되는 것을 볼 때 네트워크도 문제가 없었다.
+- 가장 의심되는 부분이 연결 유휴 상태라고 판단했다.
+### 해결 방법
+- 주기적으로 메시지를 보내는 방식으로 해결하되 커스텀 메시지를 만들지 Ping 메시지를 사용할지 고민했다.
+- 커스텀 메시지의 도입을 고려했던 이유는 userCount 등 재연결 시 admin에 추가로 줄 정보를 전달할 수 있지 않을까 해서였다.
+- 다만 user도 같은 문제가 발생할 수 있고 멀티 instance를 고려했을 때 각각의 인스턴스가 들고 있는 세션에 대해 ping을 날린다는 개념에서 room과 관련 정보를 가져오는 것이 어색하다는 생각이 들었다.
+- 따라서 프로토콜 level 에서 지원되는 Ping 메시지를 5초에 한번 보내도록 구현했고 해당 문제는 해결되었다.
