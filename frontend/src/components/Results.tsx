@@ -103,11 +103,34 @@ export default function Result({
 
     // 비디오 자동 재생 처리
     useEffect(() => {
-        if (videoRef.current && activeVideo) {
-            videoRef.current?.play().catch((err) => {
-                console.log("비디오 자동 재생 실패:", err);
+        if (!videoRef.current || !activeVideo) return;
+
+        const videoEl = videoRef.current;
+        let retryCount = 0;
+        let timeoutId: ReturnType<typeof setTimeout> | null = null;
+
+        const tryPlay = () => {
+            videoEl.load(); // src 재로드
+            videoEl.play().catch((err) => {
+                console.warn("비디오 재생 실패:", err);
+
+                if (retryCount < 3) {
+                    retryCount += 1;
+                    timeoutId = setTimeout(tryPlay, 1000);
+                } else {
+                    console.error("비디오 재생 재시도 횟수 초과");
+                }
             });
-        }
+        };
+
+        tryPlay();
+
+        // clean-up: 언마운트되거나 activeVideo가 바뀔 때 타이머 제거
+        return () => {
+            if (timeoutId) {
+                clearTimeout(timeoutId);
+            }
+        };
     }, [activeVideo]);
 
     // 현재 라운드가 마지막 라운드인지 확인
@@ -193,16 +216,8 @@ export default function Result({
                     </>
                 ) : (
                     <>
-                        <h2>
-                            {isFinalRound
-                                ? "최종 결과"
-                                : `${data?.gameType || "게임"} 결과`}
-                        </h2>
-                        <p>
-                            {isFinalRound
-                                ? "모든 게임이 종료되었습니다!"
-                                : `라운드 ${data?.currentRound}/${data?.totalRound} 완료`}
-                        </p>
+                        <h2>{`${data?.gameType || "게임"} 결과`}</h2>
+                        <p>{`라운드 ${data?.currentRound}/${data?.totalRound} 완료`}</p>
                     </>
                 )}
             </div>
@@ -497,7 +512,7 @@ export default function Result({
                         >
                             {hasAnyVideo && currentVideoUrl && (
                                 <>
-                                    <div className="video-wrapper mb-4">
+                                    <div className="video-wrapper max-h-[60vh] mb-4">
                                         <video
                                             ref={videoRef}
                                             src={currentVideoUrl}

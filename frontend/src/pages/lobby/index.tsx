@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import userWebSocketManager from "../../modules/UserWebSocketManager";
 import { useWebSocket } from "../../modules/WebSocketContext";
@@ -17,7 +17,57 @@ export default function Lobby() {
     const [isJoining, setIsJoining] = useState(false);
     const navigate = useNavigate();
     const { connectWebSocket } = useWebSocket();
-    let requestId = uuidv7();
+    
+    // ref로 최신 값 관리
+    const roomCodeRef = useRef(roomCodeInput);
+    const nicknameRef = useRef(nicknameInput);
+    const requestIdRef = useRef(uuidv7());
+
+    // ref 값 동기화
+    useEffect(() => {
+        roomCodeRef.current = roomCodeInput;
+        nicknameRef.current = nicknameInput;
+    }, [roomCodeInput, nicknameInput]);
+
+    // 이벤트 핸들러 (의존성 없이 ref 사용)
+    const handleUserJoined = (payload: UserJoinedMessage) => {
+        console.log("유저 입장 성공:", payload);
+        userStore.getState().setStatus("WAITING");
+        userStore.getState().setUserId(payload.userId);
+        userStore.getState().setRoomCode(roomCodeRef.current);
+        userStore.getState().setNickname(nicknameRef.current);
+        sessionStorage.removeItem("urlRoomCode");
+        navigate(`/userroom/${roomCodeRef.current}`);
+    };
+
+    const handleConnect = () => {
+        console.log("WebSocket 연결 성공");
+        userWebSocketManager.sendUserJoin(requestIdRef.current, nicknameRef.current);
+    };
+
+    const handleDisconnect = (payload: unknown) => {
+        const { code } = payload as { code: number; reason: string };
+        if (code === 1003) {
+            console.error("방 코드가 유효하지 않습니다. 연결 실패.");
+            setErrorMessage("방 번호가 유효하지 않습니다. 다시 확인해 주세요.");
+            setIsJoining(false);
+        }
+    };
+
+    // 이벤트 리스너 등록/해제 (마운트/언마운트 시 1회만 실행)
+    useEffect(() => {
+        userWebSocketManager.on("USER_JOINED", handleUserJoined);
+        userWebSocketManager.on("connect", handleConnect);
+        userWebSocketManager.on("disconnect", handleDisconnect);
+        console.log("Lobby 이벤트 리스너 등록");
+
+        return () => {
+            userWebSocketManager.off("USER_JOINED", handleUserJoined);
+            userWebSocketManager.off("connect", handleConnect);
+            userWebSocketManager.off("disconnect", handleDisconnect);
+            console.log("Lobby 이벤트 리스너 해제");
+        };
+    }, []);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -34,56 +84,17 @@ export default function Lobby() {
 
         try {
             setIsJoining(true);
+            requestIdRef.current = uuidv7(); // 요청 ID 갱신
 
             const USER_WS_URL = `${
                 import.meta.env.VITE_WEBSOCKET_URL
             }/backbone/ws/game/user/${roomCodeInput}`;
             connectWebSocket("user", USER_WS_URL);
 
-            userWebSocketManager.on(
-                "USER_JOINED",
-                (payload: UserJoinedMessage) => {
-                    console.log("유저 입장 성공:", payload);
-
-                    // zustand에 상태 저장
-                    userStore.getState().setStatus("WAITING");
-                    userStore.getState().setUserId(payload.userId);
-                    userStore.getState().setRoomCode(roomCodeInput);
-                    userStore.getState().setNickname(nicknameInput);
-
-                    sessionStorage.removeItem("urlRoomCode");
-
-                    navigate(`/userroom/${roomCodeInput}`);
-                }
-            );
-
-            userWebSocketManager.on("connect", () => {
-                console.log("WebSocket 연결 성공");
-                userWebSocketManager.sendUserJoin(requestId, nicknameInput);
-            });
-
-            userWebSocketManager.on("disconnect", (payload: unknown) => {
-                const { code, reason } = payload as {
-                    code: number;
-                    reason: string;
-                };
-
-                if (code === 1003) {
-                    console.error("방 코드가 유효하지 않습니다. 연결 실패.");
-                    setErrorMessage(
-                        "방 번호가 유효하지 않습니다. 다시 확인해 주세요."
-                    );
-                    setIsJoining(false);
-                }
-            });
         } catch (error: any) {
-            // 서버 연결 실패, 유효하지 않은 방 코드 등의 오류 처리
             console.error("방 입장 중 오류:", error);
             setIsJoining(false);
             setErrorMessage("방 입장에 실패했습니다. 다시 시도해주세요.");
-            return;
-        } finally {
-            requestId = uuidv7();
         }
     };
 
@@ -126,9 +137,9 @@ export default function Lobby() {
                                 isJoining ? "opacity-70 cursor-not-allowed" : ""
                             }`}
                             onClick={() => {
-                                sessionStorage.removeItem("urlRoomCode"); // 로컬 스토리지에서 urlRoomCode 제거
-                                setroomCodeInput(""); // 입력 필드 초기화
-                                setErrorMessage(""); // 에러 메시지 초기화
+                                sessionStorage.removeItem("urlRoomCode");
+                                setroomCodeInput("");
+                                setErrorMessage("");
                             }}
                             disabled={isJoining}
                         >
@@ -145,10 +156,7 @@ export default function Lobby() {
                     >
                         {isJoining ? (
                             <div className="flex items-center">
-                                <Loader
-                                    className="animate-spin mr-2"
-                                    size={20}
-                                />
+                                <Loader className="animate-spin mr-2" size={20} />
                                 참여중....
                             </div>
                         ) : (
