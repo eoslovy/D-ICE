@@ -1,7 +1,7 @@
 # 1단계: 외부에서 빌드된 React 이미지 참조
 ARG FRONTEND_IMAGE
-FROM ${FRONTEND_IMAGE} AS frontend
-
+FROM ${FRONTEND_IMAGE:-alpine} AS frontend
+RUN mkdir -p /dist
 # 2단계: Nginx로 최종 이미지 구성
 FROM nginx:1.25
 ARG SERVER_DOMAIN

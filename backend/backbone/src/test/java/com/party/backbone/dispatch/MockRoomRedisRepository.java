@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Set;
 
 import com.party.backbone.room.RoomRedisRepository;
+import com.party.backbone.room.dto.FinalResult;
 import com.party.backbone.room.dto.RoundInfo;
 import com.party.backbone.room.dto.ScoreAggregationResult;
 import com.party.backbone.websocket.model.GameType;
@@ -62,8 +63,18 @@ public class MockRoomRedisRepository implements RoomRedisRepository {
 	}
 
 	@Override
+	public Boolean hasPlayer(String roomCode, String userId) {
+		return null;
+	}
+
+	@Override
 	public void endGame(String roomCode) {
 
+	}
+
+	@Override
+	public List<FinalResult> getFinalResults(String roomCode) {
+		return List.of();
 	}
 
 	@Override
@@ -93,7 +104,7 @@ public class MockRoomRedisRepository implements RoomRedisRepository {
 
 	@Override
 	public void updateScore(String roomCode, String userId, int score) {
-		
+
 	}
 
 	public void setUserIds(List<String> userIds) {

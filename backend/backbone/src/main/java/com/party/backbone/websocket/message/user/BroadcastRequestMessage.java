@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class BroadcastRequestMessage implements IdempotentMessage {
+public class BroadcastRequestMessage implements IdempotentMessage, UserMessage {
 	private String requestId;
 	private String userId;
 	private String payload;
