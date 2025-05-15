@@ -219,13 +219,13 @@ export class Roulette extends Scene {
             this.RouletteFastSound?.play({ loop: true, volume: 1 });
             // 2. 1.7초 후 페이드 아웃 시작
             this.time.delayedCall(1700, () => {
-                this.RouletteFastSound.stop();
                 this.tweens.add({
                     targets: this.RouletteFastSound,
                     volume: 0,
                     duration: 500,
                     onComplete: () => {
                         // 볼륨이 0이 되면 사운드 정지
+                        this.RouletteFastSound.stop();
                     },
                 });
             });
@@ -317,7 +317,6 @@ export class Roulette extends Scene {
     private handleSpinComplete() {
         this.isSpinning = false;
         this.spinPhase = "idle";
-        this.RouletteFastSound?.stop();
 
         // 0.5초 후 모달 표시
         this.time.delayedCall(500, () => {
