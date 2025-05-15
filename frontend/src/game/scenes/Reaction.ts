@@ -203,7 +203,7 @@ export class Reaction extends Phaser.Scene {
         const graphHeight = 200;
         const graphX = 50;
         const infoTextY = this.infoText.y;
-        const graphY = infoTextY - graphHeight - 200;
+        const graphY = infoTextY - graphHeight - 100;
 
         graph.clear();
         graph.fillStyle(0xffffff, 0.5);
