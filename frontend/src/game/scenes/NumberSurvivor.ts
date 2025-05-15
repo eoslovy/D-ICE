@@ -89,6 +89,7 @@ export class NumberSurvivor extends Scene {
     private eliminatedMessage?: Phaser.GameObjects.Text;
     private roundInfoText?: Phaser.GameObjects.Text;
     private keypadContainer?: Phaser.GameObjects.Container;
+    private darkBackground?: Phaser.GameObjects.Rectangle;
     
     constructor() {
         super({ key: 'NumberSurvivor' });
@@ -300,7 +301,7 @@ export class NumberSurvivor extends Scene {
     // [서비스용] 게임 UI 생성 함수
     private createGameUI() {
         // 배경 추가 (검은색 배경)
-        this.add.rectangle(
+        this.darkBackground = this.add.rectangle(
             GAME_CONFIG.CENTER_X, 
             GAME_CONFIG.CENTER_Y, 
             GAME_CONFIG.WIDTH, 
@@ -830,6 +831,11 @@ export class NumberSurvivor extends Scene {
             if (this.timerText) {
                 this.timerText.setVisible(false);
             }
+        }
+        // 게임 시작 시 반투명 배경 제거
+        if (this.darkBackground) {
+            this.darkBackground.destroy();
+            this.darkBackground = undefined;
         }
     }
 
