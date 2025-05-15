@@ -9,6 +9,8 @@ export class Dice extends Phaser.Scene {
     private currentRollSum: number = 0;
     private isRolling: boolean = false;
     private diceSound!: Phaser.Sound.BaseSound;
+    private totalSumSound!: Phaser.Sound.BaseSound;
+    private diceBgm!: Phaser.Sound.BaseSound;
     private rollDuration = 2500;
     private countdownTimer: Phaser.Time.TimerEvent | null = null;
     private TimerCount = 5;
@@ -134,10 +136,16 @@ export class Dice extends Phaser.Scene {
         this.load.setBaseURL("");
         this.load.image("woodBackground", "assets/dice/diceBackground.png");
         this.load.audio("diceRoll", "assets/dice/diceRoll.wav");
+        this.load.audio("totalSumSound", "assets/dice/STGR_Success_Calm_1.wav");
+        this.load.audio("diceBgm", "assets/dice/Dice_bgm.mp3");
     }
 
     create() {
         this.diceSound = this.sound.add("diceRoll");
+        this.totalSumSound = this.sound.add("totalSumSound");
+        this.diceBgm = this.sound.add("diceBgm");
+        this.diceBgm?.play();
+
         const { width, height } = this.scale;
         this.add
             .image(width / 2, height / 2, "woodBackground")
@@ -187,7 +195,7 @@ export class Dice extends Phaser.Scene {
                     .text(x, y, "0", {
                         fontFamily: "Jua",
                         fontSize: 80,
-                        color: "#B97A57",
+                        color: "#FFD700",
                     })
                     .setScale(0)
                     .setOrigin(0.5);
@@ -333,6 +341,7 @@ export class Dice extends Phaser.Scene {
                                         potgManager.stopRecording();
                                     }
                                     this.time.delayedCall(3000, () => {
+                                        this.diceBgm?.stop();
                                         this.scene.start("GameOver", {
                                             score: this.currentRollSum,
                                             gameType: "Dice",
@@ -405,6 +414,7 @@ export class Dice extends Phaser.Scene {
                 potgManager.stopRecording();
             }
             this.time.delayedCall(500, () => {
+                this.diceBgm?.stop();
                 this.scene.start("GameOver", {
                     score: this.currentRollSum,
                     gameType: "Dice",
@@ -443,12 +453,15 @@ export class Dice extends Phaser.Scene {
         };
         const animateTotalSumText = (text: Phaser.GameObjects.Text) => {
             text.setScale(1).setAlpha(1);
-
+            this.totalSumSound.play();
             this.tweens.add({
                 targets: text,
                 scale: 1.3,
                 duration: 500,
                 ease: "Bounce.out",
+                onStart: () => {
+                    text.setColor("#FFD700"); // 트윈 시작 시 색상 변경
+                },
                 onComplete: () => {
                     this.tweens.add({
                         targets: text,
@@ -456,6 +469,9 @@ export class Dice extends Phaser.Scene {
                         delay: 1000,
                         duration: 500,
                         ease: "Power2",
+                        onComplete: () => {
+                            text.setColor("#FFFFFF"); // 트윈 끝나면 원래 색상으로
+                        },
                     });
                 },
             });
