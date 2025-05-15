@@ -33,7 +33,7 @@ export default function BroadcastRoom() {
 
     const handleTriggerMessage = (
         text: string,
-        fontSize: number = 32,
+        fontSize: number = 48,
         duration: number = 3000,
         withEffect: boolean = true
     ) => {
@@ -194,4 +194,6 @@ export default function BroadcastRoom() {
         </div>
     );
 }
+
+
 
