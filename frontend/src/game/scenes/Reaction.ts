@@ -110,11 +110,15 @@ export class Reaction extends Phaser.Scene {
             this.waitingTimerEvent?.remove();
             this.state = "clicked";
             this.cameras.main.setBackgroundColor("#2b87d1");
-            this.infoText.setText("너무 빨랐어요!");
+            // 횟수 차감
+            this.reactionTimes.push(this.reactionMaxTime);
+            this.infoText.setText(
+                `너무 빨랐어요!\n(${this.reactionTimes.length}/5)\n\n횟수가 차감됩니다.\n예측은 NO NO!`
+            );
             this.infoText.setFontFamily("Jua");
 
-            // 2초 카운트다운 후 재시작
-            this.countdown.startCountdown(2);
+            // 3초 카운트다운 후 재시작
+            this.countdown.startCountdown(3);
             this.events.once("countdownFinished", () => {
                 this.startWaiting();
             });
@@ -126,11 +130,16 @@ export class Reaction extends Phaser.Scene {
             this.readyTimeoutEvent?.remove();
             this.state = "timeout";
             this.cameras.main.setBackgroundColor("#2b87d1");
-            this.infoText.setText("시간 초과!");
+
+            // 횟수 차감
+            this.reactionTimes.push(this.reactionMaxTime);
+            this.infoText.setText(
+                `시간 초과!\n(${this.reactionTimes.length}/5)\n\n횟수가 차감됩니다.\n1초 안에 눌러주세요!`
+            );
             this.infoText.setFontFamily("Jua");
 
-            // 2초 카운트다운 후 재시작
-            this.countdown.startCountdown(2);
+            // 3초 카운트다운 후 재시작
+            this.countdown.startCountdown(3);
             this.events.once("countdownFinished", () => {
                 this.startWaiting();
             });
