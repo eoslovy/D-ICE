@@ -11,7 +11,7 @@ export class GameInstruction extends Scene {
     private nextGame: string;
     private gameName: string;
     private onComplete: () => void;
-    private countTime: number = 10;
+    private countTime: number = 1;
     private countdown: UICountdown;
 
     constructor() {
