@@ -492,6 +492,63 @@ class POTGManager extends EventEmitter {
             return false;
         }
     }
+
+  async startMergedRecording(
+    phaserCanvas: HTMLCanvasElement,
+    chartContainerId: string,
+    frameRate: number = 30
+    ): Promise<boolean> {
+    if (this.isRecording) {
+        console.warn('[POTGManager] Recording already in progress.');
+        return false;
+    }
+
+    // 1) offscreen 캔버스
+    const merged = document.createElement('canvas');
+    merged.width  = phaserCanvas.width;
+    merged.height = phaserCanvas.height;
+    const mCtx = merged.getContext('2d')!;
+
+    // 2) 전체 캔버스 크기 & 위치 정보
+    const gRect = phaserCanvas.getBoundingClientRect();
+    const chartContainer = document.getElementById(chartContainerId)!;
+
+    // 3) 매 프레임 합성 루프
+    const draw = () => {
+        mCtx.clearRect(0, 0, merged.width, merged.height);
+
+        // lightweight-charts가 생성한 모든 <canvas> 레이어
+        const chartCanvases = chartContainer.querySelectorAll('canvas');
+        chartCanvases.forEach((cvs) => {
+        const cRect = cvs.getBoundingClientRect();
+
+        // CSS px → 내부 캔버스 px 매핑 비율
+        const scaleX = merged.width  / gRect.width;
+        const scaleY = merged.height / gRect.height;
+
+        // 그릴 위치와 크기 (canvas 내부 픽셀 기준)
+        const dx = (cRect.left - gRect.left) * scaleX;
+        const dy = (cRect.top  - gRect.top ) * scaleY;
+        const dw = cRect.width  * scaleX;
+        const dh = cRect.height * scaleY;
+
+        // intrinsic 크기(src) → dest
+        mCtx.drawImage(cvs as HTMLCanvasElement,
+            0, 0, cvs.width, cvs.height,
+            dx, dy, dw, dh
+        );
+        });
+
+        // Phaser 캔버스(UI 포함)를 맨 위에
+        mCtx.drawImage(phaserCanvas, 0, 0, merged.width, merged.height);
+
+        requestAnimationFrame(draw);
+    };
+    requestAnimationFrame(draw);
+
+    // 4) 합성된 offscreen 캔버스 녹화
+    return this.startOffscreenCanvasRecording(merged, frameRate);
+    }
 }
 
 // Export a single instance (Singleton pattern)
