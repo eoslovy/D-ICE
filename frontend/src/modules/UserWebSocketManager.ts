@@ -56,6 +56,24 @@ class UserWebSocketManager extends WebSocketManager<UserReceiveTypeMap> {
         this.sendRequest(submitMessage);
     }
 
+    sendBroadcast({
+        requestId,
+        payload,
+    }: {
+        requestId: string;
+        payload: string;
+    }): void {
+        const userId = userStore.getState().userId;
+
+        const broadcastRequestMessage: BroadcastRequestMessage = {
+            type: "BROADCAST_REQUEST",
+            userId,
+            requestId,
+            payload,
+        };
+        this.sendRequest(broadcastRequestMessage);
+    }
+
     getUserNickname(): string {
         const nickname = userStore.getState().nickname;
         if (nickname) {
@@ -71,6 +89,3 @@ class UserWebSocketManager extends WebSocketManager<UserReceiveTypeMap> {
 const userWebSocketManager = new UserWebSocketManager();
 
 export default userWebSocketManager;
-
-
-

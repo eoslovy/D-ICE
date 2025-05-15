@@ -16,7 +16,7 @@ public class RoomRedisRepositoryImpl implements RoomRedisRepository {
 	@Override
 	public void setAggregationTime(String roomCode) {
 		long currentMs = System.currentTimeMillis();
-		long aggregationTime = currentMs + 5000;  // 현재 시간 + 5초
+		long aggregationTime = currentMs + 7000;  // 현재 시간 + 7초
 
 		// 기존 집계 시간이 있다면 제거 후 새로 추가
 		redisTemplate.opsForZSet().remove(PENDING_AGGREGATION_KEY, roomCode);
