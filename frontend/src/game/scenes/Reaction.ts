@@ -200,9 +200,10 @@ export class Reaction extends Phaser.Scene {
     showGraph() {
         const graph = this.add.graphics();
         const graphWidth = this.scale.width - 100;
-        const graphHeight = 400;
+        const graphHeight = 200;
         const graphX = 50;
-        const graphY = 300;
+        const infoTextY = this.infoText.y;
+        const graphY = infoTextY - graphHeight - 100;
 
         graph.clear();
         graph.fillStyle(0xffffff, 0.5);
