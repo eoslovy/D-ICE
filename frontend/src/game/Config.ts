@@ -16,6 +16,7 @@ import { Dye } from "./scenes/Dye";
 import { Knight } from "./scenes/Knight";
 import { NumberSurvivor } from "./scenes/NumberSurvivor";
 import { Panopticon } from "./scenes/Panopticon";
+import { ColorHunterG } from "./scenes/ColorHunterG";
 
 const config: Phaser.Types.Core.GameConfig = {
     type: Phaser.AUTO,
@@ -61,6 +62,7 @@ const config: Phaser.Types.Core.GameConfig = {
         Knight,
         NumberSurvivor,
         Panopticon,
+        ColorHunterG,
         EndGame,
     ],
 };
