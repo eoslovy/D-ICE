@@ -49,7 +49,7 @@ export default function TestModules(props: TestModulesProps) {
 
     // --- State for Test Game Start ---
     const [testGameTypeInput, setTestGameTypeInput] =
-        useState<string>("Reaction");
+        useState<string>("GraphHigh");
 
     // --- POTG Event Listeners ---
     useEffect(() => {
