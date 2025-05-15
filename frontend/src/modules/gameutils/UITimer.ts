@@ -21,8 +21,8 @@ export class UITimer {
                 strokeThickness: 2,
             })
             .setOrigin(0.5, 0.5);
-        this.timerText.setDepth(1000);
-        this.timerText.setVisible(false);
+        this.timerText?.setDepth(1000);
+        this.timerText?.setVisible(false);
         this.timerLeft = 0;
         this.phaserScene.events.on("shutdown", () => {
             this.stopTimer(false);
@@ -68,8 +68,8 @@ export class UITimer {
         }
         this.timerStarted = true;
         this.timerLeft = duration;
-        this.timerText.setText(`${this.timerLeft}`);
-        this.timerText.setVisible(true);
+        this.timerText?.setText(`${this.timerLeft}`);
+        this.timerText?.setVisible(true);
 
         this.timerTimer = this.phaserScene.time.addEvent({
             delay: 1000,
@@ -86,16 +86,17 @@ export class UITimer {
 
         this.timerLeft--;
         // display seconds
-        this.timerText.setText(`${this.timerLeft}`);
+        this.timerText?.setText(`${this.timerLeft}`);
+        this.timerText?.setVisible(true);
 
         if (this.timerLeft <= 0) {
             this.timerFinishedSound?.play();
             this.stopTimer(false);
         } else if (this.timerLeft <= 5 && !this.timerUrgencySound?.isPlaying) {
-            this.timerText.setColor("#ff0000"); // Change text color to red
+            this.timerText?.setColor("#ff0000"); // Change text color to red
             this.timerUrgencySound?.play();
         } else {
-            this.timerText.setColor("#ffffff"); // Reset text color to white
+            this.timerText?.setColor("#ffffff"); // Reset text color to white
         }
     }
 
@@ -110,9 +111,9 @@ export class UITimer {
         this.timerTimer?.remove(false); // Stop the timer event
         console.log("Timer stopped");
         this.timerStarted = false;
-        this.timerText.setVisible(false);
-        this.timerText.setColor("#ffffff"); // Reset text color to white
-        this.timerText.setText(""); // Clear the text
+        this.timerText?.setVisible(false);
+        this.timerText?.setColor("#ffffff"); // Reset text color to white
+        this.timerText?.setText(""); // Clear the text
         this.timerLeft = 0;
 
         if (interrupted) {
@@ -136,3 +137,4 @@ export class UITimer {
         return true;
     }
 }
+
