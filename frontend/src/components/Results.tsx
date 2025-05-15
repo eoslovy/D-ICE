@@ -445,7 +445,6 @@ export default function Result({
 
                                     {/* 항상 표시되는 꼴등 (마지막 라운드가 아닐때) */}
                                     {data?.lastPlace &&
-                                        !isFinalRound &&
                                         !rankingData.some(
                                             (player) =>
                                                 player.userId ===
