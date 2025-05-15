@@ -168,7 +168,7 @@ export class ColorHunterG extends Scene {
 
     init() {
         this.gameStartedTime = 0;
-        this.gameDuration = 10;
+        this.gameDuration = 15;
         this.gameStarted = false;
         this.gameEnded = false;
 
