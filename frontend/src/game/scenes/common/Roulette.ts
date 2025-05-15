@@ -19,8 +19,8 @@ export class Roulette extends Scene {
     private stopTargetY: number = 0;
     private totalItems: number = 0;
     private visibleCount: number = 3; // 보여지는 텍스트 개수
-
     private rouletteMeanY: number = 0; // 룰렛의 기준준 Y 좌표
+    private RouletteSound: Phaser.Sound.BaseSound;
 
     constructor() {
         super("Roulette");
@@ -31,7 +31,14 @@ export class Roulette extends Scene {
         this.onComplete = data.onComplete;
     }
 
+    preload() {
+        this.load.audio("RouletteSound", "assets/Roulette/RouletteSound-6.wav");
+    }
+
     create() {
+        // 룰렛 돌아가는 사운드 추가
+        this.RouletteSound = this.sound.add("RouletteSound");
+
         const { width, height } = this.cameras.main;
         this.sliceHeight = height * 0.13; // 3개만 보이게 영역 조정
         this.totalItems = GAME_TYPES.length * 3;
@@ -94,7 +101,9 @@ export class Roulette extends Scene {
         //this.createSidePointers(width, height, maskWidth);
 
         // 1초 후 자동 스핀
-        this.time.delayedCall(1000, () => this.spinWheel());
+        this.time.delayedCall(1000, () => {
+            this.spinWheel();
+        });
 
         // update 등록
         // this.events.on('update', this.update, this);
@@ -185,6 +194,24 @@ export class Roulette extends Scene {
         this.isSpinning = true;
         this.spinPhase = "spinning";
 
+        this.time.delayedCall(700, () => {
+            // 1. 사운드 재생 (루프 O, 볼륨 1로 시작)
+            this.RouletteSound?.play({ loop: true, volume: 1 });
+            // 2. 2초 후 페이드 아웃 시작
+            this.time.delayedCall(1500, () => {
+                // Phaser 트윈을 사용해 볼륨을 0으로 0.5초(500ms) 동안 줄임
+                this.tweens.add({
+                    targets: this.RouletteSound,
+                    volume: 0,
+                    duration: 500,
+                    onComplete: () => {
+                        // 볼륨이 0이 되면 사운드 정지
+                        this.RouletteSound.stop();
+                    },
+                });
+            });
+        });
+
         // 목표 인덱스
         const targetIndex = GAME_TYPES.findIndex((g) => g.key == this.nextGame);
         if (targetIndex === -1) {
@@ -271,6 +298,7 @@ export class Roulette extends Scene {
     private handleSpinComplete() {
         this.isSpinning = false;
         this.spinPhase = "idle";
+        this.RouletteSound?.stop();
 
         // 0.5초 후 모달 표시
         this.time.delayedCall(500, () => {
