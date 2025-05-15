@@ -34,19 +34,19 @@ public class AdminWebSocketHandler extends TextWebSocketHandler {
 		String path = uri.getPath();
 		String prefix = "/ws/game/admin/";
 		if (!path.startsWith(prefix)) {
-			session.close(CloseStatus.BAD_DATA.withReason("Invalid path"));
+			session.close(CloseStatus.POLICY_VIOLATION.withReason("Invalid path"));
 			return;
 		}
 
 		String roomCode = path.substring(prefix.length());
 
 		if (!roomCode.matches("^\\d{6}$")) {
-			session.close(CloseStatus.BAD_DATA.withReason("Invalid roomCode format"));
+			session.close(CloseStatus.POLICY_VIOLATION.withReason("Invalid roomCode format"));
 			return;
 		}
 
 		if (!roomRepository.exists(roomCode)) {
-			session.close(CloseStatus.NOT_ACCEPTABLE.withReason("Invalid room code"));
+			session.close(CloseStatus.POLICY_VIOLATION.withReason("Invalid room code"));
 			return;
 		}
 		session.getAttributes().put("roomCode", roomCode);
