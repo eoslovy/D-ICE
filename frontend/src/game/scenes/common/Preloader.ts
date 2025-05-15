@@ -4,11 +4,15 @@ import { LoadManifestFromJSON } from "../../../modules/gameutils/LoadSpritesMani
 //import { DiceMiniGame } from "../DiceMiniGame";
 import { userStore } from "../../../stores/userStore";
 import { addBackgroundImage } from "./addBackgroundImage";
+import { v7 as uuidv7 } from "uuid";
 
 export class Preloader extends Phaser.Scene {
     //private diceMiniGame?: DiceMiniGame;
     private waitingText?: Phaser.GameObjects.Text;
     private readyToStart: boolean = false;
+    private width: number;
+    private height: number;
+    private isEmojiCoolDown: boolean = false;
 
     constructor() {
         super({ key: "Preloader" });
@@ -20,16 +24,21 @@ export class Preloader extends Phaser.Scene {
         this.load.obj("dice-obj", "assets/dice/dice.obj");
         this.load.image("Background", "assets/background/bg-2.jpg");
 
-        const width = this.cameras.main.width;
-        const height = this.cameras.main.height;
+        this.width = this.cameras.main.width;
+        this.height = this.cameras.main.height;
 
         const progressBar = this.add.graphics();
         const progressBox = this.add.graphics();
         progressBox.fillStyle(0x222222, 0.8);
-        progressBox.fillRect(width / 2 - 160, height / 2 - 25, 320, 50);
+        progressBox.fillRect(
+            this.width / 2 - 160,
+            this.height / 2 - 25,
+            320,
+            50
+        );
 
         const loadingText = this.add
-            .text(width / 2, height / 2 - 50, "Loading...", {
+            .text(this.width / 2, this.height / 2 - 50, "Loading...", {
                 fontFamily: "Fredoka",
                 fontSize: "20px",
                 color: "#ffffff",
@@ -40,8 +49,8 @@ export class Preloader extends Phaser.Scene {
             progressBar.clear();
             progressBar.fillStyle(0xffffff, 1);
             progressBar.fillRect(
-                width / 2 - 150,
-                height / 2 - 15,
+                this.width / 2 - 150,
+                this.height / 2 - 15,
                 300 * value,
                 30
             );
@@ -52,6 +61,7 @@ export class Preloader extends Phaser.Scene {
             progressBox.destroy();
             loadingText.destroy();
             this.showWaitingScene();
+            this.showEmojiButtons();
         });
 
         this.load.image("bg", "assets/bg.png");
@@ -61,8 +71,6 @@ export class Preloader extends Phaser.Scene {
     }
 
     private showWaitingScene() {
-        const { width, height } = this.cameras.main;
-
         //배경
         addBackgroundImage(this);
 
@@ -70,18 +78,13 @@ export class Preloader extends Phaser.Scene {
         //this.diceMiniGame.create(width / 2, height / 2);
 
         this.waitingText = this.add
-            .text(
-                width / 2,
-                height / 2 - 350,
-                "Waiting...",
-                {
-                    fontFamily: "Fredoka",
-                    fontSize: "64px",
-                    color: "#ebebd3",
-                    align: "center",
-                    fontStyle: "bold",
-                }
-            )
+            .text(this.width / 2, this.height / 2 - 350, "Waiting...", {
+                fontFamily: "Fredoka",
+                fontSize: "64px",
+                color: "#ebebd3",
+                align: "center",
+                fontStyle: "bold",
+            })
             .setOrigin(0.5);
 
         // 점 애니메이션
@@ -91,12 +94,91 @@ export class Preloader extends Phaser.Scene {
             callback: () => {
                 dots = dots.length >= 3 ? "" : dots + ".";
                 if (this.waitingText && !this.readyToStart) {
-                    this.waitingText.setText(
-                        "Waiting" + dots
-                    );
+                    this.waitingText.setText("Waiting" + dots);
                 }
             },
             loop: true,
+        });
+    }
+
+    private showEmojiButtons() {
+        const positiveEmojis = [
+            "🤣",
+            "🙌",
+            "😂",
+            "👍",
+            "🔥",
+            "🥹",
+            "😎",
+            "🎉",
+            "🙏",
+            "🎲",
+            "🧊",
+            "🎵",
+            "🤟",
+            "📣",
+        ];
+
+        const negativeEmojis = [
+            "💩",
+            "😭",
+            "🙈",
+            "🙊",
+            "😾",
+            "🤬",
+            "👽",
+            "☠️",
+            "💣",
+            "🤢",
+            "🤮",
+        ];
+
+        const chosenPositives = Phaser.Utils.Array.Shuffle(
+            positiveEmojis
+        ).slice(0, 3);
+        const chosenNegatives = Phaser.Utils.Array.Shuffle(
+            negativeEmojis
+        ).slice(0, 2);
+        const chosenEmojis = [
+            chosenPositives[0],
+            chosenNegatives[0],
+            chosenPositives[1],
+            chosenNegatives[1],
+            chosenPositives[2],
+        ];
+
+        const positions = chosenEmojis.map((_, i) => {
+            return (this.scale.width * (i + 1)) / 6;
+        });
+        const emojiButtons: Phaser.GameObjects.Text[] = [];
+
+        chosenEmojis.forEach((emoji, index) => {
+            const button = this.add
+                .text(positions[index], this.height / 1.2, emoji, {
+                    fontFamily: "Arial",
+                    fontSize: 96,
+                })
+                .setInteractive();
+            button.setOrigin(0.5);
+            emojiButtons.push(button);
+
+            button.on("pointerdown", () => {
+                if (this.isEmojiCoolDown) return;
+
+                // 쿨타임 시작
+                this.isEmojiCoolDown = true;
+                emojiButtons.forEach((b) => b.setAlpha(0.5));
+
+                userWebSocketManager.sendBroadcast({
+                    requestId: uuidv7(),
+                    payload: emoji,
+                });
+
+                this.time.delayedCall(300, () => {
+                    this.isEmojiCoolDown = false;
+                    emojiButtons.forEach((b) => b.setAlpha(1));
+                });
+            });
         });
     }
 
@@ -116,8 +198,7 @@ export class Preloader extends Phaser.Scene {
         });
     }
 
-    create() {  
-
+    create() {
         console.log("WAIT 이벤트 리스너 등록");
         userWebSocketManager.on("WAIT", (payload: WaitMessage) => {
             console.log("WAIT 응답 성공:", payload);
@@ -130,10 +211,58 @@ export class Preloader extends Phaser.Scene {
             }
             this.moveToRoulette();
         });
-        this.events.on('shutdown', () => {
-            
+
+        userWebSocketManager.on(
+            "BROADCAST",
+            ({ payload }: BroadcastMessage) => {
+                console.log("BROADCAST 메시지 수신: ", payload);
+                const emoji = this.add.text(
+                    this.scale.width * (0.1 + Math.random() * 0.8),
+                    Math.random() * 0.5 * this.scale.height,
+                    payload,
+                    {
+                        fontFamily: "Arial",
+                        fontSize: 96,
+                    }
+                );
+
+                this.tweens.add({
+                    targets: emoji,
+                    alpha: 0,
+                    y: emoji.y - 50,
+                    duration: 2000,
+                    onComplete: () => {
+                        emoji.destroy();
+                    },
+                    ease: "Power2",
+                });
+            }
+        );
+
+        this.events.on("shutdown", () => {
             userWebSocketManager.off("WAIT");
             console.log("WAIT 이벤트 리스너 해제");
+            userWebSocketManager.off("BROADCAST");
+            console.log("BROADCAST 이벤트 리스너 해제");
         });
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
