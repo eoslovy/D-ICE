@@ -322,7 +322,7 @@ export class Panopticon extends Scene {
             callback: () => {
                 this.scene.start("GameOver", {
                     score: finalScore,
-                    gameType: "Wirewalk",
+                    gameType: "Panopticon",
                 });
             },
         });
