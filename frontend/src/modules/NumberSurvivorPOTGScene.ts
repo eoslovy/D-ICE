@@ -63,14 +63,14 @@ export class NumberSurvivorPOTGScene extends Phaser.Scene {
       for (let i = 0; i < this.roundData.length; i++) {
         logger.info(`라운드 ${i + 1}/${this.roundData.length} 시각화 시작`);
         await this.visualizeRound(this.roundData[i], i + 1);
-        await this.sleep(1200);
+        await this.sleep(800);
         
         if (i < this.roundData.length - 1) {
           logger.info(`라운드 ${i + 1} → ${i + 2} 전환`);
           await this.transitionToNextRound();
         } else {
           logger.info('마지막 라운드 완료, 대기 중...');
-          await this.sleep(2000);
+          await this.sleep(500);
         }
       }
 
@@ -119,14 +119,52 @@ export class NumberSurvivorPOTGScene extends Phaser.Scene {
       strokeThickness: 4,
       shadow: { offsetX: 2, offsetY: 2, color: '#000', blur: 6, fill: true }
     }).setOrigin(0.5);
+    text.setAlpha(0).setScale(1.5);
+    this.tweens.add({
+      targets: text,
+      alpha: { from: 0, to: 1 },
+      scale: { from: 1.5, to: 1 },
+      duration: 400,
+      ease: 'Back.Out'
+    });
     this.objectPool.texts.push(text);
   }
 
   private createPlayerGrid(round: RoundResult, width: number, height: number) {
+    const playerCount = this.shuffledOrder.length;
+
+    if (playerCount > 18) {
+      // 카드 그리드 대신 텍스트만 표시
+      const total = playerCount;
+      const eliminated = round.eliminated.length;
+      const text = this.add.text(
+        width / 2,
+        height / 2,
+        `${total}명 중 ${eliminated}명 탈락!!`,
+        {
+          fontSize: '48px',
+          color: '#ff4444',
+          fontFamily: 'Jua',
+          align: 'center',
+          stroke: '#000',
+          strokeThickness: 4,
+        }
+      ).setOrigin(0.5);
+      this.tweens.add({
+        targets: text,
+        scale: { from: 1.2, to: 1 },
+        alpha: { from: 0, to: 1 },
+        duration: 600,
+        yoyo: true,
+      });
+      this.time.delayedCall(900, () => text.destroy());
+      return;
+    }
+
+    // 18명 이하: 3x6 그리드로 카드 표시
     const gridConfig = this.calculateGridConfig(width, height);
     const survivorIds = new Set(round.survivors.map(p => p.userId));
     const eliminatedIds = new Set(round.eliminated.map(p => p.userId));
-
     this.shuffledOrder.forEach((player, idx) => {
       const { x, y } = this.calculatePlayerPosition(idx, gridConfig);
       this.createPlayerCard(player, x, y, gridConfig, {
@@ -138,13 +176,13 @@ export class NumberSurvivorPOTGScene extends Phaser.Scene {
   }
 
   private calculateGridConfig(width: number, height: number) {
-    const cols = 5;
-    const rows = 2;
-    const marginX = width * 0.02;
-    const marginY = height * 0.03;
-    const cardW = width / (cols + 1.8);
-    const cardH = height / 8;
-    
+    // 3x6 고정
+    const cols = 3;
+    const rows = 6;
+    const marginX = width * 0.01;
+    const marginY = height * 0.01;
+    const cardW = width / (cols + 1.5);
+    const cardH = height / (rows + 2);
     return {
       cols, rows, marginX, marginY, cardW, cardH,
       startX: (width - (cols * cardW + (cols - 1) * marginX)) / 2 + cardW / 2,
@@ -218,9 +256,7 @@ export class NumberSurvivorPOTGScene extends Phaser.Scene {
   }
 
   private async transitionToNextRound() {
-    this.cameras.main.fadeOut(300, 0, 0, 0);
-    await this.sleep(400);
-    this.cameras.main.fadeIn(300, 0, 0, 0);
+    // 화면 꺼짐(페이드) 효과 제거: 아무것도 하지 않음
   }
 
   private handleVisualizationComplete() {

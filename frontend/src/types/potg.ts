@@ -18,8 +18,8 @@ export interface POTGConfig {
   }
   
   export const POTG_DEFAULT_CONFIG: POTGConfig = {
-    width: 1280,
-    height: 720,
+    width: 720,
+    height: 1280,
     fps: 30,
     quality: 0.8
   };
