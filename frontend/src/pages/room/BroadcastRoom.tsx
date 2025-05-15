@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { v7 as uuidv7 } from "uuid";
 import adminWebSocketManager from "../../modules/AdminWebSocketManager";
 import GameCard from "../../components/GameCard";
@@ -9,6 +9,9 @@ import Result from "../../components/Results";
 import { Users, Play, Clock } from "lucide-react";
 import { adminStore } from "../../stores/adminStore";
 import { useNavigate } from "react-router-dom";
+import OverlayScreen, {
+    OverlayScreenHandle,
+} from "../../modules/OverlayScreen";
 
 export default function BroadcastRoom() {
     const roomCode = adminStore.getState().roomCode;
@@ -26,6 +29,24 @@ export default function BroadcastRoom() {
     const navigate = useNavigate();
     let requestId = uuidv7();
 
+    const overlayRef = useRef<OverlayScreenHandle>(null);
+
+    const handleTriggerMessage = (
+        text: string,
+        fontSize: number = 32,
+        duration: number = 3000,
+        withEffect: boolean = true
+    ) => {
+        if (overlayRef.current) {
+            overlayRef.current.triggerMessage(
+                text,
+                fontSize,
+                duration,
+                withEffect
+            );
+        }
+    };
+
     useEffect(() => {
         adminWebSocketManager.on("NEXT_GAME", (payload: NextGameMessage) => {
             setCurrentRound(payload.currentRound);
@@ -42,6 +63,13 @@ export default function BroadcastRoom() {
             }
         );
 
+        adminWebSocketManager.on(
+            "BROADCAST",
+            ({ payload }: BroadcastMessage) => {
+                handleTriggerMessage(payload);
+            }
+        );
+
         adminWebSocketManager.on("END", (payload: EndMessage) => {
             setFinalData(payload);
         });
@@ -50,6 +78,7 @@ export default function BroadcastRoom() {
             adminWebSocketManager.off("NEXT_GAME");
             adminWebSocketManager.off("AGGREGATED_ADMIN");
             adminWebSocketManager.off("END");
+            adminWebSocketManager.off("BROADCAST");
             console.log("BroadcastRoom 이벤트 리스너 해제");
         };
     }, []);
@@ -91,6 +120,7 @@ export default function BroadcastRoom() {
 
     return (
         <div className="game-container">
+            <OverlayScreen ref={overlayRef} />
             {showResults && !showFinalResult ? (
                 <div className="relative z-10 w-full max-w-4xl p-6 mx-auto rounded-2xl shadow-lg bg-opacity-95 backdrop-blur-sm bg-quaternary">
                     <Result data={data} onContinue={handleContinue} />
@@ -164,3 +194,4 @@ export default function BroadcastRoom() {
         </div>
     );
 }
+
