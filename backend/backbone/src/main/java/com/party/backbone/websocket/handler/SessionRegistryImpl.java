@@ -46,6 +46,11 @@ public class SessionRegistryImpl implements SessionRegistry {
 	}
 
 	@Override
+	public List<WebSocketSession> getAllOpenSessions() {
+		return sessionMap.values().stream().filter(WebSocketSession::isOpen).toList();
+	}
+
+	@Override
 	public void unregister(String id) {
 		sessionMap.remove(id);
 	}

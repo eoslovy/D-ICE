@@ -402,6 +402,96 @@ class POTGManager extends EventEmitter {
             return false;
         }
     }
+
+    // 오프스크린 canvas를 받아서 녹화 시작
+    async startOffscreenCanvasRecording(canvas: HTMLCanvasElement, frameRate: number = 30): Promise<boolean> {
+        if (this.isRecording) {
+            console.warn('[POTGManager] Recording already in progress.');
+            return false;
+        }
+        if (!canvas) {
+            console.error('[POTGManager] Offscreen canvas is required.');
+            this.emit('recording_error', new Error('Offscreen canvas is required'));
+            return false;
+        }
+        if (!canvas.captureStream) {
+            console.error('[POTGManager] canvas.captureStream() is not supported in this browser.');
+            this.emit('recording_error', new Error('Canvas recording not supported'));
+            return false;
+        }
+
+        try {
+            this.stream = canvas.captureStream(frameRate);
+
+            if (!this.stream || !this.stream.active || this.stream.getVideoTracks().length === 0) {
+                throw new Error('Failed to capture stream from offscreen canvas or stream is inactive.');
+            }
+            console.log('[POTGManager] Offscreen canvas stream captured successfully.');
+
+            const options = { mimeType: 'video/webm;codecs=vp9' };
+            if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+                options.mimeType = 'video/webm;codecs=vp8';
+                if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+                    options.mimeType = 'video/webm';
+                    if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+                        console.warn(`[POTGManager] video/webm not supported, using default recorder mimeType.`);
+                    }
+                }
+            }
+            this.mimeType = options.mimeType || 'video/webm';
+            console.log(`[POTGManager] Using mimeType: ${this.mimeType}`);
+
+            this.recorder = new MediaRecorder(this.stream, options);
+            this.recordedChunks = [];
+
+            this.recorder.ondataavailable = (event) => {
+                if (event.data.size > 0) {
+                    this.recordedChunks.push(event.data);
+                }
+            };
+
+            this.recorder.onstop = async () => {
+                console.log('[POTGManager] MediaRecorder stopped (offscreen).');
+                if (this.recordedChunks.length > 0) {
+                    const finalBlob = new Blob(this.recordedChunks, { type: this.mimeType });
+                    try {
+                        await this._saveBlobToDB(finalBlob);
+                        this.emit('recording_stopped_saved');
+                    } catch (error) {
+                        console.error('[POTGManager] Failed to save final blob:', error);
+                        this.emit('recording_error', new Error('Failed to save recording to DB'));
+                    }
+                } else {
+                    this.emit('recording_error', new Error('No video data recorded'));
+                }
+                this.recordedChunks = [];
+                this.cleanUpStream();
+                this.recorder = null;
+                this.isRecording = false;
+            };
+
+            this.recorder.onerror = (event) => {
+                this.emit('recording_error', event);
+                this.recordedChunks = [];
+                this.cleanUpStream();
+                this.recorder = null;
+                this.isRecording = false;
+            };
+
+            this.recorder.start(this.TIMESLICE_INTERVAL_MS);
+            this.isRecording = true;
+            console.log(`[POTGManager] Offscreen canvas recording started.`);
+            this.emit('recording_started');
+            return true;
+
+        } catch (error) {
+            this.emit('recording_error', error);
+            this.cleanUpStream();
+            this.recorder = null;
+            this.isRecording = false;
+            return false;
+        }
+    }
 }
 
 // Export a single instance (Singleton pattern)

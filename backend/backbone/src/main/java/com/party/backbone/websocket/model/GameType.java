@@ -8,10 +8,16 @@ import lombok.Getter;
 
 @Getter
 public enum GameType {
-	RSP(5000),
-	TEST(5000),
-	ABC(5000),
-	;
+	Reaction(40000),
+	Clicker(30000),
+	PerfectCircle(15000),
+	Mugungwha(30000),
+	Wirewalk(30000),
+	Josephus(30000),
+	Dye(30000),
+	Knight(30000),
+	Panopticon(30000),
+	NumberSurvivor(70000);
 	private static final GameType[] GAME_TYPES = values();
 
 	private final long duration;

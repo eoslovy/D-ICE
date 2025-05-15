@@ -12,6 +12,8 @@ public interface SessionRegistry {
 
 	List<WebSocketSession> getOpenSessions(List<String> ids);
 
+	List<WebSocketSession> getAllOpenSessions();
+
 	void unregister(String id);
 
 	void unregisterAll(Collection<String> ids);

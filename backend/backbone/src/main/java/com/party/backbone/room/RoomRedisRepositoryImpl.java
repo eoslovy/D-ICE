@@ -15,7 +15,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.stereotype.Repository;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.party.backbone.room.dto.FinalResult;
 import com.party.backbone.room.dto.RoundInfo;
 import com.party.backbone.room.dto.ScoreAggregationResult;
 import com.party.backbone.room.model.RoomStateTTL;
@@ -29,11 +29,11 @@ import lombok.extern.slf4j.Slf4j;
 @Repository
 public class RoomRedisRepositoryImpl implements RoomRedisRepository {
 	private final Duration PLAYER_BASE_TTL = Duration.ofHours(2);
-	private final long DEFAULT_GAME_START_OFFSET = 10_000;
+	// 룰렛, 설명, 카운트 다운 포함 대략 30초로 설정
+	private final long DEFAULT_GAME_START_OFFSET = 30_000;
 	private static final String PENDING_AGGREGATION_KEY = "pendingAggregationRooms";
 
 	private final RedisTemplate<String, String> redisTemplate;
-	private final ObjectMapper objectMapper;
 
 	@Override
 	public void createRoom(String roomCode, String administratorId) {
@@ -178,6 +178,11 @@ public class RoomRedisRepositoryImpl implements RoomRedisRepository {
 	}
 
 	@Override
+	public Boolean hasPlayer(String roomCode, String userId) {
+		return redisTemplate.opsForSet().isMember(getPlayerIdsKey(roomCode), userId);
+	}
+
+	@Override
 	public Set<String> getDueRooms(long currentTimeMillis, int limit) {
 		var rooms = redisTemplate.opsForZSet()
 			.rangeByScoreWithScores(PENDING_AGGREGATION_KEY, 0, currentTimeMillis, 0, limit);
@@ -253,6 +258,31 @@ public class RoomRedisRepositoryImpl implements RoomRedisRepository {
 
 		redisTemplate.opsForHash().put(playerKey, "rankRecord", updated);
 		return updated;
+	}
+
+	@Override
+	public List<FinalResult> getFinalResults(String roomCode) {
+		List<String> userIds = getUserIds(roomCode);
+
+		List<FinalResult> results = new ArrayList<>();
+		for (String userId : userIds) {
+			String playerKey = getPlayerKey(roomCode, userId);
+
+			Object nicknameObj = redisTemplate.opsForHash().get(playerKey, "nickname");
+			Object scoreObj = redisTemplate.opsForHash().get(playerKey, "score");
+
+			if (nicknameObj == null || scoreObj == null) {
+				log.warn("[getFinalResults] Missing data for userId: {}", userId);
+				continue;
+			}
+
+			String nickname = nicknameObj.toString();
+			int score = Integer.parseInt(scoreObj.toString());
+
+			results.add(new FinalResult(userId, nickname, score));
+		}
+
+		return results;
 	}
 
 	@Override

@@ -36,6 +36,11 @@ public class MockSessionRegistry implements SessionRegistry {
 	}
 
 	@Override
+	public List<WebSocketSession> getAllOpenSessions() {
+		return List.of();
+	}
+
+	@Override
 	public void unregister(String id) {
 
 	}

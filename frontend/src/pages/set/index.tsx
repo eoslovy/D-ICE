@@ -1,25 +1,57 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { API } from "../../assets/api";
 import { v7 as uuidv7 } from "uuid";
 import adminWebSocketManager from "../../modules/AdminWebSocketManager";
 import { useWebSocket } from "../../modules/WebSocketContext";
-import BackgroundAnimation from "../../components/BackgroundAnimation";
 import GameCard from "../../components/GameCard";
-import DarkModeToggle from "../../components/DarkModeToggle";
 import { Settings, Loader } from "lucide-react";
-
-interface AdminJoinedMessage {
-    // Define the structure of AdminJoinedMessage here.  For example:
-    message: string;
-}
+import { adminStore } from "../../stores/adminStore";
 
 export default function Set() {
     const navigate = useNavigate();
     const [rounds, setRounds] = useState(1);
     const [isCreating, setIsCreating] = useState(false);
-    let requestId = uuidv7();
     const { connectWebSocket } = useWebSocket();
+    
+    // ref로 최신 값 관리
+    const requestIdRef = useRef(uuidv7());
+    const roomCodeRef = useRef("");
+    const roundsRef = useRef(rounds);
+
+    // rounds 변경 시 ref 동기화
+    useEffect(() => {
+        roundsRef.current = rounds;
+    }, [rounds]);
+
+    // 이벤트 핸들러 (의존성 없이 ref 사용)
+    const handleAdminJoined = (payload: AdminJoinedMessage) => {
+        console.log("관리자 입장 성공:", payload);
+        adminStore.getState().setStatus("WAITING");
+        adminStore.getState().setRoomCode(roomCodeRef.current);
+        adminStore.getState().setTotalRound(roundsRef.current);
+        requestIdRef.current = uuidv7();
+        navigate(`/adminroom/${roomCodeRef.current}`);
+    };
+
+    const handleConnect = () => {
+        console.log("WebSocket 연결 성공");
+        const adminJoinReq = adminWebSocketManager.sendAdminJoin(requestIdRef.current);
+        console.log(adminJoinReq ? "ADMIN_JOIN 요청 성공" : "ADMIN_JOIN 요청 실패");
+    };
+
+    // 이벤트 리스너 등록/해제 (마운트/언마운트 시 1회만 실행)
+    useEffect(() => {
+        adminWebSocketManager.on("ADMIN_JOINED", handleAdminJoined);
+        adminWebSocketManager.on("connect", handleConnect);
+        console.log("roomSettings 이벤트 리스너 등록");
+        return () => {
+            adminWebSocketManager.off("ADMIN_JOINED", handleAdminJoined);
+            adminWebSocketManager.off("connect", handleConnect);
+            console.log("roomSettings 이벤트 리스너 해제");
+        };
+    }, []);
+
     const createRoom = async () => {
         try {
             setIsCreating(true);
@@ -27,43 +59,20 @@ export default function Set() {
             console.log("방 생성 성공:", data);
 
             const { roomCode, administratorId } = data;
+            roomCodeRef.current = roomCode; // ref에 roomCode 저장
+            adminStore.getState().setAdministratorId(administratorId);
 
-            localStorage.setItem("administratorId", administratorId);
-
-            const ADMIN_WS_URL = `ws://${
-                import.meta.env.VITE_API_URL || "localhost:8080"
-            }/ws/game/admin/${roomCode}`;
+            const ADMIN_WS_URL = `${import.meta.env.VITE_WEBSOCKET_URL}/backbone/ws/game/admin/${roomCode}`;
             connectWebSocket("admin", ADMIN_WS_URL);
 
-            adminWebSocketManager.on(
-                "ADMIN_JOINED",
-                (payload: AdminJoinedMessage) => {
-                    console.log("관리자 입장 성공:", payload);
-
-                    // 방 코드, 라운드 수 저장 및 페이지 이동
-                    localStorage.setItem("roomCode", roomCode);
-                    localStorage.setItem("rounds", String(rounds));
-                    navigate(`/adminroom/${roomCode}`);
-                }
-            );
-
-            adminWebSocketManager.on("connect", () => {
-                console.log("WebSocket 연결 성공");
-                adminWebSocketManager.sendAdminJoin(requestId);
-            });
         } catch (error) {
             console.error("방 생성 중 오류:", error);
             setIsCreating(false);
-        } finally {
-            requestId = uuidv7();
         }
     };
 
     return (
         <div className="game-container">
-            <BackgroundAnimation />
-            <DarkModeToggle />
-
             <GameCard>
                 <h1 className="game-title">
                     <Settings className="inline-flex mr-2" size={28} />
@@ -99,8 +108,8 @@ export default function Set() {
                 >
                     {isCreating ? (
                         <div className="flex items-center justify-center">
-                            <Loader className="animate-spin mr-2" size={20} />방
-                            생성 중....
+                            <Loader className="animate-spin mr-2" size={20} />
+                            방 생성 중....
                         </div>
                     ) : (
                         "방 생성"
