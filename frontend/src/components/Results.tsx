@@ -443,13 +443,41 @@ export default function Result({
                                         </>
                                     )}
 
-                                    {/* 항상 표시되는 꼴등 */}
+                                    {/* 항상 표시되는 꼴등 (마지막 라운드가 아닐때) */}
+                                    {data?.lastPlace &&
+                                        !rankingData.some(
+                                            (player) =>
+                                                player.userId ===
+                                                data.lastPlace.userId
+                                        ) && (
+                                            <div className="rank-item">
+                                                <div className="rank-number">
+                                                    <Frown
+                                                        className="text-red-500"
+                                                        size={24}
+                                                    />
+                                                </div>
+                                                <div className="rank-info">
+                                                    <div className="rank-name">
+                                                        {
+                                                            data.lastPlace
+                                                                .nickname
+                                                        }
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                    {/* 항상 표시되는 꼴등 (마지막 라운드일때) */}
                                     {rankingData.length > 3 &&
-                                        data?.lastPlace && (
+                                        !expandedRankings &&
+                                        isFinalRound && (
                                             <div
                                                 key={
-                                                    data.lastPlace.userId ||
-                                                    "last-place"
+                                                    rankingData[
+                                                        rankingData.length - 1
+                                                    ].userId ||
+                                                    rankingData.length
                                                 }
                                                 className="rank-item"
                                             >
@@ -462,8 +490,19 @@ export default function Result({
                                                 <div className="rank-info">
                                                     <div className="rank-name">
                                                         {
-                                                            data.lastPlace
-                                                                .nickname
+                                                            rankingData[
+                                                                rankingData.length -
+                                                                    1
+                                                            ].nickname
+                                                        }
+                                                    </div>
+                                                    <div className="rank-score">
+                                                        점수:{" "}
+                                                        {
+                                                            rankingData[
+                                                                rankingData.length -
+                                                                    1
+                                                            ].score
                                                         }
                                                     </div>
                                                 </div>
@@ -796,28 +835,67 @@ export default function Result({
                                     </>
                                 )}
 
-                                {/* 항상 표시되는 꼴등 */}
-                                {rankingData.length > 3 && data?.lastPlace && (
-                                    <div
-                                        key={
-                                            data.lastPlace.userId ||
-                                            "last-place"
-                                        }
-                                        className="rank-item"
-                                    >
-                                        <div className="rank-number">
-                                            <Frown
-                                                className="text-red-500"
-                                                size={24}
-                                            />
-                                        </div>
-                                        <div className="rank-info">
-                                            <div className="rank-name">
-                                                {data.lastPlace.nickname}
+                                {/* 항상 표시되는 꼴등 (마지막 라운드가 아닐때) */}
+                                {data?.lastPlace &&
+                                    !rankingData.some(
+                                        (player) =>
+                                            player.userId ===
+                                            data.lastPlace.userId
+                                    ) && (
+                                        <div className="rank-item">
+                                            <div className="rank-number">
+                                                <Frown
+                                                    className="text-red-500"
+                                                    size={24}
+                                                />
+                                            </div>
+                                            <div className="rank-info">
+                                                <div className="rank-name">
+                                                    {data.lastPlace.nickname}
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                )}
+                                    )}
+
+                                {/* 항상 표시되는 꼴등 (마지막 라운드일때) */}
+                                {rankingData.length > 3 &&
+                                    !expandedRankings &&
+                                    isFinalRound && (
+                                        <div
+                                            key={
+                                                rankingData[
+                                                    rankingData.length - 1
+                                                ].userId || rankingData.length
+                                            }
+                                            className="rank-item"
+                                        >
+                                            <div className="rank-number">
+                                                <Frown
+                                                    className="text-red-500"
+                                                    size={24}
+                                                />
+                                            </div>
+                                            <div className="rank-info">
+                                                <div className="rank-name">
+                                                    {
+                                                        rankingData[
+                                                            rankingData.length -
+                                                                1
+                                                        ].nickname
+                                                    }
+                                                </div>
+                                                <div className="rank-score">
+                                                    점수:{" "}
+                                                    {
+                                                        rankingData[
+                                                            rankingData.length -
+                                                                1
+                                                        ].score
+                                                    }
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
                             </div>
                         </div>
                     </div>
