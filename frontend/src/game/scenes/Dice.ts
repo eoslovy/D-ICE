@@ -303,7 +303,7 @@ export class Dice extends Phaser.Scene {
         });
 
         // -------- 굴리기 버튼 동작 --------
-        rollButton.on("pointerdown", () => {
+        const rollButtonHandler = () => {
             if (!this.isRolling && this.rollCount < 3) {
                 this.isRolling = true;
                 this.currentRollSum = 0;
@@ -311,12 +311,10 @@ export class Dice extends Phaser.Scene {
 
                 this.diceRollFunctions.forEach((roll, index) => {
                     roll((value: number) => {
-                        // rollDuration이 지난 뒤 텍스트 애니메이션 실행
                         this.time.delayedCall(this.rollDuration, () => {
                             this.currentRollSum += value;
                             this.animateDiceText(this.diceTexts[index], value);
 
-                            // 모든 주사위 애니메이션 완료 체크
                             if (index === this.diceRollFunctions.length - 1) {
                                 this.rollCount++;
                                 this.totalSumText.setText(
@@ -328,7 +326,6 @@ export class Dice extends Phaser.Scene {
                                 this.isRolling = false;
 
                                 if (this.rollCount >= 3) {
-                                    // 녹화 종료
                                     if (potgManager.getIsRecording()) {
                                         potgManager.stopRecording();
                                     }
@@ -344,7 +341,12 @@ export class Dice extends Phaser.Scene {
                     });
                 });
             }
-        });
+        };
+
+        rollButton.on("pointerdown", rollButtonHandler);
+
+        // 5초 후 자동으로 GO 버튼 동작 실행
+        this.time.delayedCall(5000, rollButtonHandler, [], this);
 
         stopButton.on("pointerdown", () => {
             // 녹화 종료
@@ -381,6 +383,22 @@ export class Dice extends Phaser.Scene {
             };
             clearBeforeStart();
         } else potgManager.startCanvasRecording();
+
+        // -------- "5초가 지나면 자동으로 GO!" 텍스트 추가 --------
+        const autoGoText = this.add
+            .text(
+                width / 2,
+                rollButton.y - 50, // GO 버튼 위쪽에 위치
+                "5초가 지나면 자동으로 GO!",
+                {
+                    font: "32px Jua",
+                    color: "#FFD700",
+                    stroke: "#222",
+                    strokeThickness: 2,
+                    align: "center",
+                }
+            )
+            .setOrigin(0.5);
     }
 
     // 텍스트 애니메이션 함수
