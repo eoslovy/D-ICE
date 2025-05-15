@@ -233,6 +233,22 @@ public class NumberSurvivorServiceImpl implements NumberSurvivorService, GameTim
 	@Override
 	public void onPrepareStart(String roomCode) {
 		log.info("[게임 서비스] 게임 준비 시작 [방ID: {}]", roomCode);
+
+		// === 인원 체크 후 즉시 우승 처리 분기 ===
+		int playerCount = gameManager.getCurrentPlayerCount(roomCode);
+		if (playerCount <= 2) {
+			log.info("[게임 서비스] 플레이어가 2명 이하이므로 즉시 게임 종료 처리 [방ID: {}, 인원: {}]", roomCode, playerCount);
+			// 모든 플레이어를 우승자로 alive=true로 세팅
+			gameManager.getRooms().get(roomCode).forEach(player -> player.setAlive(true));
+			try {
+				// 기존 게임 종료 처리 로직 호출 (isTimeLimit=false)
+				gameLogic.finishGame(roomCode, false);
+			} catch (IOException e) {
+				log.error("[게임 서비스] 즉시 게임 종료 처리 중 오류 [방ID: {}]", roomCode, e);
+			}
+			return;
+		}
+
 		// 게임 제한시간은 기본값(1분) 사용
 		gameManager.startGame(roomCode);
 	}

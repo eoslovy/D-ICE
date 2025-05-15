@@ -90,12 +90,12 @@ export default function BackgroundAnimation({
   }, [count, shapes, speed])
 
   return (
-    <div
-      ref={containerRef}
-      className="fixed inset-0 w-full h-full overflow-hidden pointer-events-none z-0"
-      aria-hidden="true"
-    >
-      <style>{`
+      <div
+          ref={containerRef}
+          className="fixed inset-0 w-full h-full overflow-hidden pointer-events-none z-0"
+          aria-hidden="true"
+      >
+          <style>{`
         @keyframes rotate {
           0% {
             transform: rotate(0deg);
@@ -105,6 +105,6 @@ export default function BackgroundAnimation({
           }
         }
       `}</style>
-    </div>
-  )
+      </div>
+  );
 }

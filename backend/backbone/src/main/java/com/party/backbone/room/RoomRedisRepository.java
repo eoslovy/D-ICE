@@ -3,6 +3,7 @@ package com.party.backbone.room;
 import java.util.List;
 import java.util.Set;
 
+import com.party.backbone.room.dto.FinalResult;
 import com.party.backbone.room.dto.RoundInfo;
 import com.party.backbone.room.dto.ScoreAggregationResult;
 import com.party.backbone.websocket.model.GameType;
@@ -39,6 +40,8 @@ public interface RoomRedisRepository {
 	String updateRankRecord(String roomCode, String userId, int roundRank);
 
 	GameType getGame(String roomCode, int round);
+
+	List<FinalResult> getFinalResults(String roomCode);
 
 	void endGame(String roomCode);
 

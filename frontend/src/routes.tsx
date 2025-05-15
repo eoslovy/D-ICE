@@ -12,7 +12,7 @@ import NotFound from "./pages/error/NotFound";
 
 export const router = createBrowserRouter([
     {
-        path: "/game",
+        path: "/test",
         element: <App />,
     },
     {
@@ -24,7 +24,11 @@ export const router = createBrowserRouter([
                 element: <Select />, // 기본 컴포넌트로 Select 렌더링
             },
             {
-                path: "/join/:roomCode",
+                path: "/game",
+                element: <App />,
+            },
+            {
+                path: "/join",
                 element: <Join />,
             },
             {

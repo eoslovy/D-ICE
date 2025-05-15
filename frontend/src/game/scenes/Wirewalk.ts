@@ -130,7 +130,7 @@ export class Wirewalk extends Scene {
 
         this.add
             .image(x, y, "wire")
-            .setScale(1.0, 2.0)
+            .setScale(1.0, 3.5)
             .setOrigin(0.5, 1.0)
             .setPosition(x, this.cameras.main.height);
         this.player = this.add.sprite(x, y, "wirewalk_player");

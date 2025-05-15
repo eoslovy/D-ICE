@@ -15,6 +15,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.stereotype.Repository;
 
+import com.party.backbone.room.dto.FinalResult;
 import com.party.backbone.room.dto.RoundInfo;
 import com.party.backbone.room.dto.ScoreAggregationResult;
 import com.party.backbone.room.model.RoomStateTTL;
@@ -257,6 +258,31 @@ public class RoomRedisRepositoryImpl implements RoomRedisRepository {
 
 		redisTemplate.opsForHash().put(playerKey, "rankRecord", updated);
 		return updated;
+	}
+
+	@Override
+	public List<FinalResult> getFinalResults(String roomCode) {
+		List<String> userIds = getUserIds(roomCode);
+
+		List<FinalResult> results = new ArrayList<>();
+		for (String userId : userIds) {
+			String playerKey = getPlayerKey(roomCode, userId);
+
+			Object nicknameObj = redisTemplate.opsForHash().get(playerKey, "nickname");
+			Object scoreObj = redisTemplate.opsForHash().get(playerKey, "score");
+
+			if (nicknameObj == null || scoreObj == null) {
+				log.warn("[getFinalResults] Missing data for userId: {}", userId);
+				continue;
+			}
+
+			String nickname = nicknameObj.toString();
+			int score = Integer.parseInt(scoreObj.toString());
+
+			results.add(new FinalResult(userId, nickname, score));
+		}
+
+		return results;
 	}
 
 	@Override

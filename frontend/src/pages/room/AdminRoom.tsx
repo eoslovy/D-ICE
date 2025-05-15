@@ -13,7 +13,9 @@ export default function AdminRoom() {
     const [errorMessage, setErrorMessage] = useState("");
     const [userNickname, setUserNickname] = useState<string[]>([]);
     const [latestNickname, setLatestNickname] = useState<string | null>(null);
-    const [userCount, setUserCount] = useState<number | null>(adminStore.getState().userCount);
+    const [userCount, setUserCount] = useState<number | null>(
+        adminStore.getState().userCount
+    );
     let requestId = v7();
     const roomCode = adminStore.getState().roomCode;
     useEffect(() => {
@@ -28,7 +30,7 @@ export default function AdminRoom() {
                 setLatestNickname(payload.nickname);
 
                 setUserNickname((prev) =>
-                    prev.includes(payload.nickname)
+                    prev.includes(payload.userId)
                         ? prev
                         : [...prev, payload.nickname]
                 );
@@ -36,15 +38,8 @@ export default function AdminRoom() {
         );
 
         return () => {
-            adminWebSocketManager.off(
-                "USER_JOINED_ADMIN",
-                (payload: UserJoinedAdminMessage) => {
-                    console.log(
-                        "USER_JOINED_ADMIN 이벤트 리스너 해제:",
-                        payload
-                    );
-                }
-            );
+            adminWebSocketManager.off("USER_JOINED_ADMIN");
+            console.log("AdminRoom 이벤트 리스너 해제");
         };
     }, []);
 
@@ -56,9 +51,12 @@ export default function AdminRoom() {
             return;
         }
         try {
-            const initReq = adminWebSocketManager.sendSessionInit(requestId, adminStore.getState().totalRound);
+            const initReq = adminWebSocketManager.sendSessionInit(
+                requestId,
+                adminStore.getState().totalRound
+            );
             // 게임 중계 방으로 이동
-            if (initReq === true){
+            if (initReq === true) {
                 console.error("INIT 요청 성공");
                 adminStore.getState().setStatus("INGAME");
                 navigate(`/broadcast/${roomCode}`);

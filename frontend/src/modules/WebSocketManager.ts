@@ -108,8 +108,8 @@ abstract class WebSocketManager<
         this.ws.onmessage = (event) => {
             let msg: ReceiveMessage;
             try {
+                console.log(`[WebSocketManager] 수신된 메시지: ${event.data}`);
                 msg = JSON.parse(event.data);
-                console.log(`[WebSocketManager] 수신된 메시지: ${msg}`);
                 this.queueOrEmit(msg);
             } catch (e) {
                 console.error(
