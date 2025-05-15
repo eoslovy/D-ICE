@@ -130,10 +130,7 @@ export class Dice extends Phaser.Scene {
         this.load.obj("dice-obj", "assets/dice/dice.obj");
 
         this.load.setBaseURL("");
-        this.load.image(
-            "woodBackground",
-            "assets/background/woodBackground.png"
-        );
+        this.load.image("woodBackground", "assets/dice/diceBackground.png");
         this.load.audio("diceRoll", "assets/dice/diceRoll.wav");
     }
 
