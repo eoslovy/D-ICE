@@ -32,9 +32,7 @@ export default function UserRoom() {
                 <div className="animate-pulse mb-6">
                     <div className="flex items-center justify-center">
                         <Clock className="mr-2" size={24} />
-                        <span className="text-xl">
-                            시작 대기중
-                        </span>
+                        <span className="text-xl">시작 대기중</span>
                     </div>
                 </div>
 
@@ -54,7 +52,9 @@ export default function UserRoom() {
                 <div className="mb-6 flex flex-col items-center justify-center">
                     <GenerateQrCode roomCode={String(roomCode)} />
                 </div>
-                <p className="text-sm mt-2 text-center">주변의 미참여자에게 코드를 공유해주세요!</p>
+                <p className="text-sm mt-2 text-center">
+                    QR코드를 클릭하면 링크가 복사됩니다!
+                </p>
             </GameCard>
         </div>
     );
