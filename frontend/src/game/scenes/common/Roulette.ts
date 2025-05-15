@@ -20,7 +20,9 @@ export class Roulette extends Scene {
     private totalItems: number = 0;
     private visibleCount: number = 3; // 보여지는 텍스트 개수
     private rouletteMeanY: number = 0; // 룰렛의 기준준 Y 좌표
-    private RouletteSound: Phaser.Sound.BaseSound;
+    private RouletteSlowSound: Phaser.Sound.BaseSound;
+    private RouletteFastSound: Phaser.Sound.BaseSound;
+    private RouletteEndSound: Phaser.Sound.BaseSound;
 
     constructor() {
         super("Roulette");
@@ -32,12 +34,26 @@ export class Roulette extends Scene {
     }
 
     preload() {
-        this.load.audio("RouletteSound", "assets/Roulette/RouletteSound-6.wav");
+        //this.load.audio("RouletteSound", "assets/Roulette/RouletteSound-6.wav");
+        this.load.audio(
+            "RouletteSlowSound",
+            "assets/Roulette/SFX_SpinWheel_Slow_Loop_1.wav"
+        );
+        this.load.audio(
+            "RouletteFastSound",
+            "assets/Roulette/SFX_SpinWheel_Fast_Loop_1.wav"
+        );
+        this.load.audio(
+            "RouletteEndSound",
+            "assets/Roulette/SFX_SpinWheel_Start_1.wav"
+        );
     }
 
     create() {
         // 룰렛 돌아가는 사운드 추가
-        this.RouletteSound = this.sound.add("RouletteSound");
+        this.RouletteSlowSound = this.sound.add("RouletteSlowSound");
+        this.RouletteFastSound = this.sound.add("RouletteFastSound");
+        this.RouletteEndSound = this.sound.add("RouletteEndSound");
 
         const { width, height } = this.cameras.main;
         this.sliceHeight = height * 0.13; // 3개만 보이게 영역 조정
@@ -194,19 +210,22 @@ export class Roulette extends Scene {
         this.isSpinning = true;
         this.spinPhase = "spinning";
 
-        this.time.delayedCall(700, () => {
-            // 1. 사운드 재생 (루프 O, 볼륨 1로 시작)
-            this.RouletteSound?.play({ loop: true, volume: 1 });
-            // 2. 2초 후 페이드 아웃 시작
-            this.time.delayedCall(1500, () => {
-                // Phaser 트윈을 사용해 볼륨을 0으로 0.5초(500ms) 동안 줄임
+        this.RouletteSlowSound?.play({ loop: true, volume: 1 });
+        // Slow 사운드 1초 재생
+        this.time.delayedCall(1000, () => {
+            // Slow 사운드 종료
+            this.RouletteSlowSound?.stop();
+            // 1. Fast 사운드 재생 (루프 O, 볼륨 1로 시작)
+            this.RouletteFastSound?.play({ loop: true, volume: 1 });
+            // 2. 1.7초 후 페이드 아웃 시작
+            this.time.delayedCall(1700, () => {
+                this.RouletteFastSound.stop();
                 this.tweens.add({
-                    targets: this.RouletteSound,
+                    targets: this.RouletteFastSound,
                     volume: 0,
                     duration: 500,
                     onComplete: () => {
                         // 볼륨이 0이 되면 사운드 정지
-                        this.RouletteSound.stop();
                     },
                 });
             });
@@ -298,11 +317,12 @@ export class Roulette extends Scene {
     private handleSpinComplete() {
         this.isSpinning = false;
         this.spinPhase = "idle";
-        this.RouletteSound?.stop();
+        this.RouletteFastSound?.stop();
 
         // 0.5초 후 모달 표시
         this.time.delayedCall(500, () => {
             this.showResultModal();
+            this.RouletteEndSound.play();
         });
     }
 
