@@ -1626,15 +1626,25 @@ export class NumberSurvivor extends Scene {
         
         // 6. POTG 녹화 시작
         try {
-            if (message.roundResults && message.roundResults.length > 0) {
-                console.log('[NumberSurvivor] Starting POTG recording...');
-                await numberSurvivorPOTGService.startRecording(message.roundResults);
-                console.log('[NumberSurvivor] POTG recording completed');
+            let potgRoundResults = message.roundResults;
+            
+            // 2명 이하일 때 (라운드 결과가 없을 때) 가짜 데이터 생성
+            if (!potgRoundResults || potgRoundResults.length === 0) {
+                console.log('[NumberSurvivor] 2명 이하 게임 감지 - 가짜 POTG 데이터 생성');
+                potgRoundResults = this.createDummyRoundResults(message.winners);
+                console.log('[NumberSurvivor] 생성된 가짜 POTG 데이터:', potgRoundResults);
+            }
+            
+            // POTG 녹화 시작
+            if (potgRoundResults && potgRoundResults.length > 0) {
+                console.log('[NumberSurvivor] POTG 녹화 시작');
+                await numberSurvivorPOTGService.startRecording(potgRoundResults);
+                console.log('[NumberSurvivor] POTG 녹화 완료');
             } else {
-                console.warn('[NumberSurvivor] No round results available for POTG recording');
+                console.warn('[NumberSurvivor] POTG 녹화용 데이터 없음');
             }
         } catch (error) {
-            console.error('[NumberSurvivor] Error during POTG recording:', error);
+            console.error('[NumberSurvivor] POTG 녹화 중 오류:', error);
         }
         
         // 7. 점수 계산
@@ -1889,5 +1899,23 @@ export class NumberSurvivor extends Scene {
             detailMessage, 
             isAlive 
         };
+    }
+
+    // 가짜 라운드 결과 생성 함수 (간소화 버전)
+    private createDummyRoundResults(winners: PlayerInfo[]): RoundResult[] {
+        // 우승자 라운드만 바로 생성
+        const finalRound: RoundResult = {
+            round: 1, // 한 개의 라운드만 진행한 것으로 처리
+            survivors: [...winners], // 모든 플레이어가 우승자
+            eliminated: [], // 탈락자 없음
+            numberSelections: {} 
+        };
+        
+        // 각 우승자에게 고유 번호 부여 (선택한 번호 표시를 위해)
+        winners.forEach((winner, idx) => {
+            finalRound.numberSelections[idx + 1] = [winner];
+        });
+        
+        return [finalRound]; // 단 하나의 라운드만 반환
     }
 }
