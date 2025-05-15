@@ -6,13 +6,13 @@ import numberSurvivorPOTGService from '../../modules/NumberSurvivorPOTGService';
 // [서비스용] 게임 설정 상수 - 최종 정리
 const GAME_CONFIG = {
     // 화면 크기는 PhaserGame 설정값에 맞게 조정
-    WIDTH: 600,        // 화면 전체 너비
-    HEIGHT: 960,       // 화면 전체 높이
+    WIDTH: 720,        // 화면 전체 너비
+    HEIGHT: 1280,       // 화면 전체 높이
     BUTTON_SIZE: 120,  // 버튼 크기
     PADDING: 20,       // 패딩
     COLUMNS: 3,
-    get CENTER_X() { return this.WIDTH / 2 + 10; }, // 살짝 오른쪽으로 조정 (+10)
-    get CENTER_Y() { return this.HEIGHT / 2 + 50; }, // 살짝 아래로 조정 (+50)
+    get CENTER_X() { return this.WIDTH / 2; }, // 오프셋 제거
+    get CENTER_Y() { return this.HEIGHT / 2; }, // 오프셋 제거
     MESSAGE_Y: 80,    // 메시지 위치 
     TIMER_Y: 140       // 타이머 위치 
 } as const;
@@ -89,6 +89,7 @@ export class NumberSurvivor extends Scene {
     private eliminatedMessage?: Phaser.GameObjects.Text;
     private roundInfoText?: Phaser.GameObjects.Text;
     private keypadContainer?: Phaser.GameObjects.Container;
+    private darkBackground?: Phaser.GameObjects.Rectangle;
     
     constructor() {
         super({ key: 'NumberSurvivor' });
@@ -242,19 +243,43 @@ export class NumberSurvivor extends Scene {
     }
 
     private handleResize(gameSize: Phaser.Structs.Size) {
+        const centerX = gameSize.width / 2;
+        const centerY = gameSize.height / 2;
+        
+        // 계산기 위치 조정
         if (this.keypadContainer) {
-            this.keypadContainer.setPosition(
-                gameSize.width / 2,
-                gameSize.height / 2
-            );
+            this.keypadContainer.setPosition(centerX, centerY);
         }
-        // 메시지, 타이머, 원도 중앙에 맞게 이동
-        if (this.messageText) this.messageText.setX(gameSize.width / 2);
-        if (this.timerText) this.timerText.setX(gameSize.width / 2);
+        
+        // 메시지, 타이머, 원 중앙에 맞게 이동
+        if (this.messageText) this.messageText.setX(centerX);
+        if (this.timerText) this.timerText.setX(centerX);
+        
+        // 타이머 배경 원
         const timerBg = this.children.list.find(obj => (obj as any).type === 'Arc' && (obj as any).y === GAME_CONFIG.TIMER_Y) as Phaser.GameObjects.Arc | undefined;
-        if (timerBg) timerBg.x = gameSize.width / 2;
+        if (timerBg) timerBg.x = centerX;
+        
+        // 메시지 배경
         const messageBg = this.children.list.find(obj => (obj as any).type === 'Rectangle' && (obj as any).y === GAME_CONFIG.MESSAGE_Y) as Phaser.GameObjects.Rectangle | undefined;
-        if (messageBg) messageBg.x = gameSize.width / 2;
+        if (messageBg) messageBg.x = centerX;
+        
+        // 상태 메시지 컨테이너
+        if (this.statusMessageContainer) {
+            this.statusMessageContainer.setPosition(centerX, centerY - 180);
+        }
+        
+        // 다크 배경
+        if (this.darkBackground) {
+            this.darkBackground.setPosition(centerX, centerY);
+            this.darkBackground.width = gameSize.width;
+            this.darkBackground.height = gameSize.height;
+        }
+        
+        // 관전 모드 오버레이
+        const spectatorOverlay = this.children.getByName('spectatorOverlay') as Phaser.GameObjects.Container;
+        if (spectatorOverlay) {
+            spectatorOverlay.setPosition(centerX, spectatorOverlay.y);
+        }
     }
 
     // 자동 게임 시작 타이머 설정 - 더 이상 사용하지 않음 (서버 측에서 처리)
@@ -299,18 +324,21 @@ export class NumberSurvivor extends Scene {
 
     // [서비스용] 게임 UI 생성 함수
     private createGameUI() {
+        const centerX = this.scale.width / 2;
+        const centerY = this.scale.height / 2;
+        
         // 배경 추가 (검은색 배경)
-        this.add.rectangle(
-            GAME_CONFIG.CENTER_X, 
-            GAME_CONFIG.CENTER_Y, 
-            GAME_CONFIG.WIDTH, 
-            GAME_CONFIG.HEIGHT, 
+        this.darkBackground = this.add.rectangle(
+            centerX, 
+            centerY, 
+            this.scale.width, 
+            this.scale.height, 
             0x000000
         ).setAlpha(0.8);
 
         // 상단 메시지 텍스트 배경
         const messageBg = this.add.rectangle(
-            this.scale.width / 2, // 중앙 X좌표
+            centerX, // 중앙 X좌표
             GAME_CONFIG.MESSAGE_Y,
             GAME_CONFIG.WIDTH * 0.9, // 너비
             60, // 높이
@@ -319,7 +347,7 @@ export class NumberSurvivor extends Scene {
 
         // 메시지 텍스트
         this.messageText = this.add.text(
-            this.scale.width / 2, // 중앙 X좌표
+            centerX, // 중앙 X좌표
             GAME_CONFIG.MESSAGE_Y, 
             '게임 시작을 기다리는 중...', 
             {
@@ -334,7 +362,7 @@ export class NumberSurvivor extends Scene {
 
         // 타이머 텍스트 배경
         const timerBg = this.add.circle(
-            this.scale.width / 2, // 중앙 X좌표
+            centerX, // 중앙 X좌표
             GAME_CONFIG.TIMER_Y,
             40,
             0x222266
@@ -342,7 +370,7 @@ export class NumberSurvivor extends Scene {
 
         // 타이머 텍스트
         this.timerText = this.add.text(
-            this.scale.width / 2, // 중앙 X좌표
+            centerX, // 중앙 X좌표
             GAME_CONFIG.TIMER_Y, 
             '', 
             {
@@ -356,7 +384,7 @@ export class NumberSurvivor extends Scene {
         ).setOrigin(0.5).setDepth(10);
         
         // 상태 메시지 컨테이너 생성 (탈락 메시지 및 라운드 정보용)
-        this.statusMessageContainer = this.add.container(GAME_CONFIG.CENTER_X, GAME_CONFIG.CENTER_Y - 180).setDepth(15);
+        this.statusMessageContainer = this.add.container(centerX, centerY - 180).setDepth(15);
         
         // 탈락 메시지 (초기에는 보이지 않음)
         this.eliminatedMessage = this.add.text(
@@ -659,10 +687,13 @@ export class NumberSurvivor extends Scene {
 
     // [서비스용] 선택 피드백 표시 함수
     private showSimpleSelectionFeedback(number: number) {
+        const centerX = this.scale.width / 2;
+        const centerY = this.scale.height / 2;
+        
         // 선택한 숫자를 표시
         const feedbackText = this.add.text(
-            GAME_CONFIG.CENTER_X, 
-            GAME_CONFIG.CENTER_Y, 
+            centerX, 
+            centerY, 
             number.toString(), 
             {
                 fontSize: '100px',
@@ -738,6 +769,10 @@ export class NumberSurvivor extends Scene {
         
         console.log(`[NumberSurvivor] Round ${message.round} - Player alive status: ${this.playerAlive}`);
         
+        // 실제 화면 중앙 좌표 
+        const centerX = this.scale.width / 2;
+        const centerY = this.scale.height / 2;
+        
         // 살아있는 플레이어만 버튼 활성화 및 메시지 표시
         if (this.playerAlive) {
             console.log('[NumberSurvivor] Player is alive - enabling buttons');
@@ -764,8 +799,8 @@ export class NumberSurvivor extends Scene {
             console.log('[NumberSurvivor] Player is eliminated - showing spectator mode');
             // 탈락한 플레이어는 즉시 화면에 큰 "탈락" 표시 추가
             const bigLabel = this.add.text(
-                GAME_CONFIG.CENTER_X, 
-                GAME_CONFIG.CENTER_Y - 150,
+                centerX, 
+                centerY - 150,
                 '당신은 탈락했습니다 (관전 모드)',
                 {
                     fontSize: '32px',
@@ -830,6 +865,11 @@ export class NumberSurvivor extends Scene {
             if (this.timerText) {
                 this.timerText.setVisible(false);
             }
+        }
+        // 게임 시작 시 반투명 배경 제거
+        if (this.darkBackground) {
+            this.darkBackground.destroy();
+            this.darkBackground = undefined;
         }
     }
 
@@ -1032,6 +1072,8 @@ export class NumberSurvivor extends Scene {
     
     // [서비스용] 탈락 메시지 표시 함수
     private showEliminatedMessage(detail: string = '탈락했습니다', bigEffect: boolean = true) {
+        const centerX = this.scale.width / 2;
+        
         console.log(`[NumberSurvivor] Showing eliminated message: ${detail}, bigEffect: ${bigEffect}`);
         
         // 기존 메시지가 있으면 제거
@@ -1041,7 +1083,7 @@ export class NumberSurvivor extends Scene {
         
         // 화면 상단에 "탈락" 메시지 표시 - 더 명확하게
         this.eliminatedMessage = this.add.text(
-            GAME_CONFIG.CENTER_X, 
+            centerX, 
             60, 
             '탈락!!', 
             {
@@ -1056,7 +1098,7 @@ export class NumberSurvivor extends Scene {
         
         // 상세 탈락 이유 메시지 (다른 플레이어와 같은 번호 선택 등)
         const detailText = this.add.text(
-            GAME_CONFIG.CENTER_X,
+            centerX,
             this.eliminatedMessage.y + 50,
             detail,
             {
@@ -1119,19 +1161,22 @@ export class NumberSurvivor extends Scene {
     
     // [서비스용] 큰 탈락 애니메이션 (화면 전체 효과)
     private showBigEliminationAnimation() {
+        const centerX = this.scale.width / 2;
+        const centerY = this.scale.height / 2;
+        
         console.log('[NumberSurvivor] Showing big elimination animation');
         
         // 전체 화면 빨간색 플래시
         const fullScreenFlash = this.add.rectangle(
-            GAME_CONFIG.CENTER_X,
-            GAME_CONFIG.CENTER_Y,
-            GAME_CONFIG.WIDTH,
-            GAME_CONFIG.HEIGHT,
+            centerX,
+            centerY,
+            this.scale.width,
+            this.scale.height,
             0xff0000
         ).setAlpha(0).setDepth(25);
         
         // 큰 X 표시
-        const bigX = this.add.container(GAME_CONFIG.CENTER_X, GAME_CONFIG.CENTER_Y).setDepth(30);
+        const bigX = this.add.container(centerX, centerY).setDepth(30);
         
         // X 표시 (굵은 선)
         const line1 = this.add.rectangle(0, 0, 200, 30, 0xff3333).setRotation(Math.PI / 4);
@@ -1184,6 +1229,9 @@ export class NumberSurvivor extends Scene {
     
     // [서비스용] 버튼 완전 비활성화 함수
     private completelyDisableButtons(showOverlay: boolean = true) {
+        const centerX = this.scale.width / 2;
+        const centerY = this.scale.height / 2;
+        
         this.numberButtons.forEach(button => {
             button.setAlpha(0.3); // 더 투명하게
             
@@ -1213,7 +1261,7 @@ export class NumberSurvivor extends Scene {
         if (!showOverlay) return;
         
         // 추가적인 시각적 표시 - "관전 모드" 오버레이
-        const spectatorOverlay = this.add.container(GAME_CONFIG.CENTER_X, GAME_CONFIG.CENTER_Y - 50)
+        const spectatorOverlay = this.add.container(centerX, centerY - 50)
             .setDepth(20)
             .setName('spectatorOverlay'); // 이름 지정하여 중복 생성 방지
         
@@ -1255,10 +1303,13 @@ export class NumberSurvivor extends Scene {
     
     // [서비스용] 생존 효과 표시 함수
     private showSurvivalEffect() {
+        const centerX = this.scale.width / 2;
+        const centerY = this.scale.height / 2;
+        
         // 간단한 원형 효과
         const circle = this.add.circle(
-            GAME_CONFIG.CENTER_X,
-            GAME_CONFIG.CENTER_Y,
+            centerX,
+            centerY,
             100,
             0x88ff88,
             0.5
@@ -1617,12 +1668,15 @@ export class NumberSurvivor extends Scene {
     
     // 게임 종료 배경 효과
     private showGameOverBackground() {
+        const centerX = this.scale.width / 2;
+        const centerY = this.scale.height / 2;
+        
         // 전체 화면에 어두운 배경 효과 추가
         const darkOverlay = this.add.rectangle(
-            GAME_CONFIG.CENTER_X,
-            GAME_CONFIG.CENTER_Y,
-            GAME_CONFIG.WIDTH,
-            GAME_CONFIG.HEIGHT,
+            centerX,
+            centerY,
+            this.scale.width,
+            this.scale.height,
             0x000000
         ).setDepth(5).setAlpha(0);
         
@@ -1636,8 +1690,8 @@ export class NumberSurvivor extends Scene {
         
         // "GAME OVER" 텍스트 추가
         const gameOverText = this.add.text(
-            GAME_CONFIG.CENTER_X,
-            GAME_CONFIG.HEIGHT - 150,
+            centerX,
+            this.scale.height - 150,
             'GAME OVER',
             {
                 fontSize: '48px',
@@ -1661,10 +1715,13 @@ export class NumberSurvivor extends Scene {
     
     // 패배자 효과 표시 함수
     private showLoserEffect() {
+        const centerX = this.scale.width / 2;
+        const centerY = this.scale.height / 2;
+        
         // 화면 하단에 메시지 표시
         const loserText = this.add.text(
-            GAME_CONFIG.CENTER_X,
-            GAME_CONFIG.CENTER_Y + 100,
+            centerX,
+            centerY + 100,
             '다음 게임에 도전해보세요!',
             {
                 fontSize: '28px',
@@ -1680,7 +1737,7 @@ export class NumberSurvivor extends Scene {
         this.tweens.add({
             targets: loserText,
             alpha: 1,
-            y: { from: GAME_CONFIG.CENTER_Y + 120, to: GAME_CONFIG.CENTER_Y + 100 },
+            y: { from: centerY + 120, to: centerY + 100 },
             duration: 1000,
             delay: 1000,
             ease: 'Power2'
@@ -1689,10 +1746,13 @@ export class NumberSurvivor extends Scene {
     
     // 우승자 효과 표시 함수
     private showWinnerEffect() {
+        const centerX = this.scale.width / 2;
+        const centerY = this.scale.height / 2;
+        
         // 화면 중앙에 트로피 아이콘 표시
         const winnerText = this.add.text(
-            GAME_CONFIG.CENTER_X,
-            GAME_CONFIG.CENTER_Y - 100,
+            centerX,
+            centerY - 100,
             '🏆',
             {
                 fontSize: '120px',
@@ -1702,8 +1762,8 @@ export class NumberSurvivor extends Scene {
         
         // 승리 메시지 추가
         const victoryText = this.add.text(
-            GAME_CONFIG.CENTER_X,
-            GAME_CONFIG.CENTER_Y + 100,
+            centerX,
+            centerY + 100,
             '최후의 생존자!',
             {
                 fontSize: '32px',
