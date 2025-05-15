@@ -11,6 +11,7 @@ export class Dice extends Phaser.Scene {
     private diceSound!: Phaser.Sound.BaseSound;
     private rollDuration = 2500;
     private countdownTimer: Phaser.Time.TimerEvent | null = null;
+    private TimerCount = 5;
 
     constructor() {
         super("Dice");
@@ -195,7 +196,7 @@ export class Dice extends Phaser.Scene {
         }
         // 총합 표시 텍스트
         this.totalSumText = this.add
-            .text(this.scale.width / 2, 200, "합 : 0", {
+            .text(this.scale.width / 2, 250, "합 : 0", {
                 font: "48px Jua",
                 color: "#FFFFFF",
             })
@@ -321,6 +322,7 @@ export class Dice extends Phaser.Scene {
                                 this.totalSumText.setText(
                                     `합 : ${this.currentRollSum}`
                                 );
+                                animateTotalSumText(this.totalSumText);
                                 rollsLeftText.setText(
                                     `남은 기회 : ${3 - this.rollCount}회`
                                 );
@@ -357,7 +359,7 @@ export class Dice extends Phaser.Scene {
 
         // --- 카운트다운 및 자동 주사위 굴리기 함수 ---
         const startCountdown = () => {
-            let count = 5;
+            let count = this.TimerCount;
             countdownText.setText(count.toString() + "초 후 자동 GO!");
             countdownText.setVisible(true);
 
@@ -369,7 +371,7 @@ export class Dice extends Phaser.Scene {
             // 1초마다 카운트다운
             this.countdownTimer = this.time.addEvent({
                 delay: 1000,
-                repeat: 4, // 5,4,3,2,1 (총 5회)
+                repeat: this.TimerCount - 1, // 5,4,3,2,1 (총 TimerCount 회)
                 callback: () => {
                     count--;
                     countdownText.setText(
@@ -436,6 +438,25 @@ export class Dice extends Phaser.Scene {
                             startCountdown();
                         });
                     }
+                },
+            });
+        };
+        const animateTotalSumText = (text: Phaser.GameObjects.Text) => {
+            text.setScale(1).setAlpha(1);
+
+            this.tweens.add({
+                targets: text,
+                scale: 1.3,
+                duration: 500,
+                ease: "Bounce.out",
+                onComplete: () => {
+                    this.tweens.add({
+                        targets: text,
+                        scale: 1,
+                        delay: 1000,
+                        duration: 500,
+                        ease: "Power2",
+                    });
                 },
             });
         };
