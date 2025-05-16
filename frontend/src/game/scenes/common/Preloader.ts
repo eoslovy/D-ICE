@@ -56,7 +56,7 @@ export class Preloader extends Phaser.Scene {
             );
         });
 
-        this.load.on("complete", () => {
+        this.load.once("complete", () => {
             progressBar.destroy();
             progressBox.destroy();
             loadingText.destroy();
