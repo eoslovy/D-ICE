@@ -1,15 +1,7 @@
 import { Scene } from "phaser";
-import { createChart, IChartApi, CandlestickData } from "lightweight-charts";
-import { LineStyle } from 'lightweight-charts';
-import { userStore} from '../../stores/userStore'
+import { createChart, IChartApi, CandlestickData, LineStyle } from "lightweight-charts";
+import { userStore } from "../../stores/userStore";
 import potgManager from "../../modules/POTGManager";
-import { LoadManifestFromJSON } from '../../modules/gameutils/LoadSpritesManifest';
-import { PopupSprite } from '../../modules/gameutils/PopupSptire';
-import { PopupText } from '../../modules/gameutils/PopupText';
-import { UITimer } from '../../modules/gameutils/UITimer';
-import { UICountdown } from '../../modules/gameutils/UICountdown';
-import { EventBus } from '../EventBus';
-
 
 interface ScoreMessage {
     userCode: string;
@@ -17,493 +9,147 @@ interface ScoreMessage {
     earnedScore: number;
     totalScore: number;
 }
-  
-interface ScoreRankingResponse {
-    scoreRanking: ScoreMessage[];
-}
-const webSocketUrl = import.meta.env.VITE_WEBSOCKET_URL;
-const { roomCode, nickname, userId,  } = userStore.getState();
-const params = {
-    roomCode: roomCode,
-    roundCode: 0,
-    userCode: userId
-};
 
-const state = userStore.getState();
-if (!state.userId || !state.roomCode) {
-    userStore.setState({
-        roomCode: "test-room",
-        nickname: "테스터",
-        userId: "test-user-001",
-    });
-}
-function mulberry32(seed: number) {
-    return function() {
-        let t = seed += 0x6D2B79F5;
-        t = Math.imul(t ^ (t >>> 15), t | 1);
-        t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-        return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-    };
-} 
 export class GraphHigh extends Scene {
     private ws?: WebSocket;
     private chartImage!: Phaser.GameObjects.Image;
-    private chartCanvas!: HTMLCanvasElement;
     private chartTex!: Phaser.Textures.CanvasTexture;
-    private chartTexture!: Phaser.Textures.CanvasTexture;
-    private rankingMap: Map<string, Phaser.GameObjects.Text> = new Map();
+    private uiCtx!: CanvasRenderingContext2D;
+    private rankingTexts: Phaser.GameObjects.Container[] = [];
     private latestRanking: ScoreMessage[] = [];
     private chart!: IChartApi;
     private series!: ReturnType<IChartApi["addCandlestickSeries"]>;
     private tickBuffer: number[] = [];
     private candles: CandlestickData[] = [];
-    private startTime: number = 0;
-    private tickCount: number = 0;
-    private currentPrice: number = 1000;
-    private containerId = "chart-container";
-
-    private timer: UITimer;
-    private countdown: UICountdown;
-    private gameStartedTime: number;
-    private gameMustEndTime: number;
-    private gameDuration: number;
-    private popupText: PopupText;
-    private popupSprite: PopupSprite;
-    private gameStarted: boolean = false;
-    private gameEnded: boolean = false;
-    private timeText!: Phaser.GameObjects.Text;
-
-    //시드
-    private prng!: () => number;
-    private seed: number = 12345678; // 서버에서 고정 seed 전달받거
-
-    private remainingTime: number = 30; // 30초
+    private currentPrice = 1000;
+    private logicalTime = 0;
+    private remainingTime = 30;
     private attempts: number[] = [];
-    private scoreButton!: Phaser.GameObjects.Text;
-    private rankingTexts: Phaser.GameObjects.Container[] = [];
-    private scheduleNextTick() {
-        const delay = Phaser.Math.Between(70, 120); // 0.08 ~ 0.15초
-        this.time.delayedCall(delay, () => {
-            this.generateTick();
-            this.scheduleNextTick();
-        });
-    }
-    
-    
+    private gameStartedTime = Date.now();
+    private containerId = "chart-container";
+    private prng!: () => number;
+
     constructor() {
         super("GraphHigh");
     }
 
     private hashRoomCodeToSeed(roomCode: string): number {
-    let hash = 0;
-    for (let i = 0; i < roomCode.length; i++) {
-        hash = ((hash << 5) - hash) + roomCode.charCodeAt(i);
-        hash |= 0;
-    }
-    return Math.abs(hash);
-    }
-
-    private createChartContainer() {
-    let container = document.getElementById(this.containerId);
-    if (!container) {
-        container = document.createElement("div");
-        container.id = this.containerId;
-        container.style.position = "absolute";
-        container.style.pointerEvents = "none"; // 클릭 막기
-        container.style.zIndex = "10";            // Phaser 캔버스 뒤로
-        container.style.background = "transparent";
-        document.body.appendChild(container);
-    }
-    
-    const updatePosition = () => {
-        const rect = this.game.canvas.getBoundingClientRect();
-
-        // 원하는 비율
-        const targetWidth = rect.width * 1;
-        const targetHeight = rect.height * 0.7;
-
-        // 중앙 정렬 계산
-        const left = rect.left + (rect.width - targetWidth) / 2;
-        const top = rect.top + (rect.height - targetHeight) / 2;
-        
-        //container!.style.display = 'none';
-        container!.style.left = `${left}px`;
-        container!.style.top = `${top}px`;
-        container!.style.width = `${targetWidth}px`;
-        container!.style.height = `${targetHeight}px`;
-
-        if (this.chart) {
-            this.chart.resize(targetWidth, targetHeight);
+        let hash = 0;
+        for (let i = 0; i < roomCode.length; i++) {
+            hash = ((hash << 5) - hash) + roomCode.charCodeAt(i);
+            hash |= 0;
         }
-    };
-    
-    updatePosition(); // 최초 한 번 실행
-    window.addEventListener("resize", updatePosition);
+        return Math.abs(hash);
     }
 
-    private updateChartImagePosition() {
-        const chartCanvas = document.querySelector(`#${this.containerId} canvas`) as HTMLCanvasElement;
-        if (!chartCanvas || !this.chartImage) return;
-
-        const width = chartCanvas.width;
-        const height = chartCanvas.height;
-
-        this.chartImage.setDisplaySize(width, height);
-        this.chartImage.setPosition(
-            this.cameras.main.centerX,
-            this.cameras.main.centerY - (this.cameras.main.height - height) / 2 // 위로 살짝 조정
-        );
-    }
-    private startChartToPhaserLoop() {
-        const container = document.getElementById(this.containerId)!;
-        const width  = container.clientWidth;
-        const height = container.clientHeight;
-
-        this.textures.createCanvas('chartTexture', width, height);
-        this.chartImage = this.add.image(0, 0, 'chartTexture').setOrigin(0, 0);
-
-        const draw = () => {
-            const tex = this.textures.get('chartTexture') as Phaser.Textures.CanvasTexture;
-            const ctx = tex.getContext();
-            if (!ctx) return;
-
-            ctx.clearRect(0, 0, width, height);
-
-            // 여기서 매 프레임 최신 캔버스 리스트 조회
-            const chartCanvases = Array.from(
-            container.querySelectorAll('canvas')
-            ) as HTMLCanvasElement[];
-
-            chartCanvases.forEach(cvs => {
-            ctx.drawImage(cvs, 0, 0, width, height);
-            });
-
-            tex.refresh();
-            requestAnimationFrame(draw);
+    private mulberry32(seed: number): () => number {
+        return () => {
+            let t = seed += 0x6D2B79F5;
+            t = Math.imul(t ^ (t >>> 15), t | 1);
+            t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+            return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
         };
-
-        requestAnimationFrame(draw);
-    }
-    private setupChartContainerAndChart() {
-        // 1. DOM에 컨테이너 추가
-        const container = document.createElement("div");
-        container.id = "chart-container";
-        container.style.position = "absolute";
-        container.style.pointerEvents = "none";
-        container.style.left = "0";
-        container.style.top = "0";
-        container.style.zIndex = "0";
-        container.style.width = "800px";
-        container.style.height = "400px";
-        document.body.appendChild(container);
-
-        // 2. lightweight-charts 생성
-        const chart = createChart(container, {
-            width: 800,
-            height: 400,
-            layout: { background: { color: "transparent" }, textColor: "white" },
-            grid: { vertLines: { visible: false }, horzLines: { visible: false } },
-            timeScale: { timeVisible: true },
-        });
-
-        const series = chart.addCandlestickSeries();
-        series.setData([
-            { time: 1, open: 100, high: 120, low: 90, close: 110 },
-            { time: 2, open: 110, high: 130, low: 100, close: 120 },
-        ]);
-
-        // 3. 내부 canvas 참조 저장
-        this.chartCanvas = container.querySelector("canvas")!;
     }
 
-    private setupChart() {
-    const container = document.getElementById(this.containerId)!;
-    this.chart = createChart(this.containerId, {
-        width:  container.clientWidth,
-        height: container.clientHeight,
-        layout: {
-        background: { color: 'transparent' },  // ← 변경: 투명
-        textColor: "#d1d4dc",
-        attributionLogo: false
-        },
-        grid: {
-        vertLines: { visible: false },
-        horzLines: { visible: false },
-        },
-        timeScale: {
-        timeVisible:   true,
-        secondsVisible:true,
-        },
-    });
-    this.series = this.chart.addCandlestickSeries();
-    this.series.setData(this.candles);
-    }
     init() {
-            this.gameStartedTime = 0;
-            this.gameDuration = 40; // Default to 60 seconds if not provided
-            this.gameStarted = false;
-            this.gameEnded = false;
-            this.seed = this.hashRoomCodeToSeed(roomCode); // 또는 서버에서 받아온 고정된 seed
-            this.prng = mulberry32(this.seed);
-        }
+        const { roomCode } = userStore.getState();
+        this.prng = this.mulberry32(this.hashRoomCodeToSeed(roomCode));
+        this.logicalTime = 0;
+    }
 
     preload() {
-        // Add game specific asset loading here
-        // This is called once before the scene is created
         this.load.start();
     }
 
-    create() {
-        
-        const chartWidth = this.game.config.width as number;
-        const chartHeight = (this.game.config.height as number) * 0.7;
+    async create() {
+        this.children.list.forEach(go => {
+            if (go instanceof Phaser.GameObjects.Text || go instanceof Phaser.GameObjects.Container) {
+                go.setVisible(false);
+            }
+        });
 
-        const centerX = this.cameras.main.centerX;
-        const centerY = this.cameras.main.centerY - this.cameras.main.height * 0.15; // 약간 위
+        // ── 2) HTML HUD 로 올라간 기존 UI 숨기기 ── ['chart-hud','time-display','score-button']
+        ['chart-hud','time-display'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.style.display = 'none';
+        });
+        const { roomCode, nickname, userId } = userStore.getState();
 
-        this.textures.createCanvas('chartTexture', chartWidth, chartHeight);
-        this.chartTex = this.textures.get('chartTexture') as Phaser.Textures.CanvasTexture;
-
-        this.chartImage = this.add.image(centerX, centerY, 'chartTexture')
-            .setDisplaySize(chartWidth, chartHeight)
-            .setOrigin(0.5);
-
-
-        const params = {
-            roomCode: roomCode,
-            roundCode: "0",
-            userCode: userId
-        };
-        for (let i = 0; i < 3; i++) {
-            const text = this.add.text(600, 100 + i * 40, '', {
-                font: '20px Arial',
-                color: '#ffffff'
-            });
-            this.rankingMap.set(`slot${i}`, text);
-        }
-        const query = new URLSearchParams(params).toString();
-        const WS_URL = `${webSocketUrl}/game/kjh/ws/graphhigh?${query}`;
-
+        // WebSocket connection
+        const params = new URLSearchParams({ roomCode, roundCode: "0", userCode: userId }).toString();
+        const WS_URL = `${import.meta.env.VITE_WEBSOCKET_URL}/game/kjh/ws/graphhigh?${params}`;
         this.ws = new WebSocket(WS_URL);
 
-        const drawChartToPhaser = () => {
-            const chartCanvas = document.querySelector(`#${this.containerId} canvas`) as HTMLCanvasElement;
-            const chartTex = this.textures.get('chartTexture') as Phaser.Textures.CanvasTexture;
-
-            if (chartCanvas && chartTex) {
-                const ctx = chartTex.getContext();
-
-                const width = chartCanvas.width;
-                const height = chartCanvas.height;
-
-                // canvas 크기 바뀐 경우 다시 생성
-                if (
-                    chartTex.getSourceImage().width !== width ||
-                    chartTex.getSourceImage().height !== height
-                ) {
-                    this.textures.remove('chartTexture');
-                    this.textures.createCanvas('chartTexture', width, height);
-                    this.chartImage.setTexture('chartTexture');
-                }
-
-                ctx.clearRect(0, 0, width, height);
-                ctx.drawImage(chartCanvas, 0, 0, width, height);
-                chartTex.refresh();
-
-                this.updateChartImagePosition(); // 위치 갱신
-            }
-
-            requestAnimationFrame(drawChartToPhaser);
-        };
-
         this.ws.onopen = () => {
-            console.log("✅ WebSocket 연결됨");
-
-            const sendData: ScoreMessage = {
-                userCode: userId,
-                userName: nickname,
-                earnedScore: 0,
-                totalScore: 0
-            };
-
-            this.ws?.send(JSON.stringify(sendData));
-            console.log("📤 데이터 전송됨:", sendData);
+            const payload: ScoreMessage = { userCode: userId, userName: nickname, earnedScore: 0, totalScore: 0 };
+            this.ws?.send(JSON.stringify(payload));
         };
 
-        this.ws.onmessage = (event: MessageEvent) => {
+        this.ws.onmessage = (event) => {
             try {
-                const data: ScoreRankingResponse = JSON.parse(event.data);
+                const data = JSON.parse(event.data) as { scoreRanking: ScoreMessage[] };
                 this.renderRanking(data.scoreRanking);
-            } catch (error) {
-                console.error("❌ JSON 파싱 실패:", error);
+                this.latestRanking = data.scoreRanking;
+            } catch {
+                console.error("Ranking parse error");
             }
         };
 
-        this.ws.onerror = (error) => {
-            console.error("❌ WebSocket 에러:", error);
-        };
+        this.ws.onerror = console.error;
+        this.ws.onclose = (e) => console.log(`WebSocket closed: ${e.code}`);
 
-        this.ws.onclose = (event) => {
-            console.log(`🔒 WebSocket 연결 종료 (code=${event.code})`);
-        };
-
+        // Chart setup
         this.createChartContainer();
         this.setupChart();
-        this.renderRanking(null);
-        this.timeText = this.add.text(this.cameras.main.centerX, 20, `Time: ${this.remainingTime}`, {
-            font: '20px Arial',
-            color: '#ffffff',
-        }).setOrigin(0.5);
 
-        this.startTime = Math.floor(Date.now() / 1000);
-
+        // Candle-building timer
         this.time.addEvent({
-            delay: 1000,
-            loop: true,
-            callback: () => {
-                if (this.tickBuffer.length === 0) return;
-
-                const finalizedCandle = this.makeCandle(this.tickBuffer, this.logicalTime);
-                this.candles.push(finalizedCandle);
-                this.series.update(finalizedCandle); // 또는 this.series.setData(this.candles) but not preferred here
-
-                this.logicalTime++;
-                this.tickBuffer = [this.currentPrice]; // 다음 봉 시작점
-            },
-        });
-
-        this.time.addEvent({
-            delay: 1000,
-            loop: true,
-            callback: () => {
-                this.remainingTime--;
-                if (this.remainingTime >= 0) {
-                    this.timeText.setText(`Time: ${this.remainingTime}`);
-                }
-                if (this.remainingTime <= 0 && !this.gameEnded) {
-                    this.gameEnded = true;
-                    this.result();
+            delay: 1000, loop: true, callback: () => {
+                if (this.tickBuffer.length) {
+                    const candle = this.makeCandle(this.tickBuffer, this.logicalTime++);
+                    this.candles.push(candle);
+                    this.series.update(candle);
+                    this.tickBuffer = [this.currentPrice];
                 }
             }
         });
+        
+        // Countdown timer
+        this.time.addEvent({
+            delay: 1000, loop: true, callback: () => {
+                this.remainingTime--;
+                const t = document.getElementById('time-display');
+                if (t) t.textContent = `Time: ${this.remainingTime}`;
+                if (this.remainingTime <= 0) this.result();
+            }
+        });
+
         this.scheduleNextTick();
-        this.scoreButton = this.add.text(this.cameras.main.centerX, this.cameras.main.height - 80, '기회 사용', {
-            font: '28px Arial',
-            backgroundColor: '#0080ff',
-            color: '#ffffff',
-            padding: { x: 16, y: 10 },
-            align: 'center',
-        })
-            .setOrigin(0.5)
-            .setInteractive({ useHandCursor: true })
-            .on('pointerdown', () => {
-                if (this.attempts.length >= 3 || this.remainingTime <= 0) return;
 
-                const current = Number(this.currentPrice.toFixed(2));
-                this.attempts.push(current);
-                
-                const markerTime = this.logicalTime;
-                const coordinate = this.chart.timeScale().timeToCoordinate(markerTime);
-                
-                const priceLine = this.series.createPriceLine({
-                    price: this.currentPrice,
-                    color: 'red',
-                    lineWidth: 1,
-                    lineStyle: LineStyle.Dashed,
-                    axisLabelVisible: true,
-                    title: `시도 ${this.attempts.length}`,
-                });
-
-                // 기록 표시 업데이트
-            
-                const scorePayload: ScoreMessage = {
-                    userCode: userId,  // 또는 this.userCode 등으로 동적으로
-                    userName: nickname,
-                    earnedScore: current,
-                    totalScore: this.attempts.reduce((a, b) => a + b, 0)
-                };
-                this.ws?.send(JSON.stringify(scorePayload));
-                
-                console.log("📤 점수 전송됨:", scorePayload);
-                // ✅ 파괴적인 이펙트: 강한 scale + 회전 + 알파 + 터지는 느낌
-                this.tweens.add({
-                    targets: this.scoreButton,
-                    scale: { from: 1, to: 2.2 },
-                    angle: { from: 0, to: 20 },
-                    alpha: { from: 1, to: 0 },
-                    duration: 300,
-                    ease: 'Cubic.easeOut',
-                    onComplete: () => {
-                        this.scoreButton.setScale(1).setAlpha(1).setAngle(0); // 리셋
-                    }
-                });
-                this.tweens.add({
-                    targets: text,
-                    alpha: { from: 0, to: 1 },
-                    duration: 300,
-                    ease: 'Cubic.easeIn',
-                });
-                // ✅ 추가: 화면 흔들림 효과
-                this.cameras.main.shake(250, 0.01); // (duration, intensity)
-
-                // ✅ 버튼 색 반짝임 (짧게 다시 깜빡)
-                this.tweens.add({
-                    targets: this.scoreButton,
-                    duration: 100,
-                    repeat: 2,
-                    yoyo: true,
-                    color: '#ff4444'
-                });
-
-                if (this.attempts.length >= 3) {
-                    this.scoreButton.setAlpha(0.5).disableInteractive();
-                }
-            });
-        this.setupChartContainerAndChart();
-        this.startChartToPhaserLoop();
-        const chartCanvasEl = document.querySelector(`#${this.containerId} canvas`)!;
-        if (potgManager.getIsRecording()) {
-            const clearBeforeStart = async () => {
-                await potgManager.stopRecording();
-                //potgManager.startCanvasRecording(60);
-                potgManager.startMergedRecording(
-                this.game.canvas,
-                chartCanvasEl,
-                60
-                );
-                //potgManager.startMergedRecording(this.game.canvas, this.containerId, 60);
-            };
-            clearBeforeStart();
-        }
-           // else potgManager.startCanvasRecording(60);
-           potgManager.startMergedRecording(
-            this.game.canvas,
-            chartCanvasEl,
-            60
-            );
-          //else potgManager.startMergedRecording(this.game.canvas, this.containerId, 60);
+        // Recording
+        if (potgManager.getIsRecording()) await potgManager.stopRecording();
+        potgManager.startMergedRecording(this.game.canvas, this.containerId, 60);
     }
 
-    private logicalTime: number = 0;  // 봉 단위로 증가하는 시간
+    private scheduleNextTick() {
+        const delay = Phaser.Math.Between(70, 120);
+        this.time.delayedCall(delay, () => {
+            this.generateTick();
+            this.scheduleNextTick();
+        });
+    }
+
     private generateTick() {
         const baseVolatility = this.currentPrice * 0.15;
         const spikeVolatility = this.currentPrice * 0.45;
         const spikeChance = 0.09;
-
-        const isSpike = this.prng() < spikeChance;
-        const volatility = isSpike ? spikeVolatility : baseVolatility;
+        const volatility = this.prng() < spikeChance ? spikeVolatility : baseVolatility;
         const change = (this.prng() - 0.488) * volatility;
-
-        this.currentPrice += change;
-        this.currentPrice = Number(this.currentPrice.toFixed(2));
-
+        this.currentPrice = Number((this.currentPrice + change).toFixed(2));
         this.tickBuffer.push(this.currentPrice);
-
-        // 🔄 매 틱마다 현재 진행 중인 봉을 update
-        const tempCandle = this.makeCandle(this.tickBuffer, this.logicalTime);
-        this.series.update(tempCandle);
+        const temp = this.makeCandle(this.tickBuffer, this.logicalTime);
+        this.series.update(temp);
     }
-
 
     private makeCandle(ticks: number[], time: number): CandlestickData {
         const open = ticks[0] ?? this.currentPrice;
@@ -511,185 +157,330 @@ export class GraphHigh extends Scene {
         const high = Math.max(...ticks);
         const low = Math.min(...ticks);
         return { time, open, high, low, close };
-
-    }
-    private renderRanking(data: ScoreMessage[] | null) {
-    // 기존 제거
-    this.rankingTexts.forEach(c => c.destroy());
-    this.rankingTexts = [];
-
-    const rankEmojis = ['🥇', '🥈', '🥉', '4️⃣', '5️⃣'];
-    const baseY = 80;
-    const startX = this.cameras.main.centerX;
-
-    const entries = data?.slice(0, 5) ?? [];
-
-    // 빈 상태라면 기본 메시지 표시
-    if (entries.length === 0) {
-        const emptyText = this.add.text(startX, baseY, '랭킹 정보 없음', {
-            font: '24px Arial',
-            color: '#888888',
-        }).setOrigin(0.5);
-        this.rankingTexts.push(this.add.container(0, 0, [emptyText]));
-        return;
     }
 
-    entries.forEach((entry, index) => {
-        const rank = index + 1;
-        const y = baseY + index * 60;
+    private createChartContainer() {
+        const canvas = this.game.canvas;
+        const rect = canvas.getBoundingClientRect();
 
-        const emoji = rankEmojis[index] || `${rank}.`;
+        let container = document.getElementById(this.containerId);
+        if (!container) {
+            container = document.createElement("div");
+            container.id = this.containerId;
+            Object.assign(container.style, {
+                position:       "absolute",
+                top:            `${rect.top}px`,
+                left:           `${rect.left}px`,
+                width:          `${rect.width}px`,
+                height:         `${rect.height}px`,
+                pointerEvents:  "none",
+                zIndex:         "1000",
+                background:     "transparent",
+            });
+            document.body.appendChild(container);
+        }
 
-        const rankText = this.add.text(0, 0, `${emoji}`, {
-            font: '28px Arial',
-            color: '#ffffff',
-        }).setOrigin(0, 0.5);
-
-        const nameText = this.add.text(50, 0, `${entry.userName}`, {
-            font: '24px Arial',
-            color: '#ffffff',
-            fontStyle: 'bold',
-        }).setOrigin(0, 0.5);
-
-        const scoreText = this.add.text(250, 0, `${entry.earnedScore}점`, {
-            font: '24px Arial',
-            color: '#aaaaaa',
-        }).setOrigin(1, 0.5);
-
-        const container = this.add.container(startX - 150, y, [rankText, nameText, scoreText]);
-        this.rankingTexts.push(container);
-
-        this.tweens.add({
-            targets: container,
-            scale: { from: 1.2, to: 1 },
-            duration: 300,
-            ease: 'Back.easeOut',
+        window.addEventListener("resize", () => {
+            const r2 = canvas.getBoundingClientRect();
+            container!.style.top    = `${r2.top}px`;
+            container!.style.left   = `${r2.left}px`;
+            container!.style.width  = `${r2.width}px`;
+            container!.style.height = `${r2.height}px`;
+            this.chart?.resize(r2.width, r2.height);
         });
-    });
     }
-    
-    
-    /*
-    private renderAttemptList() {
-    // 기존 텍스트 제거
-    this.attemptTexts.forEach(t => t.destroy());
-    this.attemptTexts = [];
 
-    const title = this.add.text(20, 20, `📌 시도 기록`, {
-        font: '22px Arial',
-        color: '#FFD700',
-        fontStyle: 'bold',
-    });
-    this.attemptTexts.push(title);
+    private setupChart() {
+        const container = document.getElementById(this.containerId)!;
 
-    this.attempts.forEach((price, index) => {
-        let indicator = "";
-        if (index === 0) {
-            indicator = "🟢▲ 첫 시도";
+        let wrapper = container.querySelector<HTMLDivElement>('#chart-wrapper');
+        if (!wrapper) {
+            wrapper = document.createElement('div');
+            wrapper.id = 'chart-wrapper';
+            Object.assign(wrapper.style, {
+                position:       'absolute',
+                width:          `${container.clientWidth * 0.8}px`,
+                height:         `${container.clientHeight * 0.7}px`,
+                left:           '50%',
+                top:            '50%',
+                transform:      'translate(-50%, -50%)',
+                pointerEvents:  'none',
+                backgroundColor:'transparent',
+            });
+            container.appendChild(wrapper);
         } else {
-            const prev = this.attempts[index - 1];
-            if (price > prev) {
-                indicator = "🟢▲ 상승";
-            } else if (price < prev) {
-                indicator = "🔴▼ 하락";
-            } else {
-                indicator = "➖ 동일";
+            const cw = container.clientWidth  * 0.8;
+            const ch = container.clientHeight * 0.7;
+            wrapper.style.width  = `${cw}px`;
+            wrapper.style.height = `${ch}px`;
+        }
+
+        wrapper.innerHTML = '';
+
+        const cw = wrapper.clientWidth;
+        const ch = wrapper.clientHeight;
+        this.chart = createChart(wrapper, {
+            width:  cw,
+            height: ch,
+            layout: {
+                background:      { color: 'transparent' },
+                textColor:       "#d1d4dc",
+                attributionLogo: false,
+            },
+            grid: {
+                vertLines: { visible: false },
+                horzLines: { visible: false },
+            },
+            priceScale: {
+                borderVisible: true,
+                borderColor:   '#d1d4dc',
+            },
+            timeScale: {
+                timeVisible:    true,
+                secondsVisible: true,
+                borderVisible:  true,
+                borderColor:    '#d1d4dc',
+            },
+        });
+        this.series = this.chart.addCandlestickSeries();
+        this.series.setData(this.candles);
+
+        // Make chart canvas background transparent
+        wrapper.querySelectorAll<HTMLCanvasElement>('canvas').forEach(c => {
+            c.style.backgroundColor = 'transparent';
+        });
+
+        // ── HTML HUD ──
+        const hud = document.createElement('div');
+        hud.id = 'chart-hud';
+        Object.assign(hud.style, {
+            position:      'absolute',
+            top:           '0',
+            left:          '0',
+            width:         '100%',
+            height:        '100%',
+            pointerEvents: 'none',
+            color:         '#ffffff',
+            fontFamily:    'Jua, sans-serif',
+            zIndex:        '2',
+        });
+
+        // Time display
+        const timeEl = document.createElement('div');
+        timeEl.id = 'time-display';
+        Object.assign(timeEl.style, {
+            position:  'absolute',
+            top:       '10px',
+            left:      '50%',
+            transform: 'translateX(-50%)',
+            fontSize:  '20px',
+            display: 'none',
+        });
+        timeEl.textContent = `Time: ${this.remainingTime}`;
+        hud.appendChild(timeEl);
+
+        /* Score button
+        const btn = document.createElement('button');
+        btn.id = 'score-button';
+        btn.textContent = '기회 사용';
+        Object.assign(btn.style, {
+            position:      'absolute',
+            bottom:        '80px',
+            left:          '50%',
+            transform:     'translateX(-50%)',
+            padding:       '8px 16px',
+            background:    '#0080ff',
+            color:         '#fff',
+            border:        'none',
+            borderRadius:  '4px',
+            fontSize:      '18px',
+            cursor:        'pointer',
+            pointerEvents: 'auto',
+            zIndex:        '3',
+        });
+        btn.addEventListener('click', () => this.onScore());
+        hud.appendChild(btn);
+        */
+        wrapper.appendChild(hud);
+        const uiCanvas = document.createElement('canvas');
+        uiCanvas.id = 'ui-canvas';
+        uiCanvas.width  = cw;
+        uiCanvas.height = ch;
+        Object.assign(uiCanvas.style, {
+        position:       'absolute',
+        top:            '0',
+        left:           '0',
+        pointerEvents:  'auto',
+        zIndex:         '2',
+        });
+        wrapper.appendChild(uiCanvas);
+        this.uiCtx = uiCanvas.getContext('2d')!;
+
+            // ─── 캔버스 클릭 처리: 버튼 영역(가로 120×세로 40, 중앙 하단) 안이면 onScore() 호출
+        uiCanvas.addEventListener('pointerdown', (event) => {
+            const rect = uiCanvas.getBoundingClientRect();
+            const scaleX = uiCanvas.width  / rect.width;
+            const scaleY = uiCanvas.height / rect.height;
+            const x = (event.clientX - rect.left) * scaleX;
+            const y = (event.clientY - rect.top ) * scaleY;
+
+            // 위 drawUI와 동일한 버튼 영역 계산
+            const btnW = uiCanvas.width  * 0.2;
+            const btnH = uiCanvas.height * 0.1;
+            const btnX = (uiCanvas.width  - btnW) / 2;
+            const btnY = uiCanvas.height - btnH - uiCanvas.height * 0.05;
+
+            if (x >= btnX && x <= btnX + btnW && y >= btnY && y <= btnY + btnH) {
+                this.onScore();
+            }
+        });
+    }
+
+    private drawUI() {
+  const ctx = this.uiCtx;
+  const W   = ctx.canvas.width;
+  const H   = ctx.canvas.height;
+
+  ctx.clearRect(0, 0, W, H);
+
+  // 1) 시간
+  ctx.fillStyle = '#fff';
+  ctx.textAlign = 'center';
+  ctx.font      = `${Math.floor(H * 0.05)}px Jua`;
+  ctx.fillText(`Time: ${this.remainingTime}`, W / 2, H * 0.05 + H * 0.03);
+
+  // 2) “기회 사용” 버튼
+  const btnW = W * 0.2;
+  const btnH = H * 0.1;
+  const btnX = (W - btnW) / 2;
+  const btnY = H - btnH - H * 0.05;
+  ctx.fillStyle = this.attempts.length < 3
+    ? '#0080ff'
+    : 'rgba(0,128,255,0.5)';
+  ctx.fillRect(btnX, btnY, btnW, btnH);
+
+  ctx.fillStyle = '#fff';
+  ctx.textAlign = 'center';
+  ctx.font      = `${Math.floor(btnH * 0.6)}px Jua`;
+  ctx.fillText('지금!!', W / 2, btnY + btnH * 0.65);
+
+  // 3) 랭킹 (최대 5명)
+  ctx.fillStyle = '#fff';
+  ctx.textAlign = 'left';
+  ctx.font      = `${Math.floor(H * 0.04)}px Jua`;
+  const startX = W * 0.05;
+  let y = H * 0.05;
+  const lineH = H * 0.10;
+  const emojis = ['🥇', '🥈', '🥉', '4️⃣', '5️⃣'];
+
+  this.latestRanking.slice(0, 5).forEach((e, i) => {
+    const rankIcon = emojis[i] || `${i + 1}.`;
+    const score    = (e.earnedScore || e.earnedScore === 0)
+      ? e.earnedScore
+      : e.totalScore;
+
+    // 순위
+    ctx.fillText(rankIcon, startX, y);
+
+    // 이름
+    const nameX = startX + W * 0.06;
+    ctx.fillText(e.userName, nameX, y);
+
+    // 점수
+    const nameW = ctx.measureText(e.userName).width;
+    ctx.fillText(`${score}점`, nameX + nameW + W * 0.02, y);
+
+    y += lineH;
+  });
+}
+
+    renderRanking(entries: ScoreMessage[]) {
+        this.latestRanking = entries;
+        /*
+        this.rankingTexts.forEach(c => c.destroy());
+        this.rankingTexts = [];
+        if (!entries.length) {
+            const t = this.add.text(this.cameras.main.centerX, 80, '랭킹 정보 없음', { font:'24px Jua', color:'#888' }).setOrigin(0.5);
+            this.rankingTexts.push(this.add.container(0,0,[t]));
+            return;
+        }
+        const emojis = ['🥇','🥈','🥉','4️⃣','5️⃣'];
+        entries.slice(0,5).forEach((e,i) => {
+            const y = 80 + i*60;
+            const rank = emojis[i]||`${i+1}.`;
+            const rt = this.add.text(0,0,rank,{font:'28px Jua',color:'#fff'}).setOrigin(0,0.5);
+            const nt = this.add.text(50,0,e.userName,{font:'24px Jua',color:'#fff'}).setOrigin(0,0.5);
+            const st = this.add.text(250,0,`${e.earnedScore}점`,{font:'24px Jua',color:'#aaa'}).setOrigin(1,0.5);
+            const cont = this.add.container(this.cameras.main.centerX-150,y,[rt,nt,st]);
+            this.rankingTexts.push(cont);
+            this.tweens.add({targets:cont,scale:{from:1.2,to:1},duration:300,ease:'Back.easeOut'});
+        });
+        */
+    }
+
+    private onScore() {
+        if (this.attempts.length >= 3 || this.remainingTime <= 0) return;
+        const cur = this.currentPrice;
+        this.attempts.push(cur);
+        this.series.createPriceLine({
+            price: cur,
+            color: 'red',
+            lineStyle: LineStyle.Dashed,
+            axisLabelVisible: true,
+            title: `시도 ${this.attempts.length}`
+        });
+        const { userId, nickname } = userStore.getState();
+        const payload: ScoreMessage = {
+            userCode: userId,
+            userName: nickname,
+            earnedScore: cur,
+            totalScore: this.attempts.reduce((a, b) => a + b, 0)
+        };
+        this.ws?.send(JSON.stringify(payload));
+        this.cameras.main.shake(250, 0.01);
+
+        if (this.attempts.length >= 3) {
+            const btn = document.getElementById('score-button') as HTMLButtonElement;
+            if (btn) {
+                btn.disabled = true;
+                btn.style.opacity = '0.5';
+                btn.style.cursor = 'default';
             }
         }
+    }
 
-        const text = this.add.text(20, 60 + index * 30, `시도 ${index + 1}: ${price} (${indicator})`, {
-            font: '20px Arial',
-            color: '#ffffff'
-        });
-        this.attemptTexts.push(text);
-    });
-}*/
+    private getFinalScore(): number {
+        if (!this.attempts.length) return 0;
+        const best = Math.max(...this.attempts);
+        const globalBest = this.latestRanking.length
+            ? Math.max(...this.latestRanking.map(r => r.earnedScore))
+            : 1;
+        return Math.min(100, Math.floor(best / globalBest * 100));
+    }
+
+    private showScoreGauge(percent: number) {
+        const cx = this.cameras.main.centerX, cy = this.cameras.main.centerY;
+        const w = 300, h = 30;
+        const bg = this.add.rectangle(cx, cy, w, h, 0x333333).setOrigin(0.5);
+        const fill = this.add.rectangle(cx - w/2, cy, 0, h, 0x00ff00).setOrigin(0, 0.5);
+        const txt = this.add.text(cx, cy - 40, `📊 점수: ${percent}%`, { font: '24px Jua', color: '#fff' }).setOrigin(0.5);
+        this.tweens.add({ targets: fill, width: w * percent / 100, duration: 1000, ease: 'Cubic.easeOut' });
+        this.time.delayedCall(3000, () => { bg.destroy(); fill.destroy(); txt.destroy(); });
+    }
     update() {
-    if (!this.chartCanvas || !this.chartTex) return;
-
-    const width = this.chartCanvas.width;
-    const height = this.chartCanvas.height;
-    const ctx = this.chartTex.getContext();
-
-    if (ctx) {
-        ctx.clearRect(0, 0, width, height);
-        ctx.drawImage(this.chartCanvas, 0, 0, width, height);
-        this.chartTex.refresh(); // ✅ 꼭 호출해야 화면에 반영됨
-        }
+    // redraw your HTML-CANVAS–based UI every frame
+    this.drawUI();
+    }
+    private result() {
+        const score = this.getFinalScore();
+        this.showScoreGauge(score);
+        this.shutdown();
+        if (potgManager.getIsRecording()) potgManager.stopRecording();
+        this.time.delayedCall(1000, () => this.scene.start("GameOver", { score, gameType: "GraphHigh" }));
     }
 
     shutdown() {
-        const container = document.getElementById(this.containerId);
-        if (container) container.remove();
-        if (this.timer) this.timer.remove(false);
-    }
-    private showScoreGauge(scorePercent: number) {
-    const centerX = this.cameras.main.centerX;
-    const centerY = this.cameras.main.centerY;
-
-    const barWidth = 300;
-    const barHeight = 30;
-
-    const background = this.add.rectangle(centerX, centerY, barWidth, barHeight, 0x333333).setOrigin(0.5);
-    const fill = this.add.rectangle(centerX - barWidth / 2, centerY, 0, barHeight, 0x00ff00).setOrigin(0, 0.5);
-    const text = this.add.text(centerX, centerY - 40, `📊 점수: ${scorePercent}%`, {
-        font: '24px Arial',
-        color: '#ffffff',
-    }).setOrigin(0.5);
-
-    this.tweens.add({
-        targets: fill,
-        width: (barWidth * scorePercent) / 100,
-        duration: 1000,
-        ease: 'Cubic.easeOut',
-    });
-
-    // 3초 후 사라짐
-    this.time.addEvent({
-        delay: 3000,
-        callback: () => {
-            background.destroy();
-            fill.destroy();
-            text.destroy();
-        }
-    });
-}
-    getFinalScore() {
-    if (!this.attempts || this.attempts.length === 0) {
-        return 0;
-    }
-
-    const myBestAttempt = Math.max(...this.attempts);
-
-    // 전체 유저의 최고 시도 점수 가져오기
-    const globalBestAttempt = this.latestRanking.length > 0
-        ? Math.max(...this.latestRanking.map(r => r.earnedScore))
-        : 1; // fallback 방지
-
-    const normalizedScore = Math.min(100, Math.floor((myBestAttempt / globalBestAttempt) * 100));
-
-    return normalizedScore;
-    }
-    result() {
-        const elapsedTime = Date.now() - this.gameStartedTime;
-        const finalScore = this.getFinalScore();
-
-        this.showScoreGauge(finalScore);
-
-        this.shutdown() 
-        if (potgManager.getIsRecording()) {
-            potgManager.stopRecording();
-        }
-
-        // pop up result
-        this.time.addEvent({
-            delay: 1000,
-            callback: () => {
-                this.scene.start("GameOver", {
-                    score: finalScore,
-                    gameType: "GraphHigh",
-                });
-            },
-        });
+        const c = document.getElementById(this.containerId);
+        if (c) c.remove();
     }
 }

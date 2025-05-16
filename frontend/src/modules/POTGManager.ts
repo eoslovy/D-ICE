@@ -494,9 +494,9 @@ class POTGManager extends EventEmitter {
     }
 
   async startMergedRecording(
-    phaserCanvas: HTMLCanvasElement,
-    chartContainerId: string,
-    frameRate: number = 30
+  phaserCanvas: HTMLCanvasElement,
+  chartContainerId: string,
+  frameRate = 30
     ): Promise<boolean> {
     if (this.isRecording) {
         console.warn('[POTGManager] Recording already in progress.');
@@ -509,46 +509,42 @@ class POTGManager extends EventEmitter {
     merged.height = phaserCanvas.height;
     const mCtx = merged.getContext('2d')!;
 
-    // 2) 전체 캔버스 크기 & 위치 정보
+    // 2) 화면 위치·크기
     const gRect = phaserCanvas.getBoundingClientRect();
     const chartContainer = document.getElementById(chartContainerId)!;
 
-    // 3) 매 프레임 합성 루프
+    // 3) 스케일 계산 (CSS px → 내부 캔버스 px)
+    const scaleX = merged.width  / gRect.width;
+    const scaleY = merged.height / gRect.height;
+
+    // 4) 합성 루프
     const draw = () => {
         mCtx.clearRect(0, 0, merged.width, merged.height);
 
-        // lightweight-charts가 생성한 모든 <canvas> 레이어
+        // 4-a) Phaser 캔버스 먼저
+        mCtx.drawImage(phaserCanvas, 0, 0, merged.width, merged.height);
+
+        // 4-b) lightweight-charts 캔버스들 차례로
         const chartCanvases = chartContainer.querySelectorAll('canvas');
-        chartCanvases.forEach((cvs) => {
+        chartCanvases.forEach((cvs: HTMLCanvasElement) => {
         const cRect = cvs.getBoundingClientRect();
-
-        // CSS px → 내부 캔버스 px 매핑 비율
-        const scaleX = merged.width  / gRect.width;
-        const scaleY = merged.height / gRect.height;
-
-        // 그릴 위치와 크기 (canvas 내부 픽셀 기준)
         const dx = (cRect.left - gRect.left) * scaleX;
         const dy = (cRect.top  - gRect.top ) * scaleY;
         const dw = cRect.width  * scaleX;
         const dh = cRect.height * scaleY;
 
-        // intrinsic 크기(src) → dest
-        mCtx.drawImage(cvs as HTMLCanvasElement,
-            0, 0, cvs.width, cvs.height,
-            dx, dy, dw, dh
-        );
+        // src 전체를 dx/dy 위치에 dw×dh 크기로 그리기
+        mCtx.drawImage(cvs, 0, 0, cvs.width, cvs.height, dx, dy, dw, dh);
         });
-
-        // Phaser 캔버스(UI 포함)를 맨 위에
-        mCtx.drawImage(phaserCanvas, 0, 0, merged.width, merged.height);
 
         requestAnimationFrame(draw);
     };
     requestAnimationFrame(draw);
 
-    // 4) 합성된 offscreen 캔버스 녹화
+    // 5) 녹화 시작
     return this.startOffscreenCanvasRecording(merged, frameRate);
     }
+
 }
 
 // Export a single instance (Singleton pattern)
