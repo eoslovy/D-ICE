@@ -9,6 +9,7 @@ interface PotgInfo {
     userId: string;
     nickname: string;
     videoUrl: string;
+    score?: number;
 }
 
 interface AdminJoinedMessage {
@@ -103,6 +104,13 @@ interface BroadcastMessage {
     userId: string;
     payload: string;
 }
+
+interface ErrorMessage {
+    type: "ERROR";
+    message: string;
+}
+
+
 type ReceiveMessage =
     | {
           [K in keyof AdminReceiveTypeMap]: {

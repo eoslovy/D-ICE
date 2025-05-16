@@ -120,6 +120,12 @@ public class RoomRedisRepositoryImpl implements RoomRedisRepository {
 			redisTemplate.opsForHash().get(roomKey, "currentRound"),
 			"Invalid Round"
 		);
+
+		Object stateObj = redisTemplate.opsForHash().get(roomKey, "state");
+		if (stateObj == null || !RoomStateTTL.WAITING.name().equals(stateObj.toString())) {
+			throw new IllegalStateException("[startGame] 현재 상태가 WAITING이 아닙니다: " + stateObj);
+		}
+		
 		int currentRound = Integer.parseInt(roundObj.toString());
 		GameType gameType = getGame(roomCode, currentRound);
 		long currentMs = System.currentTimeMillis();
