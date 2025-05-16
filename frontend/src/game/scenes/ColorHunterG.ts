@@ -316,7 +316,7 @@ export class ColorHunterG extends Scene {
                 // If game started and display was not created due to previous camera issue
                 this.cameraFeedDisplay = this.add.image(
                     this.cameras.main.centerX,
-                    this.cameras.main.centerY,
+                    this.cameras.main.centerY + 70,
                     this.liveVideoTextureKey
                 );
                 this.cameraFeedDisplay.setDisplaySize(512, 512);
@@ -417,25 +417,27 @@ export class ColorHunterG extends Scene {
         this.colorhunterg_bgm?.play();
 
         const targetDisplayX = this.cameras.main.centerX;
-        const targetDisplayY = this.cameras.main.centerX / 2;
+        const targetDisplayY = this.cameras.main.height / 6;
         this.add
             .text(
                 targetDisplayX,
-                (this.cameras.main.height * 4) / 5,
-                "제시된 색을 찍어라!",
+                targetDisplayY,
+                "제시된 색을 카메라에 담아라!",
                 {
                     // Adjusted Y position
-                    fontSize: "40px",
+                    fontSize: "48px",
                     color: "#ffffff",
                     fontFamily: "Jua",
                     fontStyle: "bold",
+                    stroke: "#000000",
+                    strokeThickness: 2,
                 }
             )
             .setOrigin(0.5);
         this.targetColorDisplay = this.add
             .rectangle(
                 targetDisplayX,
-                targetDisplayY,
+                targetDisplayY + 80,
                 140,
                 70,
                 this.targetColor.color
@@ -475,7 +477,7 @@ export class ColorHunterG extends Scene {
                 if (!this.cameraFeedDisplay) {
                     this.cameraFeedDisplay = this.add.image(
                         this.cameras.main.centerX,
-                        this.cameras.main.centerY,
+                        this.cameras.main.centerY + 70,
                         this.liveVideoTextureKey
                     );
                 } else {
@@ -489,7 +491,7 @@ export class ColorHunterG extends Scene {
                 fallbackGraphics.fillStyle(0x444444, 1);
                 fallbackGraphics.fillRect(
                     this.cameras.main.centerX - 256,
-                    this.cameras.main.centerY - 256,
+                    this.cameras.main.centerY - 186,
                     512,
                     512
                 );
@@ -502,7 +504,7 @@ export class ColorHunterG extends Scene {
             this.cameraFrame.lineStyle(4, 0xffffff, 1);
             this.cameraFrame.strokeRect(
                 this.cameras.main.centerX - 256,
-                this.cameras.main.centerY - 256,
+                this.cameras.main.centerY - 186,
                 512,
                 512
             );
@@ -510,7 +512,7 @@ export class ColorHunterG extends Scene {
             this.marker = new Phaser.GameObjects.Sprite(
                 this,
                 this.cameras.main.centerX,
-                this.cameras.main.centerY,
+                this.cameras.main.centerY + 70,
                 "colorhunterg_marker"
             ).setOrigin(0.5, 0.5);
             this.add.existing(this.marker);
@@ -645,7 +647,7 @@ export class ColorHunterG extends Scene {
     }
 
     judgeColorMatch() {
-        const resultsYPosition = this.cameras.main.centerY - 150;
+        const resultsYPosition = this.cameras.main.centerY - 200;
 
         const resultDuration = 2500;
 
@@ -658,24 +660,36 @@ export class ColorHunterG extends Scene {
                 );
                 const score = Math.floor(matchPercentage);
 
-                const posX = this.cameras.main.centerX;
+                const posX = this.cameras.main.centerX - 100;
 
-                this.popupText.popupText(
-                    `${score}%`,
-                    posX,
-                    resultsYPosition,
-                    resultDuration,
-                    {
-                        fontSize: "48px",
-                        color: "#ffffff",
-                        stroke: "#000000",
-                        strokeThickness: 2,
-                        align: "center",
-                        fontFamily: "Jua",
-                        fontStyle: "Bold",
-                    }
-                );
+                this.add.text(posX, resultsYPosition, `${score}%`, {
+                    fontSize: "48px",
+                    color: "#ffffff",
+                    stroke: "#000000",
+                    strokeThickness: 2,
+                    align: "center",
+                    fontFamily: "Jua",
+                    fontStyle: "Bold",
+                });
             });
+
+            const finalColor = this.add.graphics();
+            finalColor.fillStyle(markerColor.color, 1);
+            finalColor.fillRect(
+                this.cameras.main.centerX + 50,
+                resultsYPosition - 10,
+                70,
+                70
+            );
+
+            const finalColorStroke = this.add.graphics();
+            finalColorStroke.lineStyle(3, 0xffffff, 1);
+            finalColorStroke.strokeRect(
+                this.cameras.main.centerX + 50,
+                resultsYPosition - 10,
+                70,
+                70
+            );
         } else {
             this.time.delayedCall(0, () => {
                 const posX = this.cameras.main.centerX;
