@@ -317,7 +317,7 @@ export class Dice extends Phaser.Scene {
             if (!this.isRolling && this.rollCount < 3) {
                 this.isRolling = true;
                 this.currentRollSum = 0;
-                this.diceSound.play();
+                this.diceSound?.play();
 
                 this.diceRollFunctions.forEach((roll, index) => {
                     roll((value: number) => {
@@ -340,13 +340,21 @@ export class Dice extends Phaser.Scene {
                                     if (potgManager.getIsRecording()) {
                                         potgManager.stopRecording();
                                     }
-                                    this.time.delayedCall(3000, () => {
+                                    this.time.delayedCall(4000, () => {
                                         this.diceBgm?.stop();
                                         this.scene.start("GameOver", {
                                             score: this.currentRollSum,
                                             gameType: "Dice",
                                         });
                                     });
+                                } else {
+                                    if (this.rollCount < 3) {
+                                        this.time.delayedCall(3000, () => {
+                                            if (!this.isRolling) {
+                                                startCountdown();
+                                            }
+                                        });
+                                    }
                                 }
                             }
                         });
@@ -369,7 +377,7 @@ export class Dice extends Phaser.Scene {
         // --- 카운트다운 및 자동 주사위 굴리기 함수 ---
         const startCountdown = () => {
             let count = this.TimerCount;
-            countdownText.setText(count.toString() + "초 후 자동 GO!");
+            countdownText.setText(count.toString() + "초 후 자동으로 GO!");
             countdownText.setVisible(true);
 
             // 기존 타이머가 있다면 제거
@@ -384,7 +392,9 @@ export class Dice extends Phaser.Scene {
                 callback: () => {
                     count--;
                     countdownText.setText(
-                        count > 0 ? count.toString() + "초 후 자동 GO!" : "GO!"
+                        count > 0
+                            ? count.toString() + "초 후 자동으로 GO!"
+                            : "GO!"
                     );
                     if (count === 0) {
                         // 카운트다운 끝: 자동으로 주사위 굴리기
@@ -422,6 +432,7 @@ export class Dice extends Phaser.Scene {
             });
         });
 
+        // init timer
         startCountdown();
 
         const animateDiceText = (
@@ -443,17 +454,12 @@ export class Dice extends Phaser.Scene {
                         duration: 500,
                         ease: "Power2",
                     });
-                    if (this.rollCount < 3) {
-                        this.time.delayedCall(1000, () => {
-                            startCountdown();
-                        });
-                    }
                 },
             });
         };
         const animateTotalSumText = (text: Phaser.GameObjects.Text) => {
             text.setScale(1).setAlpha(1);
-            this.totalSumSound.play();
+            this.totalSumSound?.play();
             this.tweens.add({
                 targets: text,
                 scale: 1.3,
