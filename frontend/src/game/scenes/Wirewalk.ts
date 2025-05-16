@@ -54,18 +54,18 @@ export class Wirewalk extends Scene {
     }
 
     preload() {
-        this.load.image("wirewalk_player", "assets/wirewalk/wirewalk_guy.png");
-        this.load.image("wire", "assets/wirewalk/wire.png");
-        this.load.audio(
-            "wirewalk_fail",
-            "assets/wirewalk/TECHINTERFACEComputerBeepsLong02.wav"
-        );
-        this.load.audio(
-            "wirewalk_btn",
-            "assets/wirewalk/VOCALEVILImpactHitOOOF03.wav"
-        );
-        this.load.audio("wirewalk_bgm", "assets/wirewalk/wirewalk_bgm.mp3");
-        this.load.start();
+        // this.load.image("wirewalk_player", "assets/wirewalk/wirewalk_guy.png");
+        // this.load.image("wire", "assets/wirewalk/wire.png");
+        // this.load.audio(
+        //     "wirewalk_fail",
+        //     "assets/wirewalk/TECHINTERFACEComputerBeepsLong02.wav"
+        // );
+        // this.load.audio(
+        //     "wirewalk_btn",
+        //     "assets/wirewalk/VOCALEVILImpactHitOOOF03.wav"
+        // );
+        // this.load.audio("wirewalk_bgm", "assets/wirewalk/wirewalk_bgm.mp3");
+        // this.load.start();
     }
 
     create() {

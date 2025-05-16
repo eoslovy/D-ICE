@@ -8,16 +8,19 @@ import lombok.Getter;
 
 @Getter
 public enum GameType {
-	/*Reaction(40000),
+	Reaction(40000),
 	Clicker(30000),
 	PerfectCircle(15000),
-	Mugungwha(30000),
+	Mugungwha(40000),
 	Wirewalk(30000),
-	Josephus(30000),
+	Josephus(40000),
 	Dye(30000),
 	Knight(30000),
-	NumberSurvivor(60000),*/
 	GraphHigh(45000),
+	Panopticon(30000),
+	Dice(30000),
+	ColorHunterG(25000),
+	NumberSurvivor(70000),
 	;
 	private static final GameType[] GAME_TYPES = values();
 

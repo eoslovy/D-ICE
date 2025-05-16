@@ -47,15 +47,15 @@ export class Clicker extends Scene {
     }
 
     preload() {
-        this.load.audio("clicker_bgm", "assets/clicker/clicker_bgm.mp3");
-        this.load.audio(
-            "clicker_good",
-            "assets/clicker/SUCCESSPICKUPCollectBeep04.wav"
-        );
-        this.load.audio(
-            "clicker_fail",
-            "assets/clicker/NEGATIVEFailureBeeps04.wav"
-        );
+        // this.load.audio("clicker_bgm", "assets/clicker/clicker_bgm.mp3");
+        // this.load.audio(
+        //     "clicker_good",
+        //     "assets/clicker/SUCCESSPICKUPCollectBeep04.wav"
+        // );
+        // this.load.audio(
+        //     "clicker_fail",
+        //     "assets/clicker/NEGATIVEFailureBeeps04.wav"
+        // );
     }
 
     create() {
