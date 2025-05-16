@@ -14,6 +14,9 @@ import com.party.backbone.websocket.message.admin.AdminReconnectMessage;
 import com.party.backbone.websocket.message.server.AdminReconnectedMessage;
 import com.party.backbone.websocket.model.AdminMessageType;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @Component
 public class AdminReconnectMessageHandler extends GameMessageHandler<AdminReconnectMessage>
 	implements AdminMessageHandler {
@@ -40,6 +43,7 @@ public class AdminReconnectMessageHandler extends GameMessageHandler<AdminReconn
 		}
 		sessionRegistry.register(administratorId, session);
 		var adminReconnectedMessage = new AdminReconnectedMessage(message.getRequestId(), administratorId);
+		log.info("[AdminReconnected] admin reconnected for roomCode: {} id: {}", roomCode, administratorId);
 		session.sendMessage(new TextMessage(objectMapper.writeValueAsString(adminReconnectedMessage)));
 	}
 
