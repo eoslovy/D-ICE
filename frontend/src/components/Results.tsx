@@ -40,6 +40,7 @@ export default function Result({
         "first" | "last" | null
     >(null);
     const [sortedPlayers, setSortedPlayers] = useState<RankingInfo[]>([]);
+    const [totalUser, setTotalUser] = useState(0);
 
     // 모바일 여부 확인
     const checkMobile = useCallback(() => {
@@ -92,6 +93,8 @@ export default function Result({
                     rank: index + 1,
                 }));
 
+            // 최종 유저 명수
+            setTotalUser(finalData.overallRanking.length);
             setSortedPlayers(withRanks);
         }
     }, [finalData, isFinalView]);
@@ -298,7 +301,9 @@ export default function Result({
                         <div style={fadeInStyle} className="w-full">
                             <div className="rankings-table">
                                 <div className="rankings-header text-center">
-                                    {isFinalView ? "전체 순위표" : "순위표"}
+                                    {isFinalView
+                                        ? `전체 ${totalUser}명`
+                                        : `${data?.roundPlayerCount}/${data?.totalPlayerCount} 참여`}
                                 </div>
 
                                 <div className="rankings-body">
@@ -700,7 +705,9 @@ export default function Result({
                     >
                         <div className="rankings-table">
                             <div className="rankings-header text-center">
-                                {isFinalView ? "전체 순위표" : "순위표"}
+                                {isFinalView
+                                    ? `전체 ${totalUser}명`
+                                    : `${data?.roundPlayerCount}/${data?.totalPlayerCount} 참여`}
                             </div>
 
                             <div className="rankings-body">
