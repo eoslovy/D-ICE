@@ -1,5 +1,8 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+import tailwindcss from '@tailwindcss/vite';
+import autoprefixer from 'autoprefixer';
+
 
 const phasermsg = () => {
     return {
@@ -18,29 +21,32 @@ const phasermsg = () => {
 }
 
 export default defineConfig({
-    base: './',
-    plugins: [
-        react(),
-        phasermsg()
-    ],
-    logLevel: 'warning',
+    base: "/",
+    plugins: [react(), phasermsg(), tailwindcss()],
+    css: {
+        postcss: {
+            plugins: [autoprefixer],
+        },
+    },
+    logLevel: "warning",
     build: {
         rollupOptions: {
             output: {
                 manualChunks: {
-                    phaser: ['phaser']
-                }
-            }
+                    phaser: ["phaser"],
+                },
+            },
         },
-        minify: 'terser',
+        minify: "terser",
         terserOptions: {
             compress: {
-                passes: 2
+                passes: 2,
             },
             mangle: true,
             format: {
-                comments: false
-            }
-        }
-    }
+                comments: false,
+            },
+        },
+    },
+
 });

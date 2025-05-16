@@ -14,6 +14,9 @@ import com.party.backbone.websocket.message.server.UserReconnectedMessage;
 import com.party.backbone.websocket.message.user.UserReconnectMessage;
 import com.party.backbone.websocket.model.UserMessageType;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @Component
 public class UserReconnectMessageHandler extends GameMessageHandler<UserReconnectMessage>
 	implements UserMessageHandler {
@@ -39,6 +42,7 @@ public class UserReconnectMessageHandler extends GameMessageHandler<UserReconnec
 		}
 		sessionRegistry.register(userId, session);
 		var userReconnectedMessage = new UserReconnectedMessage(message.getRequestId(), userId);
+		log.info("[UserReconnected] user reconnected for roomCode: {} id: {}", roomCode, userId);
 		session.sendMessage(new TextMessage(objectMapper.writeValueAsString(userReconnectedMessage)));
 	}
 

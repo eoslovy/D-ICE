@@ -1,23 +1,37 @@
-"use client"
-
 import { useState, useEffect } from "react"
 import { Moon, Sun } from "lucide-react"
 
 export default function DarkModeToggle() {
-  const [isDarkMode, setIsDarkMode] = useState(false)
+  const [isDarkMode, setIsDarkMode] = useState<boolean>(false);
 
+  // 컴포넌트가 마운트될 때 로컬스토리지에서 다크 모드 상태 확인
   useEffect(() => {
-    setIsDarkMode(document.documentElement.classList.contains("dark"))
-  }, [])
-
-  const toggleDarkMode = () => {
-    if (isDarkMode) {
-      document.documentElement.classList.remove("dark")
+    const darkModeSetting = localStorage.getItem("isDarkMode");
+    if (darkModeSetting) {
+      setIsDarkMode(darkModeSetting === "true");
     } else {
-      document.documentElement.classList.add("dark")
+      // 다크 모드 상태가 없다면 기본값에 따라 설정
+      setIsDarkMode(document.documentElement.classList.contains("dark"));
     }
-    setIsDarkMode(!isDarkMode)
-  }
+  }, []);
+
+  // 페이지 로드 후 다크 모드 상태에 맞게 클래스를 추가하거나 제거
+  useEffect(() => {
+    if (isDarkMode) {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+  }, [isDarkMode]); // isDarkMode가 변경될 때마다 실행
+
+  // 다크 모드 토글 함수
+  const toggleDarkMode = () => {
+    setIsDarkMode((prevMode) => {
+      const newMode = !prevMode;
+      localStorage.setItem("isDarkMode", newMode ? "true" : "false");
+      return newMode;
+    });
+  };
 
   return (
     <button
