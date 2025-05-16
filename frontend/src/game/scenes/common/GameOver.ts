@@ -103,9 +103,15 @@ export class GameOver extends Phaser.Scene {
             }
         );
 
+        userWebSocketManager.on("ERROR", (payload: ErrorMessage) => {
+            console.warn(`[GameOver] ${payload.message}`);
+            this.scene.start("Preloader");
+        });
+
         this.events.on("shutdown", () => {
             userWebSocketManager.off("AGGREGATED_USER");
             console.log("AGGREGATED_USER 이벤트 리스너 해제");
+            userWebSocketManager.off("ERROR");
         });
     }
 

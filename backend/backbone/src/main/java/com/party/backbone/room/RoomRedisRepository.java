@@ -46,4 +46,6 @@ public interface RoomRedisRepository {
 	void endGame(String roomCode);
 
 	Boolean hasPlayer(String roomCode, String userId);
+
+	Boolean validateSubmit(String roomCode, GameType gameType);
 }
