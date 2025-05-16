@@ -39,17 +39,11 @@ export class GameOver extends Phaser.Scene {
         this.gameTypeName =
             GAME_TYPES.find((type) => type.key === this.gameType)?.name ||
             this.gameType;
-        const width = this.cameras.main.width;
-        const height = this.cameras.main.height;
-        if (!this.countdown) {
-            this.countdown = new UICountdown(this, width / 2, height * 0.8);
-        }
     }
 
     create() {
         // 초기 화면 표시
         this.showInitialScreen();
-
         // Get user data from store
         const userId = userStore.getState().userId;
         const roomCode = userStore.getState().roomCode;
@@ -59,7 +53,7 @@ export class GameOver extends Phaser.Scene {
         // Send score to backend
         this.sendScoreToBackend(userId, roomCode);
         let aggregatedResolved = false;
-        const TIMEOUT_DURATION = 30000;
+        const TIMEOUT_DURATION = 40000;
 
         console.log("[GameOver] 타임아웃 타이머 설정 시작");
         const timeoutId = this.time.delayedCall(TIMEOUT_DURATION, () => {
@@ -93,6 +87,11 @@ export class GameOver extends Phaser.Scene {
                 this.needVideoUpload = !!payload.videoUploadUrl;
                 this.updateUI();
 
+                const width = this.cameras.main.width;
+                const height = this.cameras.main.height;
+
+                this.countdown = new UICountdown(this, width / 2, height * 0.8);
+
                 if (this.needVideoUpload) {
                     this.handleVideoUpload().then(() => {
                         this.showCountdownAndNext();
@@ -120,7 +119,7 @@ export class GameOver extends Phaser.Scene {
         const height = this.cameras.main.height;
 
         // UICountdown 표시
-        if (this.countdown) this.countdown.startCountdown(15);
+        this.countdown?.startCountdown(15);
 
         // "다음 게임" 버튼 표시
         let preloaderButton: Phaser.GameObjects.Container | undefined;
@@ -301,7 +300,6 @@ export class GameOver extends Phaser.Scene {
                 })
                 .setOrigin(0.5);
         }
-
     }
 
     private createRankTable(x: number, y: number) {
@@ -591,3 +589,4 @@ export class GameOver extends Phaser.Scene {
         );
     }
 }
+
