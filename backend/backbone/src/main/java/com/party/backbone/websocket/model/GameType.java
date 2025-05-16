@@ -16,6 +16,7 @@ public enum GameType {
 	Josephus(45000),
 	Dye(30000),
 	Knight(30000),
+	GraphHigh(45000),
 	Panopticon(30000),
 	Dice(30000),
 	ColorHunterG(25000),

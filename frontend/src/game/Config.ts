@@ -14,7 +14,8 @@ import { Wirewalk } from "./scenes/Wirewalk";
 import { Josephus } from "./scenes/Josephus";
 import { Dye } from "./scenes/Dye";
 import { Knight } from "./scenes/Knight";
-import { NumberSurvivor } from "./scenes/NumberSurvivor";
+import { NumberSurvivor } from './scenes/NumberSurvivor';
+import { GraphHigh } from './scenes/GraphHigh';
 import { Panopticon } from "./scenes/Panopticon";
 import { Dice } from "./scenes/Dice";
 import { ColorHunterG } from "./scenes/ColorHunterG";
@@ -66,6 +67,7 @@ const config: Phaser.Types.Core.GameConfig = {
         Dice,
         ColorHunterG,
         EndGame,
+        GraphHigh,
     ],
 };
 
