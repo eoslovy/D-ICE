@@ -9,6 +9,7 @@ interface PotgInfo {
     userId: string;
     nickname: string;
     videoUrl: string;
+    score?: number;
 }
 
 interface AdminJoinedMessage {
@@ -28,7 +29,7 @@ interface UserJoinedMessage {
     requestId: string;
 }
 interface UserReconnectedMessage {
-    type: "USER_RECONNECTED",
+    type: "USER_RECONNECTED";
     requestId: string;
     userId: string;
 }
@@ -66,6 +67,8 @@ interface AggregatedAdminMessage {
     currentRound: number; // 현재 round
     totalRound: number; // 전체 round
     gameType: string; //게임이름
+    roundPlayerCount: number; // 이번 라운드 참여자 수
+    totalPlayerCount: number; // 총 참여자 수
     roundRanking: RankingInfo[];
     overallRanking: RankingInfo[];
     firstPlace: PotgInfo;
@@ -83,6 +86,8 @@ interface AggregatedUserMessage {
     rankRecord: string; // 구분자 | 라운드별 순위 기록
     roundRank: number;
     overallRank: number;
+    roundPlayerCount: number; // 이번 라운드 참여자(SUBMIT) 수
+    totalPlayerCount: number; // 총 참여자 수
     roundRanking: RankingInfo[];
     overallRanking: RankingInfo[];
     videoUploadUrl: string; // s3 presigned url POST|PUT용
@@ -99,6 +104,13 @@ interface BroadcastMessage {
     userId: string;
     payload: string;
 }
+
+interface ErrorMessage {
+    type: "ERROR";
+    message: string;
+}
+
+
 type ReceiveMessage =
     | {
           [K in keyof AdminReceiveTypeMap]: {
@@ -131,4 +143,3 @@ type UserReceiveTypeMap = {
     AGGREGATED_USER: AggregatedUserMessage;
     BROADCAST: BroadcastMessage;
 };
-

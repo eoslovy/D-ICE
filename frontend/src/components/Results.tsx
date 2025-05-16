@@ -40,6 +40,7 @@ export default function Result({
         "first" | "last" | null
     >(null);
     const [sortedPlayers, setSortedPlayers] = useState<RankingInfo[]>([]);
+    const [totalUser, setTotalUser] = useState(0);
 
     // 모바일 여부 확인
     const checkMobile = useCallback(() => {
@@ -92,6 +93,8 @@ export default function Result({
                     rank: index + 1,
                 }));
 
+            // 최종 유저 명수
+            setTotalUser(finalData.overallRanking.length);
             setSortedPlayers(withRanks);
         }
     }, [finalData, isFinalView]);
@@ -241,8 +244,8 @@ export default function Result({
                                     />
                                     <div className="video-badge">
                                         {activeVideo === "first"
-                                            ? "🏆 우승자 플레이"
-                                            : "😅 꼴등 플레이"}
+                                            ? `🏆 ${data?.firstPlace.nickname} 플레이`
+                                            : `😅 ${data?.lastPlace.nickname} 플레이`}
                                     </div>
                                 </div>
 
@@ -298,7 +301,9 @@ export default function Result({
                         <div style={fadeInStyle} className="w-full">
                             <div className="rankings-table">
                                 <div className="rankings-header text-center">
-                                    {isFinalView ? "전체 순위표" : "순위표"}
+                                    {isFinalView
+                                        ? `전체 ${totalUser}명`
+                                        : `${data?.roundPlayerCount}/${data?.totalPlayerCount} 참여`}
                                 </div>
 
                                 <div className="rankings-body">
@@ -443,9 +448,39 @@ export default function Result({
                                         </>
                                     )}
 
-                                    {/* 항상 표시되는 꼴등 */}
+                                    {/* 항상 표시되는 꼴등 (마지막 라운드가 아닐때) */}
+                                    {data?.lastPlace &&
+                                        !rankingData.some(
+                                            (player) =>
+                                                player.userId ===
+                                                data.lastPlace.userId
+                                        ) && (
+                                            <div className="rank-item">
+                                                <div className="rank-number">
+                                                    <Frown
+                                                        className="text-red-500"
+                                                        size={24}
+                                                    />
+                                                </div>
+                                                <div className="rank-info">
+                                                    <div className="rank-name">
+                                                        {
+                                                            data.lastPlace
+                                                                .nickname
+                                                        }
+                                                    </div>
+                                                    <div className="rank-score">
+                                                        점수:{" "}
+                                                        {data.lastPlace.score}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                    {/* 항상 표시되는 꼴등 (마지막 라운드일때) */}
                                     {rankingData.length > 3 &&
-                                        !expandedRankings && (
+                                        !expandedRankings &&
+                                        isFinalRound && (
                                             <div
                                                 key={
                                                     rankingData[
@@ -521,9 +556,10 @@ export default function Result({
                                             onEnded={handleVideoEnded}
                                         />
                                         <div className="video-badge">
+                                            {/* // 수정 */}
                                             {activeVideo === "first"
-                                                ? "🏆 우승자 플레이"
-                                                : "😅 꼴등 플레이"}
+                                                ? `🏆 ${data?.firstPlace.nickname} 플레이`
+                                                : `😅 ${data?.lastPlace.nickname} 플레이`}
                                         </div>
                                     </div>
 
@@ -574,7 +610,6 @@ export default function Result({
                     {isFinalView && (
                         <div className="flex flex-col items-center justify-center w-full">
                             <div className="podium-container">
-                                <h3 className="podium-title">🏆 우승자 🏆</h3>
                                 <div className="relative flex justify-center items-end w-full h-64 px-8">
                                     {/* 2등 */}
                                     {topThreePlayers.length > 1 && (
@@ -590,10 +625,14 @@ export default function Result({
                                                     size={24}
                                                 />
                                                 <div className="podium-name text-center">
-                                                    {
-                                                        topThreePlayers[1]
-                                                            .nickname
-                                                    }
+                                                    {topThreePlayers[1].nickname
+                                                        .length > 4
+                                                        ? topThreePlayers[1].nickname.slice(
+                                                              0,
+                                                              4
+                                                          ) + "..."
+                                                        : topThreePlayers[1]
+                                                              .nickname}
                                                 </div>
                                                 <div className="podium-score text-center">
                                                     {topThreePlayers[1].score}점
@@ -617,10 +656,14 @@ export default function Result({
                                                     size={28}
                                                 />
                                                 <div className="podium-name podium-name-first text-center">
-                                                    {
-                                                        topThreePlayers[0]
-                                                            .nickname
-                                                    }
+                                                    {topThreePlayers[0].nickname
+                                                        .length > 4
+                                                        ? topThreePlayers[0].nickname.slice(
+                                                              0,
+                                                              4
+                                                          ) + "..."
+                                                        : topThreePlayers[0]
+                                                              .nickname}
                                                 </div>
                                                 <div className="text-lg text-center">
                                                     {topThreePlayers[0].score}점
@@ -644,10 +687,14 @@ export default function Result({
                                                     size={24}
                                                 />
                                                 <div className="podium-name text-center">
-                                                    {
-                                                        topThreePlayers[2]
-                                                            .nickname
-                                                    }
+                                                    {topThreePlayers[2].nickname
+                                                        .length > 4
+                                                        ? topThreePlayers[2].nickname.slice(
+                                                              0,
+                                                              4
+                                                          ) + "..."
+                                                        : topThreePlayers[2]
+                                                              .nickname}
                                                 </div>
                                                 <div className="podium-score text-center">
                                                     {topThreePlayers[2].score}점
@@ -673,7 +720,9 @@ export default function Result({
                     >
                         <div className="rankings-table">
                             <div className="rankings-header text-center">
-                                {isFinalView ? "전체 순위표" : "순위표"}
+                                {isFinalView
+                                    ? `전체 ${totalUser}명`
+                                    : `${data?.roundPlayerCount}/${data?.totalPlayerCount} 참여`}
                             </div>
 
                             <div className="rankings-body">
@@ -808,9 +857,35 @@ export default function Result({
                                     </>
                                 )}
 
-                                {/* 항상 표시되는 꼴등 */}
+                                {/* 항상 표시되는 꼴등 (마지막 라운드가 아닐때) */}
+                                {data?.lastPlace &&
+                                    !rankingData.some(
+                                        (player) =>
+                                            player.userId ===
+                                            data.lastPlace.userId
+                                    ) && (
+                                        <div className="rank-item">
+                                            <div className="rank-number">
+                                                <Frown
+                                                    className="text-red-500"
+                                                    size={24}
+                                                />
+                                            </div>
+                                            <div className="rank-info">
+                                                <div className="rank-name">
+                                                    {data.lastPlace.nickname}
+                                                </div>
+                                                <div className="rank-score">
+                                                    점수: {data.lastPlace.score}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                {/* 항상 표시되는 꼴등 (마지막 라운드일때) */}
                                 {rankingData.length > 3 &&
-                                    !expandedRankings && (
+                                    !expandedRankings &&
+                                    isFinalRound && (
                                         <div
                                             key={
                                                 rankingData[

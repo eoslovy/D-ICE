@@ -23,6 +23,7 @@
 
 #app {
   font-family: "Fredoka", "Jua", sans-serif;
+  background-color: #000000;
 }
 
 
@@ -30,7 +31,7 @@
   html {
     font-size: 16px;
     font-family: "Fredoka", "Jua", sans-serif;
-    background-color: var(--primary-color);
+    background-color: #000000;
     color: var(--tertiary-color);
   }
 
@@ -39,7 +40,7 @@
     min-height: 100vh;
     margin: 0;
     padding: 0;
-    background-color: var(--primary-color);
+    background-color: #000000;
     color: var(--tertiary-color);
     font-family: "Fredoka", "Jua", sans-serif;
     overflow-x: hidden;
@@ -54,6 +55,7 @@
   /* 기본 레이아웃 컴포넌트 */
   .game-container {
     @apply relative flex flex-col items-center justify-center w-full min-h-screen p-4 overflow-hidden;
+    color: #ebebd3;
   }
 
   .game-card {
@@ -162,6 +164,7 @@
     @apply w-full max-w-4xl mx-auto;
     position: relative;
     z-index: 10;
+    color: #ebebd3;
   }
 
   .result-title {
@@ -285,11 +288,12 @@
   /* 포디움 스타일 */
   .podium-container {
     @apply flex flex-col items-center justify-center w-full mb-8;
+    color: #ebebd3;
   }
 
   .podium-title {
     @apply text-xl font-bold mb-4;
-    color: #1e1e1e;
+    color: #ebebd3;
   }
 
   .podium-layout {
@@ -376,7 +380,7 @@
   }
 
   .podium-icon-first {
-    @apply text-yellow-500 mx-auto mb-1;
+    @apply text-yellow-500 mx-auto mb-1 mt-2;
   }
 
   .podium-icon-second {
@@ -570,7 +574,7 @@
 {
   @apply w-full px-4 py-3 mb-4 border-2 rounded-lg bg-gray-200 opacity-50 ring-3 cursor-not-allowed;
   border-color: var(--quinary-color);
-  color: var(--tertiary-color);
+  color: #1e1e1e;
   
   --tw-ring-color: var(--quinary-color);
 }

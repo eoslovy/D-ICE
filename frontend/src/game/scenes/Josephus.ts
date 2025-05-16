@@ -47,21 +47,21 @@ export class Josephus extends Scene {
     }
 
     preload() {
-        this.load.image("josephus", "assets/josephus/josephus.png");
-        this.load.audio(
-            "josephus_alive",
-            "assets/josephus/VOCALCUTECallHappy01.wav"
-        );
-        this.load.audio(
-            "josephus_doomed",
-            "assets/josephus/VOCALCUTEDistressPainShort12.wav"
-        );
-        this.load.audio(
-            "josephus_select",
-            "assets/josephus/VOCALCUTECallAffection07.wav"
-        );
-        this.load.audio("josephus_bgm", "assets/josephus/josephus_bgm.mp3");
-        this.load.start();
+        // this.load.image("josephus", "assets/josephus/josephus.png");
+        // this.load.audio(
+        //     "josephus_alive",
+        //     "assets/josephus/VOCALCUTECallHappy01.wav"
+        // );
+        // this.load.audio(
+        //     "josephus_doomed",
+        //     "assets/josephus/VOCALCUTEDistressPainShort12.wav"
+        // );
+        // this.load.audio(
+        //     "josephus_select",
+        //     "assets/josephus/VOCALCUTECallAffection07.wav"
+        // );
+        // this.load.audio("josephus_bgm", "assets/josephus/josephus_bgm.mp3");
+        // this.load.start();
     }
 
     create() {

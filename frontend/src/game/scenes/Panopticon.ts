@@ -55,16 +55,16 @@ export class Panopticon extends Scene {
     }
 
     preload() {
-        LoadManifestFromJSON(this, "assets/panopticon/manifest.json");
-        this.load.audio(
-            "panopticon_bgm",
-            "assets/panopticon/panopticon_bgm.mp3"
-        );
-        this.load.audio(
-            "panopticon_fail",
-            "assets/panopticon/TECHINTERFACEComputerBeepsLong02.wav"
-        );
-        this.load.start();
+        // LoadManifestFromJSON(this, "assets/panopticon/manifest.json");
+        // this.load.audio(
+        //     "panopticon_bgm",
+        //     "assets/panopticon/panopticon_bgm.mp3"
+        // );
+        // this.load.audio(
+        //     "panopticon_fail",
+        //     "assets/panopticon/TECHINTERFACEComputerBeepsLong02.wav"
+        // );
+        // this.load.start();
     }
 
     create() {
@@ -322,7 +322,7 @@ export class Panopticon extends Scene {
             callback: () => {
                 this.scene.start("GameOver", {
                     score: finalScore,
-                    gameType: "Wirewalk",
+                    gameType: "Panopticon",
                 });
             },
         });

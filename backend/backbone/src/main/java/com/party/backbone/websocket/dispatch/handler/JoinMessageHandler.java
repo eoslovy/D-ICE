@@ -17,6 +17,9 @@ import com.party.backbone.websocket.message.server.JoinedUserMessage;
 import com.party.backbone.websocket.message.user.UserJoinMessage;
 import com.party.backbone.websocket.model.UserMessageType;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @Component
 public class JoinMessageHandler extends GameMessageHandler<UserJoinMessage>
 	implements UserMessageHandler {
@@ -48,6 +51,7 @@ public class JoinMessageHandler extends GameMessageHandler<UserJoinMessage>
 			return;
 		}
 		int userCount = roomRepository.getUserCount(roomCode);
+		log.info("[UserJoined] user joined for roomCode: {} id: {}", roomCode, userId);
 		administratorSession.sendMessage(new TextMessage(objectMapper.writeValueAsString(new JoinedAdminMessage(
 			message.getRequestId(), roomCode, userId, message.getNickname(), userCount))));
 		session.sendMessage(new TextMessage(objectMapper.writeValueAsString(
