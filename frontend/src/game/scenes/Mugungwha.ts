@@ -54,17 +54,16 @@ export class Mugungwha extends Scene {
     }
 
     preload() {
-        // LoadManifestFromJSON(this, "assets/mugungwha/manifest.json");
-        // this.load.audio("mugungwha_pop", "assets/mugungwha/POPBrust01.wav");
-        // this.load.audio(
-        //     "mugungwha_fail",
-        //     "assets/mugungwha/TECHINTERFACEComputerBeepsLong02.wav"
-        // );
-        // this.load.audio("mugungwha_01", "assets/mugungwha/mugungwha_01.mp3");
-        // this.load.audio("mugungwha_02", "assets/mugungwha/mugungwha_02.mp3");
-        // this.load.audio("mugungwha_03", "assets/mugungwha/mugungwha_03.mp3");
-        // this.load.audio("mugungwha_bgm", "assets/mugungwha/mugungwha_bgm.mp3");
-        // this.load.start();
+        LoadManifestFromJSON(this, "assets/mugungwha/manifest.json");
+        this.load.audio("mugungwha_pop", "assets/mugungwha/POPBrust01.wav");
+        this.load.audio(
+            "mugungwha_fail",
+            "assets/mugungwha/TECHINTERFACEComputerBeepsLong02.wav"
+        );
+        this.load.audio("mugungwha_01", "assets/mugungwha/mugungwha_01.mp3");
+        this.load.audio("mugungwha_02", "assets/mugungwha/mugungwha_02.mp3");
+        this.load.audio("mugungwha_03", "assets/mugungwha/mugungwha_03.mp3");
+        this.load.audio("mugungwha_bgm", "assets/mugungwha/mugungwha_bgm.mp3");
     }
 
     create() {
