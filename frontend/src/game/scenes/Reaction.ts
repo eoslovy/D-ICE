@@ -113,7 +113,7 @@ export class Reaction extends Phaser.Scene {
             // 횟수 차감
             this.reactionTimes.push(this.reactionMaxTime);
             this.infoText.setText(
-                `너무 빨랐어요!\n(${this.reactionTimes.length}/5)\n\n횟수가 차감됩니다.\n예측은 NO NO!`
+                `너무 빨랐어요!\n(${this.reactionTimes.length}/5)\n\n횟수가 차감됩니다.\n예측은 NO!`
             );
             this.infoText.setFontFamily("Jua");
 
