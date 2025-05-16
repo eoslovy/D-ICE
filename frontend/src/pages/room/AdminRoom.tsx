@@ -13,13 +13,13 @@ export default function AdminRoom() {
     const [errorMessage, setErrorMessage] = useState("");
     const [userNickname, setUserNickname] = useState<string[]>([]);
     const [latestNickname, setLatestNickname] = useState<string | null>(null);
-    const [userCount, setUserCount] = useState<number | null>(
-        adminStore.getState().userCount
-    );
+    const [userCount, setUserCount] = useState<number | null>(null);
     let requestId = v7();
     const roomCode = adminStore.getState().roomCode;
+
     useEffect(() => {
         console.log("USER_JOINED_ADMIN 이벤트 리스너 등록");
+
         adminWebSocketManager.on(
             "USER_JOINED_ADMIN",
             (payload: UserJoinedAdminMessage) => {
@@ -44,7 +44,11 @@ export default function AdminRoom() {
     }, []);
 
     const initGame = async () => {
-        if (userCount === 0 || userCount === null) {
+        console.log("init game");
+        setUserCount(adminStore.getState().userCount);
+
+        if (!userCount || userCount < 1) {
+            console.log("성공");
             setErrorMessage(
                 "게임을 시작하려면 최소한 한 명의 참여자가 있어야 합니다."
             );
@@ -129,11 +133,7 @@ export default function AdminRoom() {
                     게임 시작
                 </button>
 
-                {errorMessage && (
-                    <p className="text-warning">
-                        게임을 시작하려면 최소한 한 명의 참여자가 있어야 합니다.
-                    </p>
-                )}
+                {errorMessage && <p className="text-warning">{errorMessage}</p>}
             </GameCard>
         </div>
     );
