@@ -125,7 +125,7 @@ public class RoomRedisRepositoryImpl implements RoomRedisRepository {
 		if (stateObj == null || !RoomStateTTL.WAITING.name().equals(stateObj.toString())) {
 			throw new IllegalStateException("[startGame] 현재 상태가 WAITING이 아닙니다: " + stateObj);
 		}
-		
+
 		int currentRound = Integer.parseInt(roundObj.toString());
 		GameType gameType = getGame(roomCode, currentRound);
 		long currentMs = System.currentTimeMillis();
@@ -194,6 +194,16 @@ public class RoomRedisRepositoryImpl implements RoomRedisRepository {
 	@Override
 	public Boolean hasPlayer(String roomCode, String userId) {
 		return redisTemplate.opsForSet().isMember(getPlayerIdsKey(roomCode), userId);
+	}
+
+	@Override
+	public Boolean validateSubmit(String roomCode, GameType gameType) {
+		String roomKey = getRoomKey(roomCode);
+		int currentRound = Integer.parseInt(
+			Objects.requireNonNull(redisTemplate.opsForHash().get(roomKey, "currentRound")).toString()
+		);
+		String gameTypeName = redisTemplate.opsForList().index(getGamesKey(roomCode), currentRound - 1);
+		return Objects.requireNonNull(gameTypeName).equals(gameType.name());
 	}
 
 	@Override
@@ -380,5 +390,4 @@ public class RoomRedisRepositoryImpl implements RoomRedisRepository {
 	private String getRoundScoreKey(String roomCode, int currentRound) {
 		return getRoomKey(roomCode) + ":round:" + currentRound + ":scores";
 	}
-
 }
