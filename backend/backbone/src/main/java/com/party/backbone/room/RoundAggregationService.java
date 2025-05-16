@@ -72,6 +72,10 @@ public class RoundAggregationService {
 
 		sendUserMessages(roomCode, aggregation, roundRanks, overallRanks, roundTop3, overallTop3);
 		sendAdminMessages(roomCode, aggregation, roundRanks, overallRanks, roundTop3, overallTop3);
+		log.info(
+			"[AggregationService] roomCode: {} currentRound: {} totalRound: {} roundPlayerCount: {} totalPlayerCount: {}",
+			roomCode, aggregation.currentRound(), aggregation.totalRound(), aggregation.roundPlayerCount(),
+			aggregation.totalPlayerCount());
 	}
 
 	private void sendUserMessages(String roomCode, ScoreAggregationResult aggregation,
