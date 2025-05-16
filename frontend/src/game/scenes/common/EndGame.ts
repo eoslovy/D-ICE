@@ -1,7 +1,7 @@
-import Phaser from 'phaser';
-import { userStore } from '../../../stores/userStore';
-import { addBackgroundImage } from './addBackgroundImage';
-import userWebSocketManager from '../../../modules/UserWebSocketManager';
+import Phaser from "phaser";
+import { userStore } from "../../../stores/userStore";
+import { addBackgroundImage } from "./addBackgroundImage";
+import userWebSocketManager from "../../../modules/UserWebSocketManager";
 
 interface EndGameSceneData {
     totalScore: number;
@@ -41,7 +41,7 @@ export class EndGame extends Phaser.Scene {
         totalScore: number,
         rankRecord: string,
         overallRank: number,
-        totalPlayerCount: number,
+        totalPlayerCount: number
     ) {
         const width = this.cameras.main.width;
         const height = this.cameras.main.height;
@@ -202,6 +202,8 @@ export class EndGame extends Phaser.Scene {
                         : "#ffffff",
                 fontFamily: "Jua",
             };
+
+            const rankText = rank === 0 ? "-" : rank.toString();
             this.add
                 .text(
                     x - tableWidth / 2 + 60,
@@ -214,7 +216,7 @@ export class EndGame extends Phaser.Scene {
                 .text(
                     x + tableWidth / 2 - 60,
                     y + rowHeight * (i + 1) + rowHeight / 2,
-                    `${rank}위`,
+                    `${rankText}위`,
                     textStyle
                 )
                 .setOrigin(0.5);
@@ -258,3 +260,4 @@ export class EndGame extends Phaser.Scene {
         });
     }
 }
+
