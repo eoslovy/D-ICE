@@ -42,18 +42,19 @@ export class GameOver extends Phaser.Scene {
         this.gameTypeName =
             GAME_TYPES.find((type) => type.key === this.gameType)?.name ||
             this.gameType;
-        const width = this.cameras.main.width;
-        const height = this.cameras.main.height;
-        if (!this.countdown) {
-            this.countdown = new UICountdown(this, width / 2, height * 0.8, 64);
-        }
     }
 
     create() {
+        const width = this.cameras.main.width;
+        const height = this.cameras.main.height;
+
+        // UICountdown 인스턴스 생성
+        if (!this.countdown) {
+            this.countdown = new UICountdown(this, width / 2, height * 0.8, 64);
+        }
         // 초기 화면 표시
         addBackgroundImage(this);
         this.showInitialScreen();
-
         // Get user data from store
         const userId = userStore.getState().userId;
         const roomCode = userStore.getState().roomCode;
@@ -146,7 +147,7 @@ export class GameOver extends Phaser.Scene {
         const height = this.cameras.main.height;
 
         // UICountdown 표시
-        if (this.countdown) this.countdown.startCountdown(15);
+        this.countdown?.startCountdown(15);
 
         // "다음 게임" 버튼 표시
         let preloaderButton: Phaser.GameObjects.Container | undefined;
@@ -611,3 +612,4 @@ export class GameOver extends Phaser.Scene {
         );
     }
 }
+
