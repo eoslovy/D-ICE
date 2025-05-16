@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { v7 as uuidv7 } from "uuid";
 import adminWebSocketManager from "../../modules/AdminWebSocketManager";
 import GameCard from "../../components/GameCard";
@@ -9,6 +9,9 @@ import Result from "../../components/Results";
 import { Users, Play, Clock } from "lucide-react";
 import { adminStore } from "../../stores/adminStore";
 import { useNavigate } from "react-router-dom";
+import OverlayScreen, {
+    OverlayScreenHandle,
+} from "../../modules/OverlayScreen";
 
 export default function BroadcastRoom() {
     const roomCode = adminStore.getState().roomCode;
@@ -26,8 +29,36 @@ export default function BroadcastRoom() {
     const navigate = useNavigate();
     let requestId = uuidv7();
 
+    const overlayRef = useRef<OverlayScreenHandle>(null);
+
+    const handleTriggerMessage = (
+        text: string,
+        fontSize: number = 48,
+        duration: number = 3000,
+        withEffect: boolean = true
+    ) => {
+        if (overlayRef.current) {
+            overlayRef.current.triggerMessage(
+                text,
+                fontSize,
+                duration,
+                withEffect
+            );
+        }
+    };
+
     useEffect(() => {
+        const timeoutId = setTimeout(() => {
+            if (nextGame === null) {
+                console.warn(
+                    "NEXT_GAME 메시지를 받지 못해 기본값으로 설정합니다."
+                );
+                setNextGame("알 수 없음");
+            }
+        }, 5000); // 5초
+
         adminWebSocketManager.on("NEXT_GAME", (payload: NextGameMessage) => {
+            clearTimeout(timeoutId); // 타임아웃 취소
             setCurrentRound(payload.currentRound);
             setNextGame(payload.gameType);
             adminStore.getState().setGameType(payload.gameType);
@@ -42,14 +73,29 @@ export default function BroadcastRoom() {
             }
         );
 
+        adminWebSocketManager.on(
+            "BROADCAST",
+            ({ payload }: BroadcastMessage) => {
+                handleTriggerMessage(payload);
+            }
+        );
+
         adminWebSocketManager.on("END", (payload: EndMessage) => {
             setFinalData(payload);
         });
 
+        adminWebSocketManager.on("ERROR", (payload: ErrorMessage) => {
+            if(payload.message.startsWith("[startGame]"))
+                setIsLoading(false);
+        })
+
         return () => {
+            clearTimeout(timeoutId);
             adminWebSocketManager.off("NEXT_GAME");
             adminWebSocketManager.off("AGGREGATED_ADMIN");
             adminWebSocketManager.off("END");
+            adminWebSocketManager.off("BROADCAST");
+            adminWebSocketManager.off("ERROR");
             console.log("BroadcastRoom 이벤트 리스너 해제");
         };
     }, []);
@@ -91,6 +137,7 @@ export default function BroadcastRoom() {
 
     return (
         <div className="game-container">
+            <OverlayScreen ref={overlayRef} />
             {showResults && !showFinalResult ? (
                 <div className="relative z-10 w-full max-w-4xl p-6 mx-auto rounded-2xl shadow-lg bg-opacity-95 backdrop-blur-sm bg-quaternary">
                     <Result data={data} onContinue={handleContinue} />

@@ -32,7 +32,7 @@ export class UICountdown {
             })
             .setOrigin(0.5, 0.5)
             .setDepth(1000);
-        this.countdownText.setVisible(false);
+        this.countdownText?.setVisible(false);
         this.countdownLeft = 0;
 
         this.phaserScene.events.on("shutdown", () => {
@@ -76,8 +76,8 @@ export class UICountdown {
         }
         this.countdownStarted = true;
         this.countdownLeft = duration;
-        this.countdownText.setText(`${this.countdownLeft}`);
-        this.countdownText.setVisible(true);
+        this.countdownText?.setText(`${this.countdownLeft}`);
+        this.countdownText?.setVisible(true);
         this.countdownSound?.play();
 
         this.countdownTimer = this.phaserScene.time.addEvent({
@@ -93,7 +93,8 @@ export class UICountdown {
             return; // Health check failed
         }
         this.countdownLeft--;
-        this.countdownText.setText(`${this.countdownLeft}`);
+        this.countdownText?.setText(`${this.countdownLeft}`);
+        this.countdownText?.setVisible(true);
 
         if (this.countdownLeft <= 0) {
             this.countdownFinishedSound?.play();
@@ -111,11 +112,11 @@ export class UICountdown {
         if (!this.countdownStarted) {
             return; // Countdown is not running
         }
-        this.countdownTimer.remove(false);
+        this.countdownTimer?.remove(false);
 
         this.countdownStarted = false;
-        this.countdownText.setVisible(false);
-        this.countdownText.setText("");
+        this.countdownText?.setVisible(false);
+        this.countdownText?.setText("");
 
         if (interrupted) {
             this.phaserScene.events.emit("countdownInterrupted");
@@ -138,3 +139,4 @@ export class UICountdown {
         return true;
     }
 }
+

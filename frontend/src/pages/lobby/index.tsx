@@ -17,7 +17,7 @@ export default function Lobby() {
     const [isJoining, setIsJoining] = useState(false);
     const navigate = useNavigate();
     const { connectWebSocket } = useWebSocket();
-    
+
     // ref로 최신 값 관리
     const roomCodeRef = useRef(roomCodeInput);
     const nicknameRef = useRef(nicknameInput);
@@ -42,12 +42,15 @@ export default function Lobby() {
 
     const handleConnect = () => {
         console.log("WebSocket 연결 성공");
-        userWebSocketManager.sendUserJoin(requestIdRef.current, nicknameRef.current);
+        userWebSocketManager.sendUserJoin(
+            requestIdRef.current,
+            nicknameRef.current
+        );
     };
 
     const handleDisconnect = (payload: unknown) => {
         const { code } = payload as { code: number; reason: string };
-        if (code === 1003) {
+        if (code === 1008) {
             console.error("방 코드가 유효하지 않습니다. 연결 실패.");
             setErrorMessage("방 번호가 유효하지 않습니다. 다시 확인해 주세요.");
             setIsJoining(false);
@@ -71,14 +74,16 @@ export default function Lobby() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        const nicknameLength = [...nicknameInput].length;
 
-        if (!nicknameInput) {
-            setErrorMessage("닉네임을 입력하세요.");
-            return;
-        }
-
-        if (!roomCodeInput) {
-            setErrorMessage("방 번호를 입력하세요.");
+        if (!nicknameInput || !roomCodeInput || nicknameLength > 12) {
+            if (nicknameLength > 12) {
+                setErrorMessage("닉네임을 12자 이하로 입력하세요.");
+            } else if (!nicknameInput) {
+                setErrorMessage("닉네임을 입력하세요.");
+            } else {
+                setErrorMessage("방 번호를 입력하세요.");
+            }
             return;
         }
 
@@ -90,7 +95,6 @@ export default function Lobby() {
                 import.meta.env.VITE_WEBSOCKET_URL
             }/backbone/ws/game/user/${roomCodeInput}`;
             connectWebSocket("user", USER_WS_URL);
-
         } catch (error: any) {
             console.error("방 입장 중 오류:", error);
             setIsJoining(false);
@@ -113,7 +117,7 @@ export default function Lobby() {
                             setErrorMessage("");
                         }}
                         className="input-field"
-                        placeholder="닉네임을 입력해주세요."
+                        placeholder="닉네임을 12자 이하로 입력해주세요."
                         disabled={isJoining}
                     />
 
@@ -156,7 +160,10 @@ export default function Lobby() {
                     >
                         {isJoining ? (
                             <div className="flex items-center">
-                                <Loader className="animate-spin mr-2" size={20} />
+                                <Loader
+                                    className="animate-spin mr-2"
+                                    size={20}
+                                />
                                 참여중....
                             </div>
                         ) : (

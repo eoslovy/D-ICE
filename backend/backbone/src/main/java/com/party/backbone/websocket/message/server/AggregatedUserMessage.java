@@ -7,15 +7,19 @@ import com.party.backbone.websocket.model.GameType;
 import com.party.backbone.websocket.model.RankingInfo;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class AggregatedUserMessage implements GameMessage {
 	private int currentRound;
 	private int totalRound;
+	private int roundPlayerCount;
+	private int totalPlayerCount;
 	private GameType gameType;
 	private int currentScore;
 	private int totalScore;

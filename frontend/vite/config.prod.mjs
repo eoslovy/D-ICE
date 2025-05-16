@@ -21,37 +21,32 @@ const phasermsg = () => {
 }
 
 export default defineConfig({
-    base: './',
-    plugins: [
-        react(),
-        phasermsg(),
-        tailwindcss(),
-    ],
+    base: "/",
+    plugins: [react(), phasermsg(), tailwindcss()],
     css: {
         postcss: {
-            plugins: [
-                autoprefixer
-            ],
+            plugins: [autoprefixer],
         },
     },
-    logLevel: 'warning',
+    logLevel: "warning",
     build: {
         rollupOptions: {
             output: {
                 manualChunks: {
-                    phaser: ['phaser']
-                }
-            }
+                    phaser: ["phaser"],
+                },
+            },
         },
-        minify: 'terser',
+        minify: "terser",
         terserOptions: {
             compress: {
-                passes: 2
+                passes: 2,
             },
             mangle: true,
             format: {
-                comments: false
-            }
-        }
+                comments: false,
+            },
+        },
     },
+
 });
