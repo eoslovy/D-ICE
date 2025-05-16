@@ -185,15 +185,14 @@ export class ColorHunterG extends Scene {
     }
 
     preload() {
-        // this.load.audio(
-        //     "colorhunterg_bgm",
-        //     "assets/colorhunterg/colorhunterg_bgm.mp3"
-        // );
-        // this.load.image(
-        //     "colorhunterg_marker",
-        //     "assets/colorhunterg/colorhunterg_marker.png"
-        // );
-        // this.load.start();
+        this.load.audio(
+            "colorhunterg_bgm",
+            "assets/colorhunterg/colorhunterg_bgm.mp3"
+        );
+        this.load.image(
+            "colorhunterg_marker",
+            "assets/colorhunterg/colorhunterg_marker.png"
+        );
     }
 
     create() {
