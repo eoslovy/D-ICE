@@ -71,6 +71,7 @@ export default function BackgroundAnimation({
       shape.style.opacity = `${0.2 + Math.random() * 0.5}`
       shape.style.animationDelay = `${Math.random() * 5}s`
       shape.style.animationDuration = `${(15 + Math.random() * 15) * speedMultiplier}s`
+      shape.style.zIndex = "0"
 
       // 회전 애니메이션 적용
       const rotationAmount = Math.random() * 360
