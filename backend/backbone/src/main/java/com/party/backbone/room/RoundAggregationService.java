@@ -57,15 +57,18 @@ public class RoundAggregationService {
 		if (aggregation == null)
 			return;
 
-		List<Map.Entry<String, ? extends Number>> sortedRound = getSortedScoreEntries(aggregation.roundScoreMap());
-		List<Map.Entry<String, ? extends Number>> sortedOverall = getSortedScoreEntries(aggregation.totalScoreMap());
+		List<Map.Entry<String, ? extends Number>> sortedRoundScores = getSortedScoreEntries(
+			aggregation.roundScoreMap());
+		List<Map.Entry<String, ? extends Number>> sortedOverallScores = getSortedScoreEntries(
+			aggregation.totalScoreMap());
 
-		Map<String, Integer> roundRanks = calculateRanks(sortedRound);
-		Map<String, Integer> overallRanks = calculateRanks(sortedOverall);
+		Map<String, Integer> roundRanks = calculateRanks(sortedRoundScores);
+		Map<String, Integer> overallRanks = calculateRanks(sortedOverallScores);
 		Map<String, String> nicknameMap = aggregation.nicknameMap();
 
-		List<RankingInfo> roundTop3 = buildTopK(sortedRound, roundRanks, nicknameMap, DEFAULT_RANKING_COUNT);
-		List<RankingInfo> overallTop3 = buildTopK(sortedOverall, overallRanks, nicknameMap, DEFAULT_RANKING_COUNT);
+		List<RankingInfo> roundTop3 = buildTopK(sortedRoundScores, roundRanks, nicknameMap, DEFAULT_RANKING_COUNT);
+		List<RankingInfo> overallTop3 = buildTopK(sortedOverallScores, overallRanks, nicknameMap,
+			DEFAULT_RANKING_COUNT);
 
 		sendUserMessages(roomCode, aggregation, roundRanks, overallRanks, roundTop3, overallTop3);
 		sendAdminMessages(roomCode, aggregation, roundRanks, overallRanks, roundTop3, overallTop3);
@@ -96,13 +99,22 @@ public class RoundAggregationService {
 			int currentScore = aggregation.roundScoreMap().get(userId);
 			int totalScore = aggregation.totalScoreMap().get(userId);
 
-			AggregatedUserMessage message = new AggregatedUserMessage(
-				currentRound, totalRound,
-				aggregation.gameType(), currentScore,
-				totalScore, rankRecord, roundRank, overallRank,
-				roundTop3, overallTop3, (roundRank == 1 || roundRank == maxRoundRank) ?
-				minioClientUtil.newPutPresignedUrl(roomCode, currentRound, userId) : ""
-			);
+			AggregatedUserMessage message = AggregatedUserMessage.builder()
+				.currentRound(currentRound)
+				.totalRound(totalRound)
+				.roundPlayerCount(aggregation.roundPlayerCount())
+				.totalPlayerCount(aggregation.totalPlayerCount())
+				.gameType(aggregation.gameType())
+				.currentScore(currentScore)
+				.totalScore(totalScore)
+				.rankRecord(rankRecord)
+				.roundRank(roundRank)
+				.overallRank(overallRank)
+				.roundRanking(roundTop3)
+				.overallRanking(overallTop3)
+				.videoUploadUrl((roundRank == 1 || roundRank == maxRoundRank) ?
+					minioClientUtil.newPutPresignedUrl(roomCode, currentRound, userId) : "")
+				.build();
 
 			WebSocketSession session = sessionRegistry.get(userId);
 			if (session == null || !session.isOpen()) {
@@ -141,6 +153,7 @@ public class RoundAggregationService {
 
 		AggregatedAdminMessage aggregatedAdminMessage = new AggregatedAdminMessage(
 			currentRound, totalRound,
+			aggregation.roundPlayerCount(), aggregation.totalPlayerCount(),
 			aggregation.gameType(), roundTop3, overallTop3,
 			firstPlaceInfo, lastPlaceInfo
 		);
