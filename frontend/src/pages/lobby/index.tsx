@@ -74,9 +74,12 @@ export default function Lobby() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        const nicknameLength = [...nicknameInput].length;
 
-        if (!nicknameInput || !roomCodeInput) {
-            if (!nicknameInput) {
+        if (!nicknameInput || !roomCodeInput || nicknameLength > 12) {
+            if (nicknameLength > 12) {
+                setErrorMessage("닉네임을 12자 이하로 입력하세요.");
+            } else if (!nicknameInput) {
                 setErrorMessage("닉네임을 입력하세요.");
             } else {
                 setErrorMessage("방 번호를 입력하세요.");
@@ -114,7 +117,7 @@ export default function Lobby() {
                             setErrorMessage("");
                         }}
                         className="input-field"
-                        placeholder="닉네임을 입력해주세요."
+                        placeholder="닉네임을 12자 이하로 입력해주세요."
                         disabled={isJoining}
                     />
 
