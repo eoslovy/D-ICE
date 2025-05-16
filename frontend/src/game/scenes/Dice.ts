@@ -129,14 +129,14 @@ export class Dice extends Phaser.Scene {
     }
 
     preload() {
-        // this.load.setBaseURL("https://cdn.phaserfiles.com/v385");
-        // this.load.image("dice-albedo", "assets/dice/dice-albedo.png");
-        // this.load.obj("dice-obj", "assets/dice/dice.obj");
-        // this.load.setBaseURL("");
-        // this.load.image("woodBackground", "assets/dice/diceBackground.png");
-        // this.load.audio("diceRoll", "assets/dice/diceRoll.wav");
-        // this.load.audio("totalSumSound", "assets/dice/STGR_Success_Calm_1.wav");
-        // this.load.audio("diceBgm", "assets/dice/Dice_bgm.mp3");
+        this.load.setBaseURL("https://cdn.phaserfiles.com/v385");
+        this.load.image("dice-albedo", "assets/dice/dice-albedo.png");
+        this.load.obj("dice-obj", "assets/dice/dice.obj");
+        this.load.setBaseURL("");
+        this.load.image("woodBackground", "assets/dice/diceBackground.png");
+        this.load.audio("diceRoll", "assets/dice/diceRoll.wav");
+        this.load.audio("totalSumSound", "assets/dice/STGR_Success_Calm_1.wav");
+        this.load.audio("diceBgm", "assets/dice/Dice_bgm.mp3");
     }
 
     create() {
