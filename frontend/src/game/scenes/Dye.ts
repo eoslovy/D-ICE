@@ -73,13 +73,12 @@ export class Dye extends Scene {
     }
 
     preload() {
-        // this.load.audio("dye_bgm", "assets/dye/dye_bgm.mp3");
-        // this.load.image("dye_pallete_1", "assets/dye/dye_pallete_1.png");
-        // this.load.image("dye_pallete_2", "assets/dye/dye_pallete_2.png");
-        // this.load.image("dye_pallete_3", "assets/dye/dye_pallete_3.png");
-        // this.load.image("dye_pallete_4", "assets/dye/dye_pallete_4.png");
-        // this.load.image("marker", "assets/dye/dye_marker.png");
-        // this.load.start();
+        this.load.audio("dye_bgm", "assets/dye/dye_bgm.mp3");
+        this.load.image("dye_pallete_1", "assets/dye/dye_pallete_1.png");
+        this.load.image("dye_pallete_2", "assets/dye/dye_pallete_2.png");
+        this.load.image("dye_pallete_3", "assets/dye/dye_pallete_3.png");
+        this.load.image("dye_pallete_4", "assets/dye/dye_pallete_4.png");
+        this.load.image("marker", "assets/dye/dye_marker.png");
     }
 
     create() {

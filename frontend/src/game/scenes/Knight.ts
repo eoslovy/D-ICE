@@ -62,25 +62,24 @@ export class Knight extends Scene {
     }
 
     preload() {
-        // this.load.audio("knight_bgm", "assets/knight/knight_bgm.mp3");
-        // this.load.audio(
-        //     "knight_slash",
-        //     "assets/knight/IMPACTMetalBladeClang01.wav"
-        // );
-        // this.load.audio(
-        //     "knight_parry",
-        //     "assets/knight/IMPACTMetalBladeChink07.wav"
-        // );
-        // this.load.audio(
-        //     "knight_hit",
-        //     "assets/knight/IMPACTMetalHitShort 03.wav"
-        // );
-        // this.load.audio(
-        //     "knight_fail",
-        //     "assets/knight/NEGATIVEFailure DescendingBellRun02.wav"
-        // );
-        // LoadManifestFromJSON(this, "assets/knight/manifest.json");
-        // this.load.start();
+        this.load.audio("knight_bgm", "assets/knight/knight_bgm.mp3");
+        this.load.audio(
+            "knight_slash",
+            "assets/knight/IMPACTMetalBladeClang01.wav"
+        );
+        this.load.audio(
+            "knight_parry",
+            "assets/knight/IMPACTMetalBladeChink07.wav"
+        );
+        this.load.audio(
+            "knight_hit",
+            "assets/knight/IMPACTMetalHitShort 03.wav"
+        );
+        this.load.audio(
+            "knight_fail",
+            "assets/knight/NEGATIVEFailure DescendingBellRun02.wav"
+        );
+        LoadManifestFromJSON(this, "assets/knight/manifest.json");
     }
 
     create() {
