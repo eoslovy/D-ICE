@@ -105,8 +105,8 @@ export class Preloader extends Phaser.Scene {
         this.waitingText?.destroy();
         // 다이스 제거
         //this.diceMiniGame?.destroy();
-        this.scene.start(userStore.getState().gameType);
-        /*
+        //this.scene.start(userStore.getState().gameType);
+        
         this.scene.start("Roulette", {
             nextGame: userStore.getState().gameType,
             onComplete: () => {
@@ -115,7 +115,7 @@ export class Preloader extends Phaser.Scene {
                 this.scene.start(userStore.getState().gameType);
             },
         });
-        */
+        
     }
 
     create() {  
