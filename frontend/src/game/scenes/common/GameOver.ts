@@ -16,8 +16,11 @@ export class GameOver extends Phaser.Scene {
     private roundScore: number = 0;
     private gameType: string = "";
     private backendResponse: AggregatedUserMessage | null = null;
-    private loadingText: Phaser.GameObjects.Text | null = null;
     private uploadStatus: Phaser.GameObjects.Text | null = null;
+    private initialGameOverText: Phaser.GameObjects.Text | null = null;
+    private initialScoreText: Phaser.GameObjects.Text | null = null;
+    private initialLoadingText: Phaser.GameObjects.Text | null = null;
+    private initialLoadingTween: Phaser.Tweens.Tween | null = null;
     private countdown?: UICountdown;
     private isLastRound: boolean = false;
     private needVideoUpload: boolean = false; // 업로드 필요 여부 상태 추가
@@ -42,12 +45,13 @@ export class GameOver extends Phaser.Scene {
         const width = this.cameras.main.width;
         const height = this.cameras.main.height;
         if (!this.countdown) {
-            this.countdown = new UICountdown(this, width / 2, height * 0.8);
+            this.countdown = new UICountdown(this, width / 2, height * 0.8, 64);
         }
     }
 
     create() {
         // 초기 화면 표시
+        addBackgroundImage(this);
         this.showInitialScreen();
 
         // Get user data from store
@@ -115,6 +119,28 @@ export class GameOver extends Phaser.Scene {
         });
     }
 
+    private clearInitialScreen() {
+        // 텍스트 오브젝트 파괴
+        if (this.initialGameOverText) {
+            this.initialGameOverText.destroy();
+            this.initialGameOverText = null;
+        }
+        if (this.initialScoreText) {
+            this.initialScoreText.destroy();
+            this.initialScoreText = null;
+        }
+        if (this.initialLoadingText) {
+            this.initialLoadingText.destroy();
+            this.initialLoadingText = null;
+        }
+        // 트윈(애니메이션) 중지 및 제거
+        if (this.initialLoadingTween) {
+            this.initialLoadingTween.stop();
+            this.initialLoadingTween.remove();
+            this.initialLoadingTween = null;
+        }
+    }
+
     private showCountdownAndNext() {
         const width = this.cameras.main.width;
         const height = this.cameras.main.height;
@@ -153,10 +179,8 @@ export class GameOver extends Phaser.Scene {
         const width = this.cameras.main.width;
         const height = this.cameras.main.height;
 
-        addBackgroundImage(this);
-
         // 게임 오버 텍스트
-        this.add
+        this.initialGameOverText = this.add
             .text(width / 2, height * 0.3, "게임 종료!", {
                 fontFamily: "Jua",
                 fontSize: "48px",
@@ -166,7 +190,7 @@ export class GameOver extends Phaser.Scene {
             .setOrigin(0.5);
 
         // 내 점수
-        this.add
+        this.initialScoreText = this.add
             .text(width / 2, height * 0.4, `내 점수: ${this.roundScore}`, {
                 fontFamily: "Jua",
                 fontSize: "32px",
@@ -176,7 +200,7 @@ export class GameOver extends Phaser.Scene {
             .setOrigin(0.5);
 
         // 로딩 텍스트
-        this.loadingText = this.add
+        this.initialLoadingText = this.add
             .text(width / 2, height * 0.5, "통계를 불러오는 중...", {
                 fontFamily: "Jua",
                 fontSize: "24px",
@@ -185,9 +209,9 @@ export class GameOver extends Phaser.Scene {
             })
             .setOrigin(0.5);
 
-        // 로딩 애니메이션
-        this.tweens.add({
-            targets: this.loadingText,
+        // 로딩 애니메이션 (트윈도 변수에 저장)
+        this.initialLoadingTween = this.tweens.add({
+            targets: this.initialLoadingText,
             alpha: 0.5,
             duration: 1000,
             yoyo: true,
@@ -198,13 +222,10 @@ export class GameOver extends Phaser.Scene {
     private updateUI() {
         if (!this.backendResponse) return;
 
+        this.clearInitialScreen();
+
         const width = this.cameras.main.width;
         const height = this.cameras.main.height;
-
-        // 기존 UI 요소들 제거
-        this.children.removeAll();
-
-        addBackgroundImage(this);
 
         // 제목
         this.add
@@ -301,7 +322,6 @@ export class GameOver extends Phaser.Scene {
                 })
                 .setOrigin(0.5);
         }
-
     }
 
     private createRankTable(x: number, y: number) {
@@ -426,7 +446,7 @@ export class GameOver extends Phaser.Scene {
             this.uploadStatus = null;
         }
         this.uploadStatus = this.add
-            .text(width / 2, height * 0.8, "게임 영상 업로드 중...", {
+            .text(width / 2, height * 0.7, "게임 영상 업로드 중...", {
                 fontFamily: "Jua",
                 fontSize: "20px",
                 color: "#ffffff",
@@ -461,7 +481,7 @@ export class GameOver extends Phaser.Scene {
 
             if (success) {
                 this.uploadStatus = this.add
-                    .text(width / 2, height * 0.8, "게임 영상 업로드 완료!", {
+                    .text(width / 2, height * 0.7, "게임 영상 업로드 완료!", {
                         fontFamily: "Jua",
                         fontSize: "20px",
                         color: "#00ff00",
@@ -486,7 +506,7 @@ export class GameOver extends Phaser.Scene {
                 });
             } else {
                 this.uploadStatus = this.add
-                    .text(width / 2, height * 0.8, "게임 영상 업로드 실패", {
+                    .text(width / 2, height * 0.7, "게임 영상 업로드 실패", {
                         fontFamily: "Jua",
                         fontSize: "20px",
                         color: "#ff0000",
@@ -512,7 +532,7 @@ export class GameOver extends Phaser.Scene {
             }
 
             this.uploadStatus = this.add
-                .text(width / 2, height * 0.8, errorMessage, {
+                .text(width / 2, height * 0.7, errorMessage, {
                     fontFamily: "Jua",
                     fontSize: "20px",
                     color: "#ff0000",
