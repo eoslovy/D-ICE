@@ -21,7 +21,7 @@ export class GameOver extends Phaser.Scene {
     private initialScoreText: Phaser.GameObjects.Text | null = null;
     private initialLoadingText: Phaser.GameObjects.Text | null = null;
     private initialLoadingTween: Phaser.Tweens.Tween | null = null;
-    private countdown?: UICountdown;
+    //private countdown?: UICountdown;
     private isLastRound: boolean = false;
     private needVideoUpload: boolean = false; // 업로드 필요 여부 상태 추가
     private gameTypeName: string = "";
@@ -49,9 +49,9 @@ export class GameOver extends Phaser.Scene {
         const height = this.cameras.main.height;
 
         // UICountdown 인스턴스 생성
-        if (!this.countdown) {
-            this.countdown = new UICountdown(this, width / 2, height * 0.8, 64);
-        }
+        // if (!this.countdown) {
+        //     this.countdown = new UICountdown(this, width / 2, height * 0.8, 64);
+        // }
         // 초기 화면 표시
         addBackgroundImage(this);
         this.showInitialScreen();
@@ -147,8 +147,14 @@ export class GameOver extends Phaser.Scene {
         const height = this.cameras.main.height;
 
         // UICountdown 표시
-        this.countdown?.startCountdown(15);
+        //this.countdown?.startCountdown(15);
 
+        const TIMEOUT_DURATION = 15000;
+
+        console.log("[GameOver] 타임아웃 타이머 설정 시작");
+        const timeoutId = this.time.delayedCall(TIMEOUT_DURATION, () => {
+            goNext();
+        });
         // "다음 게임" 버튼 표시
         let preloaderButton: Phaser.GameObjects.Container | undefined;
         const removeButton = () => {
@@ -163,7 +169,8 @@ export class GameOver extends Phaser.Scene {
         const goNext = () => {
             if (finished) return;
             finished = true;
-            this.countdown?.stopCountdown(false);
+            //this.countdown?.stopCountdown(false);
+            timeoutId.remove();
             removeButton();
             if (this.isLastRound) {
                 this.EndGame();
@@ -173,7 +180,7 @@ export class GameOver extends Phaser.Scene {
         };
 
         preloaderButton.on("pointerdown", goNext);
-        this.events.once("countdownFinished", goNext);
+        //this.events.once("countdownFinished", goNext);
     }
 
     private showInitialScreen() {
