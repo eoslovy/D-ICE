@@ -14,6 +14,9 @@ import com.party.backbone.websocket.message.admin.AdminJoinMessage;
 import com.party.backbone.websocket.message.server.AdminJoinedMessage;
 import com.party.backbone.websocket.model.AdminMessageType;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @Component
 public class AdminJoinMessageHandler extends GameMessageHandler<AdminJoinMessage>
 	implements AdminMessageHandler {
@@ -40,6 +43,7 @@ public class AdminJoinMessageHandler extends GameMessageHandler<AdminJoinMessage
 		}
 		AdminJoinedMessage response = new AdminJoinedMessage(message.getRequestId());
 		sessionRegistry.register(administratorId, session);
+		log.info("[AdminJoined] admin joined for roomCode: {} id: {}", roomCode, administratorId);
 		session.sendMessage(new TextMessage(objectMapper.writeValueAsString(response)));
 	}
 

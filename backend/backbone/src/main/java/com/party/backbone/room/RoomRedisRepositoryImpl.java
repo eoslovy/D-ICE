@@ -268,6 +268,7 @@ public class RoomRedisRepositoryImpl implements RoomRedisRepository {
 			.gameType(gameType)
 			.roundScoreMap(roundScoreMap)
 			.totalScoreMap(totalScoreMap)
+			.nicknameMap(nicknameMap)
 			.roundPlayerCount(roundPlayers.size())
 			.totalPlayerCount(userIds.size())
 			.build();

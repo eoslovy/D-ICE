@@ -51,6 +51,7 @@ public class StartGameMessageHandler extends GameMessageHandler<StartGameMessage
 		} catch (Exception e) {
 			log.error("[Broadcast] json parsing failed. payload={}", waitMessage, e);
 		}
+		log.info("[Wait] game will be started soon for roomCode: {}", roomCode);
 	}
 
 	@Override
