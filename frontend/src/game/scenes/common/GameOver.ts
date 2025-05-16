@@ -114,7 +114,7 @@ export class GameOver extends Phaser.Scene {
         const height = this.cameras.main.height;
 
         // UICountdown 표시
-        if (this.countdown) this.countdown.startCountdown(10);
+        if (this.countdown) this.countdown.startCountdown(15);
 
         // "다음 게임" 버튼 표시
         let preloaderButton: Phaser.GameObjects.Container | undefined;
@@ -238,6 +238,16 @@ export class GameOver extends Phaser.Scene {
             18
         );
 
+        const text = `라운드가 지날 수록 배점이 올라가요!!`;
+        this.add
+            .text(width / 2, height * 0.33 - 40, text, {
+                fontFamily: "Jua",
+                fontSize: "32px",
+                color: "#FFFFFF",
+                align: "center",
+            })
+            .setOrigin(0.5);
+
         const scoreText = `라운드 점수: ${this.backendResponse.currentScore}    전체 점수: ${this.backendResponse.totalScore}`;
         this.add
             .text(width / 2, height * 0.33 + scoreBoxHeight / 2, scoreText, {
@@ -285,6 +295,7 @@ export class GameOver extends Phaser.Scene {
                 })
                 .setOrigin(0.5);
         }
+
     }
 
     private createRankTable(x: number, y: number) {
@@ -517,6 +528,7 @@ export class GameOver extends Phaser.Scene {
             totalScore: this.backendResponse.totalScore,
             rankRecord: this.backendResponse.rankRecord,
             overallRank: this.backendResponse.overallRank,
+            totalPlayerCount: this.backendResponse.totalPlayerCount,
         });
     }
 
