@@ -96,6 +96,10 @@ export class GameOver extends Phaser.Scene {
                 if (this.needVideoUpload) {
                     this.handleVideoUpload().then(() => {
                         this.showCountdownAndNext();
+                    })
+                    .catch(()=>{
+                        
+                        this.showCountdownAndNext();
                     });
                 } else {
                     this.showCountdownAndNext();
