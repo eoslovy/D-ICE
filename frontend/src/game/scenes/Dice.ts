@@ -1,4 +1,4 @@
-import Phaser from 'phaser';
+import Phaser from "phaser";
 import potgManager from "../../modules/POTGManager";
 
 export class Dice extends Phaser.Scene {
@@ -9,7 +9,11 @@ export class Dice extends Phaser.Scene {
     private currentRollSum: number = 0;
     private isRolling: boolean = false;
     private diceSound!: Phaser.Sound.BaseSound;
+    private totalSumSound!: Phaser.Sound.BaseSound;
+    private diceBgm!: Phaser.Sound.BaseSound;
     private rollDuration = 2500;
+    private countdownTimer: Phaser.Time.TimerEvent | null = null;
+    private TimerCount = 5;
 
     constructor() {
         super("Dice");
@@ -130,15 +134,18 @@ export class Dice extends Phaser.Scene {
         this.load.obj("dice-obj", "assets/dice/dice.obj");
 
         this.load.setBaseURL("");
-        this.load.image(
-            "woodBackground",
-            "assets/background/woodBackground.png"
-        );
+        this.load.image("woodBackground", "assets/dice/diceBackground.png");
         this.load.audio("diceRoll", "assets/dice/diceRoll.wav");
+        this.load.audio("totalSumSound", "assets/dice/STGR_Success_Calm_1.wav");
+        this.load.audio("diceBgm", "assets/dice/Dice_bgm.mp3");
     }
 
     create() {
         this.diceSound = this.sound.add("diceRoll");
+        this.totalSumSound = this.sound.add("totalSumSound");
+        this.diceBgm = this.sound.add("diceBgm");
+        this.diceBgm?.play();
+
         const { width, height } = this.scale;
         this.add
             .image(width / 2, height / 2, "woodBackground")
@@ -188,7 +195,7 @@ export class Dice extends Phaser.Scene {
                     .text(x, y, "0", {
                         fontFamily: "Jua",
                         fontSize: 80,
-                        color: "#B97A57",
+                        color: "#FFD700",
                     })
                     .setScale(0)
                     .setOrigin(0.5);
@@ -197,16 +204,16 @@ export class Dice extends Phaser.Scene {
         }
         // 총합 표시 텍스트
         this.totalSumText = this.add
-            .text(this.scale.width / 2, 130, "합 : 0", {
-                font: "40px Jua",
+            .text(this.scale.width / 2, 250, "합 : 0", {
+                font: "48px Jua",
                 color: "#FFFFFF",
             })
             .setOrigin(0.5);
 
         // 남은 횟수 표시
         const rollsLeftText = this.add
-            .text(this.scale.width / 2, 200, "남은 기회 : 3회", {
-                font: "30px Jua",
+            .text(this.scale.width / 2, 130, "남은 기회 : 3회", {
+                font: "32px Jua",
                 color: "#FFD700",
             })
             .setOrigin(0.5);
@@ -244,7 +251,7 @@ export class Dice extends Phaser.Scene {
         rollButton.on("pointerover", () => {
             this.tweens.add({
                 targets: [rollButton, rollText],
-                scale: 1.08,
+                scale: 1.02,
                 duration: 100,
                 ease: "Sine.easeOut",
             });
@@ -291,7 +298,7 @@ export class Dice extends Phaser.Scene {
         stopButton.on("pointerover", () => {
             this.tweens.add({
                 targets: [stopButton, stopText],
-                scale: 1.08,
+                scale: 1.02,
                 duration: 100,
                 ease: "Sine.easeOut",
             });
@@ -306,7 +313,7 @@ export class Dice extends Phaser.Scene {
         });
 
         // -------- 굴리기 버튼 동작 --------
-        rollButton.on("pointerdown", () => {
+        const rollButtonHandler = () => {
             if (!this.isRolling && this.rollCount < 3) {
                 this.isRolling = true;
                 this.currentRollSum = 0;
@@ -314,28 +321,27 @@ export class Dice extends Phaser.Scene {
 
                 this.diceRollFunctions.forEach((roll, index) => {
                     roll((value: number) => {
-                        // rollDuration이 지난 뒤 텍스트 애니메이션 실행
                         this.time.delayedCall(this.rollDuration, () => {
                             this.currentRollSum += value;
-                            this.animateDiceText(this.diceTexts[index], value);
+                            animateDiceText(this.diceTexts[index], value);
 
-                            // 모든 주사위 애니메이션 완료 체크
                             if (index === this.diceRollFunctions.length - 1) {
                                 this.rollCount++;
                                 this.totalSumText.setText(
                                     `합 : ${this.currentRollSum}`
                                 );
+                                animateTotalSumText(this.totalSumText);
                                 rollsLeftText.setText(
                                     `남은 기회 : ${3 - this.rollCount}회`
                                 );
                                 this.isRolling = false;
 
                                 if (this.rollCount >= 3) {
-                                    // 녹화 종료
                                     if (potgManager.getIsRecording()) {
                                         potgManager.stopRecording();
                                     }
                                     this.time.delayedCall(3000, () => {
+                                        this.diceBgm?.stop();
                                         this.scene.start("GameOver", {
                                             score: this.currentRollSum,
                                             gameType: "Dice",
@@ -347,6 +353,59 @@ export class Dice extends Phaser.Scene {
                     });
                 });
             }
+        };
+
+        // --- 카운트다운 텍스트 준비 ---
+        let countdownText = this.add
+            .text(width / 2, rollButton.y - 50, "", {
+                font: "36px Jua",
+                color: "#FFD700",
+                stroke: "#222",
+                strokeThickness: 3,
+                align: "center",
+            })
+            .setOrigin(0.5);
+
+        // --- 카운트다운 및 자동 주사위 굴리기 함수 ---
+        const startCountdown = () => {
+            let count = this.TimerCount;
+            countdownText.setText(count.toString() + "초 후 자동 GO!");
+            countdownText.setVisible(true);
+
+            // 기존 타이머가 있다면 제거
+            if (this.countdownTimer) {
+                this.countdownTimer.remove();
+            }
+
+            // 1초마다 카운트다운
+            this.countdownTimer = this.time.addEvent({
+                delay: 1000,
+                repeat: this.TimerCount - 1, // 5,4,3,2,1 (총 TimerCount 회)
+                callback: () => {
+                    count--;
+                    countdownText.setText(
+                        count > 0 ? count.toString() + "초 후 자동 GO!" : "GO!"
+                    );
+                    if (count === 0) {
+                        // 카운트다운 끝: 자동으로 주사위 굴리기
+                        countdownText.setVisible(false);
+                        this.countdownTimer = null;
+                        rollButtonHandler();
+                    }
+                },
+                callbackScope: this,
+            });
+        };
+        rollButton.on("pointerdown", () => {
+            if (!this.isRolling && this.rollCount < 3) {
+                countdownText.setVisible(false); // 수동 클릭 시 카운트다운 숨김
+                // 카운트다운 타이머가 있으면 멈추기
+                if (this.countdownTimer) {
+                    this.countdownTimer.remove(); // 타이머 즉시 제거
+                    this.countdownTimer = null;
+                }
+                rollButtonHandler();
+            }
         });
 
         stopButton.on("pointerdown", () => {
@@ -355,6 +414,7 @@ export class Dice extends Phaser.Scene {
                 potgManager.stopRecording();
             }
             this.time.delayedCall(500, () => {
+                this.diceBgm?.stop();
                 this.scene.start("GameOver", {
                     score: this.currentRollSum,
                     gameType: "Dice",
@@ -362,20 +422,60 @@ export class Dice extends Phaser.Scene {
             });
         });
 
-        // 필요하다면: 버튼 위에서 커서 모양 변경
-        rollButton.on("pointerover", () =>
-            this.input.setDefaultCursor("pointer")
-        );
-        rollButton.on("pointerout", () =>
-            this.input.setDefaultCursor("default")
-        );
-        stopButton.on("pointerover", () =>
-            this.input.setDefaultCursor("pointer")
-        );
-        stopButton.on("pointerout", () =>
-            this.input.setDefaultCursor("default")
-        );
+        startCountdown();
 
+        const animateDiceText = (
+            text: Phaser.GameObjects.Text,
+            value: number
+        ) => {
+            text.setText(value.toString()).setScale(0).setAlpha(1);
+
+            this.tweens.add({
+                targets: text,
+                scale: 1,
+                duration: 500,
+                ease: "Bounce.out",
+                onComplete: () => {
+                    this.tweens.add({
+                        targets: text,
+                        scale: 0,
+                        delay: 1000,
+                        duration: 500,
+                        ease: "Power2",
+                    });
+                    if (this.rollCount < 3) {
+                        this.time.delayedCall(1000, () => {
+                            startCountdown();
+                        });
+                    }
+                },
+            });
+        };
+        const animateTotalSumText = (text: Phaser.GameObjects.Text) => {
+            text.setScale(1).setAlpha(1);
+            this.totalSumSound.play();
+            this.tweens.add({
+                targets: text,
+                scale: 1.3,
+                duration: 500,
+                ease: "Bounce.out",
+                onStart: () => {
+                    text.setColor("#FFD700"); // 트윈 시작 시 색상 변경
+                },
+                onComplete: () => {
+                    this.tweens.add({
+                        targets: text,
+                        scale: 1,
+                        delay: 1000,
+                        duration: 500,
+                        ease: "Power2",
+                        onComplete: () => {
+                            text.setColor("#FFFFFF"); // 트윈 끝나면 원래 색상으로
+                        },
+                    });
+                },
+            });
+        };
         // 녹화 시작
         if (potgManager.getIsRecording()) {
             const clearBeforeStart = async () => {
@@ -384,26 +484,5 @@ export class Dice extends Phaser.Scene {
             };
             clearBeforeStart();
         } else potgManager.startCanvasRecording();
-    }
-
-    // 텍스트 애니메이션 함수
-    private animateDiceText(text: Phaser.GameObjects.Text, value: number) {
-        text.setText(value.toString()).setScale(0).setAlpha(1);
-
-        this.tweens.add({
-            targets: text,
-            scale: 1,
-            duration: 500,
-            ease: "Bounce.out",
-            onComplete: () => {
-                this.tweens.add({
-                    targets: text,
-                    scale: 0,
-                    delay: 1000,
-                    duration: 500,
-                    ease: "Power2",
-                });
-            },
-        });
     }
 }

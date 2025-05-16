@@ -212,13 +212,13 @@ export class Roulette extends Scene {
 
         this.RouletteSlowSound?.play({ loop: true, volume: 1 });
         // Slow 사운드 1초 재생
-        this.time.delayedCall(1000, () => {
+        this.time.delayedCall(700, () => {
             // Slow 사운드 종료
             this.RouletteSlowSound?.stop();
             // 1. Fast 사운드 재생 (루프 O, 볼륨 1로 시작)
             this.RouletteFastSound?.play({ loop: true, volume: 1 });
             // 2. 1초 재생 후 페이드 아웃 1초
-            this.time.delayedCall(700, () => {
+            this.time.delayedCall(800, () => {
                 this.tweens.add({
                     targets: this.RouletteFastSound,
                     volume: 0,
@@ -402,4 +402,3 @@ export class Roulette extends Scene {
         });
     }
 }
-
