@@ -3,7 +3,6 @@ import potgManager from "../../../modules/POTGManager";
 import { v7 as uuidv7 } from "uuid";
 import { userStore } from "../../../stores/userStore";
 import userWebSocketManager from "../../../modules/UserWebSocketManager";
-import { UICountdown } from "../../../modules/gameutils/UICountdown";
 import { addBackgroundImage } from "./addBackgroundImage";
 import { GAME_TYPES } from "./GameType";
 // Add interface for scene data
@@ -21,7 +20,6 @@ export class GameOver extends Phaser.Scene {
     private initialScoreText: Phaser.GameObjects.Text | null = null;
     private initialLoadingText: Phaser.GameObjects.Text | null = null;
     private initialLoadingTween: Phaser.Tweens.Tween | null = null;
-    //private countdown?: UICountdown;
     private isLastRound: boolean = false;
     private needVideoUpload: boolean = false; // 업로드 필요 여부 상태 추가
     private gameTypeName: string = "";
@@ -146,13 +144,10 @@ export class GameOver extends Phaser.Scene {
         const width = this.cameras.main.width;
         const height = this.cameras.main.height;
 
-        // UICountdown 표시
-        //this.countdown?.startCountdown(15);
+        const goNext_TIMEOUT_DURATION = 15000;
 
-        const TIMEOUT_DURATION = 15000;
-
-        console.log("[GameOver] 타임아웃 타이머 설정 시작");
-        const timeoutId = this.time.delayedCall(TIMEOUT_DURATION, () => {
+        console.log("[goNext] 타임아웃 타이머 설정 시작");
+        const timeoutId = this.time.delayedCall(goNext_TIMEOUT_DURATION, () => {
             goNext();
         });
         // "다음 게임" 버튼 표시
@@ -169,7 +164,6 @@ export class GameOver extends Phaser.Scene {
         const goNext = () => {
             if (finished) return;
             finished = true;
-            //this.countdown?.stopCountdown(false);
             timeoutId.remove();
             removeButton();
             if (this.isLastRound) {
@@ -180,7 +174,6 @@ export class GameOver extends Phaser.Scene {
         };
 
         preloaderButton.on("pointerdown", goNext);
-        //this.events.once("countdownFinished", goNext);
     }
 
     private showInitialScreen() {
@@ -335,7 +328,6 @@ export class GameOver extends Phaser.Scene {
     private createRankTable(x: number, y: number) {
         if (!this.backendResponse || !this.backendResponse.roundRanking) return;
 
-        // roundRanking: [{ nickname: string, score: number }, ...] 형태라고 가정
         const roundRanking = this.backendResponse.roundRanking as {
             nickname: string;
             score: number;
