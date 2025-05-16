@@ -225,8 +225,6 @@ export class Preloader extends Phaser.Scene {
                     );
                     return;
                 }
-                // Ended 요청 인터벌 초기화
-                clearInterval(this.checkEndedInterval);
                 // Ended 응답 받았으므로 EndGame 씬으로 전환
                 this.scene.start("EndGame", {
                     totalScore: payload.totalScore,
@@ -269,6 +267,10 @@ export class Preloader extends Phaser.Scene {
             console.log("WAIT 이벤트 리스너 해제");
             userWebSocketManager.off("BROADCAST");
             console.log("BROADCAST 이벤트 리스너 해제");
+            userWebSocketManager.off("CHECK_ENDED_ACK");
+            console.log("CHECK_ENDED_ACK 이벤트 리스너 해제");
+            clearInterval(this.checkEndedInterval);
+            console.log("CHECK_ENDED 요청 인터벌 클리어");
         });
 
         this.loadOnBackground();
