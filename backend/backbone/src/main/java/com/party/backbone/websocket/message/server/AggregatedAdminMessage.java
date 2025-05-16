@@ -17,6 +17,8 @@ import lombok.NoArgsConstructor;
 public class AggregatedAdminMessage implements GameMessage {
 	private int currentRound;
 	private int totalRound;
+	private int roundPlayerCount;
+	private int totalPlayerCount;
 	private GameType gameType;
 	private List<RankingInfo> roundRanking; // 이번 라운드 3등까지의 정보 length 3
 	private List<RankingInfo> overallRanking; // 전체
