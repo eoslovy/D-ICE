@@ -352,14 +352,55 @@ export class GraphHigh extends Scene {
     }
 
     private showScoreGauge(percent: number) {
-        const cx = this.cameras.main.centerX, cy = this.cameras.main.centerY;
-        const w = 300, h = 30;
-        const bg = this.add.rectangle(cx, cy, w, h, 0x333333).setOrigin(0.5);
-        const fill = this.add.rectangle(cx - w/2, cy, 0, h, 0x00ff00).setOrigin(0, 0.5);
-        const txt = this.add.text(cx, cy - 40, `📊 점수: ${percent}%`, { font: '24px Jua', color: '#fff' }).setOrigin(0.5);
-        this.tweens.add({ targets: fill, width: w * percent / 100, duration: 1000, ease: 'Cubic.easeOut' });
-        this.time.delayedCall(3000, () => { bg.destroy(); fill.destroy(); txt.destroy(); });
-    }
+    const cx = this.cameras.main.centerX;
+    const cy = this.cameras.main.centerY;
+    const w  = 300;
+    const h  = 30;
+
+    // --- 1) 기본 게이지 ---
+    const bg   = this.add.rectangle(cx, cy, w, h, 0x333333).setOrigin(0.5);
+    const fill = this.add.rectangle(cx - w/2, cy, 0, h, 0x00ff00).setOrigin(0, 0.5);
+    this.tweens.add({
+      targets: fill,
+      width: w * percent / 100,
+      duration: 1000,
+      ease: 'Cubic.easeOut'
+    });
+
+    // --- 2) “📊 점수: XX%” 텍스트 ---
+    const txt = this.add.text(cx, cy - 40, `📊 점수: ${percent}%`, {
+      font: '24px Jua',
+      color: '#fff'
+    }).setOrigin(0.5);
+
+    // --- 3) 수식 표현 (“🧮 (내점수/최고점)×100” 모양) ---
+    const best        = Math.max(...this.attempts);
+    const globalBest  = this.latestRanking.length
+      ? Math.max(...this.latestRanking.map(r => r.earnedScore))
+      : best;
+    // 배경 버튼처럼
+    const formulaW    = w * 0.8;
+    const formulaH    = 40;
+    const formulaY    = cy - 80;
+    const formBg = this.add.rectangle(cx, formulaY, formulaW, formulaH, 0xffa69e)
+      .setOrigin(0.5)
+      .setStrokeStyle(2, 0x1e1e1e);
+    // 아이콘 + 수식 텍스트
+    const formulaText = `🧮 (${best}/${globalBest}) × 100 = ${percent}%`;
+    const formTxt = this.add.text(cx, formulaY, formulaText, {
+      font: '18px Jua',
+      color: '#1e1e1e'
+    }).setOrigin(0.5);
+
+    // --- 4) 3초 뒤 모두 정리 ---
+    this.time.delayedCall(5000, () => {
+      bg.destroy();
+      fill.destroy();
+      txt.destroy();
+      formBg.destroy();
+      formTxt.destroy();
+    });
+}
 
     update() {
         this.drawUI();
