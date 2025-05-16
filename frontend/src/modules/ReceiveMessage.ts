@@ -9,6 +9,7 @@ interface PotgInfo {
     userId: string;
     nickname: string;
     videoUrl: string;
+    score?: number;
 }
 
 interface AdminJoinedMessage {
