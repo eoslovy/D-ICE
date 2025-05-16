@@ -225,7 +225,13 @@ export class GraphHigh extends Scene {
  private drawUI() {
      const ctx = this.uiCtx, W = ctx.canvas.width, H = ctx.canvas.height;
      ctx.clearRect(0, 0, W, H);
+    
 
+    // 공통: 텍스트 수직 중앙 정렬
+    ctx.textBaseline = 'middle';
+
+    // ─── 타이머 다시 그리기 ─────────────────────────
+    // 5초 이하일 땐 500ms 단위로 깜빡임
     const timerX = W / 2;
     const timerY = H * 0.08;
     if (this.remainingTime <= 5) {
@@ -238,9 +244,7 @@ export class GraphHigh extends Scene {
     ctx.textBaseline= 'middle';
     ctx.font        = `${Math.floor(H * 0.04)}px Jua`;
     ctx.fillText(`Time: ${this.remainingTime}`, timerX, timerY);
-
-    // 공통: 텍스트 수직 중앙 정렬
-    ctx.textBaseline = 'middle';
+    // ────────────────────────────────────────────────
 
     // 1) 랭킹용 배경 컨테이너
     const entries = this.latestRanking.slice(0, 5);
@@ -367,7 +371,7 @@ export class GraphHigh extends Scene {
     private showScoreGauge(percent: number) {
     const cx = this.cameras.main.centerX;
     const cy = this.cameras.main.centerY;
-    const w  = 300;
+    const w  = 500;
     const h  = 30;
 
     // --- 1) 기본 게이지 ---
@@ -376,7 +380,7 @@ export class GraphHigh extends Scene {
     this.tweens.add({
       targets: fill,
       width: w * percent / 100,
-      duration: 1000,
+      duration: 2000,
       ease: 'Cubic.easeOut'
     });
 
@@ -406,7 +410,7 @@ export class GraphHigh extends Scene {
     }).setOrigin(0.5);
 
     // --- 4) 3초 뒤 모두 정리 ---
-    this.time.delayedCall(5000, () => {
+    this.time.delayedCall(8000, () => {
       bg.destroy();
       fill.destroy();
       txt.destroy();
