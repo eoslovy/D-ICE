@@ -3,10 +3,11 @@ package com.party.backbone.room;
 import java.util.List;
 import java.util.Set;
 
-import com.party.backbone.room.dto.FinalResult;
 import com.party.backbone.room.dto.RoundInfo;
 import com.party.backbone.room.dto.ScoreAggregationResult;
+import com.party.backbone.websocket.message.server.CheckEndedAckMessage;
 import com.party.backbone.websocket.model.GameType;
+import com.party.backbone.websocket.model.RankingInfo;
 
 public interface RoomRedisRepository {
 	void createRoom(String roomCode, String administratorId);
@@ -41,11 +42,13 @@ public interface RoomRedisRepository {
 
 	GameType getGame(String roomCode, int round);
 
-	List<FinalResult> getFinalResults(String roomCode);
+	List<RankingInfo> getFinalResults(String roomCode);
 
 	void endGame(String roomCode);
 
 	Boolean hasPlayer(String roomCode, String userId);
 
 	Boolean validateSubmit(String roomCode, GameType gameType);
+
+	CheckEndedAckMessage checkEnded(String roomCode, String userId);
 }
