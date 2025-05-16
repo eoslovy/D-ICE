@@ -270,7 +270,7 @@ export default function WrapperLayout() {
             {isReady && !isModalOpen && <Outlet />}
             {/* 모달 창 */}
             {isModalOpen && (
-                <div className="modal flex items-center justify-center min-h-screen">
+                <div className="modal flex items-center justify-center min-h-screen text-white">
                     <div className="modal-content p-6 rounded-lg shadow-lg text-center z-10">
                         <h2 className="text-2xl font-bold mb-4">
                             {modalType === "user"
