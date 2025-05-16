@@ -16,21 +16,21 @@ public class GraphHigh implements GameInfo {
 	@Override
 	public void init() {
 		GraphHighClientMessage message1 = GraphHighClientMessage.builder()
-			.userName("없음")
+			.userName("-")
 			.userCode("0")
 			.earnedScore(0)
 			.totalScore(0)
 			.build();
 		gameMap.add(message1);
 		GraphHighClientMessage message2 = GraphHighClientMessage.builder()
-			.userName("없음")
+			.userName("-")
 			.userCode("0")
 			.earnedScore(0)
 			.totalScore(0)
 			.build();
 		gameMap.add(message2);
 		GraphHighClientMessage message3 = GraphHighClientMessage.builder()
-			.userName("없음")
+			.userName("-")
 			.userCode("0")
 			.earnedScore(0)
 			.totalScore(0)

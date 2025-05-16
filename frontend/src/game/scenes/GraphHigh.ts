@@ -226,6 +226,19 @@ export class GraphHigh extends Scene {
      const ctx = this.uiCtx, W = ctx.canvas.width, H = ctx.canvas.height;
      ctx.clearRect(0, 0, W, H);
 
+    const timerX = W / 2;
+    const timerY = H * 0.08;
+    if (this.remainingTime <= 5) {
+      const blink = Math.floor(Date.now() / 500) % 2 === 0;
+      ctx.fillStyle = blink ? '#ff4d4f' : '#fff';  // 빨강/흰색 깜빡
+    } else {
+      ctx.fillStyle = '#fff';
+    }
+    ctx.textAlign   = 'center';
+    ctx.textBaseline= 'middle';
+    ctx.font        = `${Math.floor(H * 0.04)}px Jua`;
+    ctx.fillText(`Time: ${this.remainingTime}`, timerX, timerY);
+
     // 공통: 텍스트 수직 중앙 정렬
     ctx.textBaseline = 'middle';
 
