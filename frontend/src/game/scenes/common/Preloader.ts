@@ -197,7 +197,7 @@ export class Preloader extends Phaser.Scene {
                 this.scene.start(userStore.getState().gameType);
             },
         });
-        
+    
     }
 
     create() {
