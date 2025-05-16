@@ -12,6 +12,7 @@ import com.party.backbone.websocket.message.server.AdminReconnectedMessage;
 import com.party.backbone.websocket.message.server.AggregatedAdminMessage;
 import com.party.backbone.websocket.message.server.AggregatedUserMessage;
 import com.party.backbone.websocket.message.server.BroadcastMessage;
+import com.party.backbone.websocket.message.server.CheckEndedAckMessage;
 import com.party.backbone.websocket.message.server.EndMessage;
 import com.party.backbone.websocket.message.server.EnterGameMessage;
 import com.party.backbone.websocket.message.server.ErrorMessage;
@@ -22,6 +23,7 @@ import com.party.backbone.websocket.message.server.NextGameMessage;
 import com.party.backbone.websocket.message.server.UserReconnectedMessage;
 import com.party.backbone.websocket.message.server.WaitMessage;
 import com.party.backbone.websocket.message.user.BroadcastRequestMessage;
+import com.party.backbone.websocket.message.user.CheckEndedMessage;
 import com.party.backbone.websocket.message.user.SubmitMessage;
 import com.party.backbone.websocket.message.user.UserJoinMessage;
 import com.party.backbone.websocket.message.user.UserReconnectMessage;
@@ -50,6 +52,8 @@ import com.party.backbone.websocket.message.user.UserReconnectMessage;
 	@JsonSubTypes.Type(value = AggregatedUserMessage.class, name = "AGGREGATED_USER"),
 	@JsonSubTypes.Type(value = AggregatedAdminMessage.class, name = "AGGREGATED_ADMIN"),
 	@JsonSubTypes.Type(value = EndMessage.class, name = "END"),
+	@JsonSubTypes.Type(value = CheckEndedMessage.class, name = "CHECK_ENDED"),
+	@JsonSubTypes.Type(value = CheckEndedAckMessage.class, name = "CHECK_ENDED_ACK"),
 	@JsonSubTypes.Type(value = ErrorMessage.class, name = "ERROR"),
 })
 public interface GameMessage {

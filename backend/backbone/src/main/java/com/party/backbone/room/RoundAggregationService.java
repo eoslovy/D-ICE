@@ -176,9 +176,9 @@ public class RoundAggregationService {
 			administratorId, roomCode, currentRound, totalRound);
 
 		if (currentRound == totalRound) {
-			var finalResults = roomRepository.getFinalResults(roomCode);
+			var finalRanks = roomRepository.getFinalResults(roomCode);
 			roomRepository.endGame(roomCode);
-			EndMessage endMessage = new EndMessage(calculateFinalRanks(finalResults));
+			EndMessage endMessage = new EndMessage(finalRanks);
 			adminSession.sendMessage(new TextMessage(objectMapper.writeValueAsString(endMessage)));
 			log.info("[EndMessage] Sent EndMessage to admin {} of room {} — totalRound={} completed",
 				administratorId, roomCode, totalRound);
