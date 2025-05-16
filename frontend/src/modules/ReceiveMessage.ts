@@ -133,6 +133,7 @@ type AdminReceiveTypeMap = {
     AGGREGATED_ADMIN: AggregatedAdminMessage;
     END: EndMessage;
     BROADCAST: BroadcastMessage;
+    ERROR: ErrorMessage;
 };
 
 type UserReceiveTypeMap = {
@@ -142,4 +143,5 @@ type UserReceiveTypeMap = {
     ENTER_GAME: EnterGameMessage;
     AGGREGATED_USER: AggregatedUserMessage;
     BROADCAST: BroadcastMessage;
+    ERROR: ErrorMessage;
 };
