@@ -73,10 +73,7 @@ export default function App(/*{ roomId = "wasted", shouldConnect = true }: AppPr
   return (
       <>
           {/* Conditionally render PhaserGame based on connection or other logic if needed */}
-          <div
-              id="phaser-game-container"
-              style={{ width: "100%", height: "100%", zIndex: 10 }}
-          >
+          <div id="phaser-game-container" className="w-full h-full z-10">
               <PhaserGame />
           </div>
           <BackButton />
