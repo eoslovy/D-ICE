@@ -12,20 +12,18 @@ interface ScoreMessage {
 
 export class GraphHigh extends Scene {
     private ws?: WebSocket;
-    private chartImage!: Phaser.GameObjects.Image;
-    private chartTex!: Phaser.Textures.CanvasTexture;
     private uiCtx!: CanvasRenderingContext2D;
-    private rankingTexts: Phaser.GameObjects.Container[] = [];
     private latestRanking: ScoreMessage[] = [];
     private chart!: IChartApi;
     private series!: ReturnType<IChartApi["addCandlestickSeries"]>;
     private tickBuffer: number[] = [];
     private candles: CandlestickData[] = [];
+    private prevRanking: ScoreMessage[] = [];    // ①
+    private rankDiffs: number[] = [];
     private currentPrice = 1000;
     private logicalTime = 0;
     private remainingTime = 30;
     private attempts: number[] = [];
-    private gameStartedTime = Date.now();
     private containerId = "chart-container";
     private prng!: () => number;
 
@@ -62,13 +60,7 @@ export class GraphHigh extends Scene {
     }
 
     async create() {
-        this.children.list.forEach(go => {
-            if (go instanceof Phaser.GameObjects.Text || go instanceof Phaser.GameObjects.Container) {
-                go.setVisible(false);
-            }
-        });
-
-        // ── 2) HTML HUD 로 올라간 기존 UI 숨기기 ── ['chart-hud','time-display','score-button']
+        // Hide existing HTML UI
         ['chart-hud','time-display'].forEach(id => {
             const el = document.getElementById(id);
             if (el) el.style.display = 'none';
@@ -77,53 +69,42 @@ export class GraphHigh extends Scene {
 
         // WebSocket connection
         const params = new URLSearchParams({ roomCode, roundCode: "0", userCode: userId }).toString();
-        const WS_URL = `${import.meta.env.VITE_WEBSOCKET_URL}/game/kjh/ws/graphhigh?${params}`;
-        this.ws = new WebSocket(WS_URL);
-
+        this.ws = new WebSocket(`${import.meta.env.VITE_WEBSOCKET_URL}/game/kjh/ws/graphhigh?${params}`);
         this.ws.onopen = () => {
             const payload: ScoreMessage = { userCode: userId, userName: nickname, earnedScore: 0, totalScore: 0 };
             this.ws?.send(JSON.stringify(payload));
         };
-
         this.ws.onmessage = (event) => {
             try {
                 const data = JSON.parse(event.data) as { scoreRanking: ScoreMessage[] };
                 this.renderRanking(data.scoreRanking);
-                this.latestRanking = data.scoreRanking;
             } catch {
                 console.error("Ranking parse error");
             }
         };
-
         this.ws.onerror = console.error;
-        this.ws.onclose = (e) => console.log(`WebSocket closed: ${e.code}`);
+        this.ws.onclose = e => console.log(`WebSocket closed: ${e.code}`);
 
         // Chart setup
         this.createChartContainer();
         this.setupChart();
 
-        // Candle-building timer
-        this.time.addEvent({
-            delay: 1000, loop: true, callback: () => {
-                if (this.tickBuffer.length) {
-                    const candle = this.makeCandle(this.tickBuffer, this.logicalTime++);
-                    this.candles.push(candle);
-                    this.series.update(candle);
-                    this.tickBuffer = [this.currentPrice];
-                }
+        // Candle timer
+        this.time.addEvent({ delay: 1000, loop: true, callback: () => {
+            if (this.tickBuffer.length) {
+                const candle = this.makeCandle(this.tickBuffer, this.logicalTime++);
+                this.candles.push(candle);
+                this.series.update(candle);
+                this.tickBuffer = [this.currentPrice];
             }
-        });
-        
+        }});
         // Countdown timer
-        this.time.addEvent({
-            delay: 1000, loop: true, callback: () => {
-                this.remainingTime--;
-                const t = document.getElementById('time-display');
-                if (t) t.textContent = `Time: ${this.remainingTime}`;
-                if (this.remainingTime <= 0) this.result();
-            }
-        });
-
+        this.time.addEvent({ delay: 1000, loop: true, callback: () => {
+            this.remainingTime--;
+            const t = document.getElementById('time-display');
+            if (t) t.textContent = `Time: ${this.remainingTime}`;
+            if (this.remainingTime <= 0) this.result();
+        }});
         this.scheduleNextTick();
 
         // Recording
@@ -162,299 +143,211 @@ export class GraphHigh extends Scene {
     private createChartContainer() {
         const canvas = this.game.canvas;
         const rect = canvas.getBoundingClientRect();
-
         let container = document.getElementById(this.containerId);
         if (!container) {
             container = document.createElement("div");
             container.id = this.containerId;
             Object.assign(container.style, {
-                position:       "absolute",
-                top:            `${rect.top}px`,
-                left:           `${rect.left}px`,
-                width:          `${rect.width}px`,
-                height:         `${rect.height}px`,
-                pointerEvents:  "none",
-                zIndex:         "1000",
-                background:     "transparent",
+                position: "absolute",
+                top: `${rect.top}px`, left: `${rect.left}px`,
+                width: `${rect.width}px`, height: `${rect.height}px`,
+                pointerEvents: "none", zIndex: "1000", background: "transparent",
             });
             document.body.appendChild(container);
         }
-
         window.addEventListener("resize", () => {
             const r2 = canvas.getBoundingClientRect();
-            container!.style.top    = `${r2.top}px`;
-            container!.style.left   = `${r2.left}px`;
-            container!.style.width  = `${r2.width}px`;
-            container!.style.height = `${r2.height}px`;
+            Object.assign(container!.style, {
+                top: `${r2.top}px`, left: `${r2.left}px`,
+                width: `${r2.width}px`, height: `${r2.height}px`,
+            });
             this.chart?.resize(r2.width, r2.height);
         });
     }
 
     private setupChart() {
         const container = document.getElementById(this.containerId)!;
-
         let wrapper = container.querySelector<HTMLDivElement>('#chart-wrapper');
         if (!wrapper) {
-            wrapper = document.createElement('div');
-            wrapper.id = 'chart-wrapper';
+            wrapper = document.createElement('div'); wrapper.id = 'chart-wrapper';
             Object.assign(wrapper.style, {
-                position:       'absolute',
-                width:          `${container.clientWidth * 0.8}px`,
-                height:         `${container.clientHeight * 0.7}px`,
-                left:           '50%',
-                top:            '50%',
-                transform:      'translate(-50%, -50%)',
-                pointerEvents:  'none',
-                backgroundColor:'transparent',
+                position: 'absolute', width: `${container.clientWidth * 0.8}px`,
+                height: `${container.clientHeight * 0.7}px`, left: '50%', top: '50%',
+                transform: 'translate(-50%, -50%)', pointerEvents: 'none', backgroundColor: 'transparent',
             });
             container.appendChild(wrapper);
         } else {
-            const cw = container.clientWidth  * 0.8;
-            const ch = container.clientHeight * 0.7;
-            wrapper.style.width  = `${cw}px`;
-            wrapper.style.height = `${ch}px`;
+            wrapper.style.width = `${container.clientWidth * 0.8}px`;
+            wrapper.style.height = `${container.clientHeight * 0.7}px`;
         }
-
         wrapper.innerHTML = '';
-
-        const cw = wrapper.clientWidth;
-        const ch = wrapper.clientHeight;
+        const cw = wrapper.clientWidth, ch = wrapper.clientHeight;
         this.chart = createChart(wrapper, {
-            width:  cw,
-            height: ch,
-            layout: {
-                background:      { color: 'transparent' },
-                textColor:       "#d1d4dc",
-                attributionLogo: false,
-            },
-            grid: {
-                vertLines: { visible: false },
-                horzLines: { visible: false },
-            },
-            priceScale: {
-                borderVisible: true,
-                borderColor:   '#d1d4dc',
-            },
-            timeScale: {
-                timeVisible:    true,
-                secondsVisible: true,
-                borderVisible:  true,
-                borderColor:    '#d1d4dc',
-            },
+            width: cw, height: ch,
+            layout: { background: { color: 'transparent' }, textColor: "#d1d4dc", attributionLogo: false },
+            grid: { vertLines: { visible: false }, horzLines: { visible: false } },
+            priceScale: { borderVisible: true, borderColor: '#d1d4dc' },
+            timeScale: { timeVisible: true, secondsVisible: true, borderVisible: true, borderColor: '#d1d4dc' },
         });
         this.series = this.chart.addCandlestickSeries();
         this.series.setData(this.candles);
+        wrapper.querySelectorAll<HTMLCanvasElement>('canvas').forEach(c => c.style.backgroundColor = 'transparent');
 
-        // Make chart canvas background transparent
-        wrapper.querySelectorAll<HTMLCanvasElement>('canvas').forEach(c => {
-            c.style.backgroundColor = 'transparent';
-        });
-
-        // ── HTML HUD ──
-        const hud = document.createElement('div');
-        hud.id = 'chart-hud';
-        Object.assign(hud.style, {
-            position:      'absolute',
-            top:           '0',
-            left:          '0',
-            width:         '100%',
-            height:        '100%',
-            pointerEvents: 'none',
-            color:         '#ffffff',
-            fontFamily:    'Jua, sans-serif',
-            zIndex:        '2',
-        });
-
-        // Time display
-        const timeEl = document.createElement('div');
-        timeEl.id = 'time-display';
-        Object.assign(timeEl.style, {
-            position:  'absolute',
-            top:       '10px',
-            left:      '50%',
-            transform: 'translateX(-50%)',
-            fontSize:  '20px',
-            display: 'none',
-        });
+        /* HUD and UI canvas
+        
+        const hud = document.createElement('div'); hud.id = 'chart-hud';
+        Object.assign(hud.style, { position: 'absolute', top: '0', left: '0', width: '100%', height: '100%', pointerEvents: 'none', color: '#fff', fontFamily: 'Jua, sans-serif', zIndex: '2' });
+        const timeEl = document.createElement('div'); timeEl.id = 'time-display';
+        Object.assign(timeEl.style, { position: 'absolute', top: '10px', left: '50%', transform: 'translateX(-50%)', fontSize: '20px' });
         timeEl.textContent = `Time: ${this.remainingTime}`;
         hud.appendChild(timeEl);
-
-        /* Score button
-        const btn = document.createElement('button');
-        btn.id = 'score-button';
-        btn.textContent = '기회 사용';
-        Object.assign(btn.style, {
-            position:      'absolute',
-            bottom:        '80px',
-            left:          '50%',
-            transform:     'translateX(-50%)',
-            padding:       '8px 16px',
-            background:    '#0080ff',
-            color:         '#fff',
-            border:        'none',
-            borderRadius:  '4px',
-            fontSize:      '18px',
-            cursor:        'pointer',
-            pointerEvents: 'auto',
-            zIndex:        '3',
-        });
-        btn.addEventListener('click', () => this.onScore());
-        hud.appendChild(btn);
-        */
         wrapper.appendChild(hud);
-        const uiCanvas = document.createElement('canvas');
-        uiCanvas.id = 'ui-canvas';
-        uiCanvas.width  = cw;
-        uiCanvas.height = ch;
-        Object.assign(uiCanvas.style, {
-        position:       'absolute',
-        top:            '0',
-        left:           '0',
-        pointerEvents:  'auto',
-        zIndex:         '2',
-        });
+        */
+           // (HTML 타이머 숨기기)
+        const hud = document.createElement('div');
+        hud.style.display = 'none';
+        wrapper.appendChild(hud);
+ 
+        const uiCanvas = document.createElement('canvas'); uiCanvas.id = 'ui-canvas'; uiCanvas.width = cw; uiCanvas.height = ch;
+        Object.assign(uiCanvas.style, { position: 'absolute', top: '0', left: '0', pointerEvents: 'auto', zIndex: '2' });
         wrapper.appendChild(uiCanvas);
         this.uiCtx = uiCanvas.getContext('2d')!;
-
-            // ─── 캔버스 클릭 처리: 버튼 영역(가로 120×세로 40, 중앙 하단) 안이면 onScore() 호출
-        uiCanvas.addEventListener('pointerdown', (event) => {
+        uiCanvas.addEventListener('pointerdown', event => {
             const rect = uiCanvas.getBoundingClientRect();
-            const scaleX = uiCanvas.width  / rect.width;
-            const scaleY = uiCanvas.height / rect.height;
-            const x = (event.clientX - rect.left) * scaleX;
-            const y = (event.clientY - rect.top ) * scaleY;
-
-            // 위 drawUI와 동일한 버튼 영역 계산
-            const btnW = uiCanvas.width  * 0.2;
-            const btnH = uiCanvas.height * 0.1;
-            const btnX = (uiCanvas.width  - btnW) / 2;
-            const btnY = uiCanvas.height - btnH - uiCanvas.height * 0.05;
-
-            if (x >= btnX && x <= btnX + btnW && y >= btnY && y <= btnY + btnH) {
-                this.onScore();
-            }
+            const scaleX = uiCanvas.width / rect.width, scaleY = uiCanvas.height / rect.height;
+            const x = (event.clientX - rect.left) * scaleX, y = (event.clientY - rect.top) * scaleY;
+            const btnW = uiCanvas.width * 0.2, btnH = uiCanvas.height * 0.1;
+            const btnX = (uiCanvas.width - btnW) / 2, btnY = uiCanvas.height - btnH - uiCanvas.height * 0.05;
+            if (x >= btnX && x <= btnX + btnW && y >= btnY && y <= btnY + btnH) this.onScore();
         });
     }
 
-    private drawUI() {
-  const ctx = this.uiCtx;
-  const W   = ctx.canvas.width;
-  const H   = ctx.canvas.height;
+ private drawUI() {
+     const ctx = this.uiCtx, W = ctx.canvas.width, H = ctx.canvas.height;
+     ctx.clearRect(0, 0, W, H);
 
-  ctx.clearRect(0, 0, W, H);
+    // 공통: 텍스트 수직 중앙 정렬
+    ctx.textBaseline = 'middle';
 
-  // 1) 시간
-  ctx.fillStyle = '#fff';
-  ctx.textAlign = 'center';
-  ctx.font      = `${Math.floor(H * 0.05)}px Jua`;
-  ctx.fillText(`Time: ${this.remainingTime}`, W / 2, H * 0.05 + H * 0.03);
+    // 1) 랭킹용 배경 컨테이너
+    const entries = this.latestRanking.slice(0, 5);
+    const lineH   = H * 0.06;
+    const padding = H * 0.015;
+    const bgX     = W * 0.02;
+    const bgY     = H * 0.02;
+    // 배경 너비: 아이콘+이름+점수+변동폭 중 최대값 + 여유
+    ctx.font = `${Math.floor(lineH * 0.6)}px Jua`;
+    let maxTextWidth = 0;
+    entries.forEach((e, i) => {
+      const diff = this.rankDiffs[i] || 0;
+      const diffTxt = diff > 0 ? `▲${diff}` : diff < 0 ? `▼${-diff}` : '';
+      const sample = ['🥇','🥈','🥉','4️⃣','5️⃣'][i] + e.userName + `${e.earnedScore}점` + diffTxt;
+      maxTextWidth = Math.max(maxTextWidth, ctx.measureText(sample).width);
+    });
+    const bgW = maxTextWidth + W * 0.06;
+    const bgH = entries.length * lineH + padding * 2;
+    ctx.fillStyle = 'rgba(255,192,203,0.3)';
+    ctx.beginPath();
+    if (ctx.roundRect) {
+      ctx.roundRect(bgX, bgY, bgW, bgH, 8);
+    }
+    ctx.fill();
 
-  // 2) “기회 사용” 버튼
-  const btnW = W * 0.2;
-  const btnH = H * 0.1;
-  const btnX = (W - btnW) / 2;
-  const btnY = H - btnH - H * 0.05;
-  ctx.fillStyle = this.attempts.length < 3
-    ? '#0080ff'
-    : 'rgba(0,128,255,0.5)';
-  ctx.fillRect(btnX, btnY, btnW, btnH);
+    // 2) 랭킹 텍스트 + 순위 변동
+    ctx.fillStyle = '#ffa69e';
+    ctx.textAlign = 'left';
+    entries.forEach((e, i) => {
+    // 1) 아이콘
+    const y     = bgY + padding + i * lineH + lineH/2;
+    const iconX = bgX + W*0.01;
+    ctx.fillStyle = '#ffa69e';
+    ctx.fillText(['🥇','🥈','🥉','4️⃣','5️⃣'][i], iconX, y);
 
-  ctx.fillStyle = '#fff';
-  ctx.textAlign = 'center';
-  ctx.font      = `${Math.floor(btnH * 0.6)}px Jua`;
-  ctx.fillText('지금!!', W / 2, btnY + btnH * 0.65);
-
-  // 3) 랭킹 (최대 5명)
-  ctx.fillStyle = '#fff';
-  ctx.textAlign = 'left';
-  ctx.font      = `${Math.floor(H * 0.04)}px Jua`;
-  const startX = W * 0.05;
-  let y = H * 0.05;
-  const lineH = H * 0.10;
-  const emojis = ['🥇', '🥈', '🥉', '4️⃣', '5️⃣'];
-
-  this.latestRanking.slice(0, 5).forEach((e, i) => {
-    const rankIcon = emojis[i] || `${i + 1}.`;
-    const score    = (e.earnedScore || e.earnedScore === 0)
-      ? e.earnedScore
-      : e.totalScore;
-
-    // 순위
-    ctx.fillText(rankIcon, startX, y);
-
-    // 이름
-    const nameX = startX + W * 0.06;
+    // 2) 이름
+    const nameX = iconX + W*0.06;
     ctx.fillText(e.userName, nameX, y);
 
-    // 점수
-    const nameW = ctx.measureText(e.userName).width;
-    ctx.fillText(`${score}점`, nameX + nameW + W * 0.02, y);
+    // 3) 점수
+    const scoreText = `${e.earnedScore}점`;
+    const scoreX    = nameX + ctx.measureText(e.userName).width + W*0.02;
+    ctx.fillText(scoreText, scoreX, y);
 
-    y += lineH;
-  });
-}
+    // 4) 변동 또는 NEW!
+    const oldIdx = this.prevRanking.findIndex(p => p.userCode === e.userCode);
+    let diffText = '';
+    let color    = '';
 
-    renderRanking(entries: ScoreMessage[]) {
-        this.latestRanking = entries;
-        /*
-        this.rankingTexts.forEach(c => c.destroy());
-        this.rankingTexts = [];
-        if (!entries.length) {
-            const t = this.add.text(this.cameras.main.centerX, 80, '랭킹 정보 없음', { font:'24px Jua', color:'#888' }).setOrigin(0.5);
-            this.rankingTexts.push(this.add.container(0,0,[t]));
-            return;
+    if (oldIdx < 0) {
+        // 이전 랭킹에 없던 완전 신규!
+        diffText = 'NEW!';
+        color    = '#FF69B4';   // 진한 핑크
+    } else {
+        const delta = oldIdx - i;
+        if (delta > 0) {
+        diffText = `▲${delta}`;
+        color    = '#FFD700'; // 골드
+        } else if (delta < 0) {
+        diffText = `▼${-delta}`;
+        color    = '#87CEFA'; // 연한 블루
         }
-        const emojis = ['🥇','🥈','🥉','4️⃣','5️⃣'];
-        entries.slice(0,5).forEach((e,i) => {
-            const y = 80 + i*60;
-            const rank = emojis[i]||`${i+1}.`;
-            const rt = this.add.text(0,0,rank,{font:'28px Jua',color:'#fff'}).setOrigin(0,0.5);
-            const nt = this.add.text(50,0,e.userName,{font:'24px Jua',color:'#fff'}).setOrigin(0,0.5);
-            const st = this.add.text(250,0,`${e.earnedScore}점`,{font:'24px Jua',color:'#aaa'}).setOrigin(1,0.5);
-            const cont = this.add.container(this.cameras.main.centerX-150,y,[rt,nt,st]);
-            this.rankingTexts.push(cont);
-            this.tweens.add({targets:cont,scale:{from:1.2,to:1},duration:300,ease:'Back.easeOut'});
+    }
+
+    if (diffText) {
+        const widthScore = ctx.measureText(scoreText).width;
+        const pxPadding  = 4;
+        const diffX      = scoreX + widthScore + pxPadding;
+        ctx.fillStyle    = color;
+        ctx.fillText(diffText, diffX, y);
+        // 텍스트 색 복구
+        ctx.fillStyle    = '#ffa69e';
+    }
+    });
+
+
+    // 3) 동글동글 “지금!!” 버튼 + 남은 시도횟수
+     const maxAttempts = 3;
+     const remain      = maxAttempts - this.attempts.length;
+
+     const btnW = W * 0.3, btnH = H * 0.09;  // 버튼 좀 더 크게
+     const btnX = (W - btnW) / 2, btnY = H - btnH - H * 0.03;
+     const r    = btnH / 2;
+
+     ctx.fillStyle = '##ffa69e';
+     ctx.beginPath();
+    if (ctx.roundRect) ctx.roundRect(btnX, btnY, btnW, btnH, r);
+     ctx.fill();
+
+     ctx.fillStyle    = '#1e1e1e';
+     ctx.textAlign    = 'center';
+     ctx.textBaseline = 'middle';
+     ctx.font         = `${Math.floor(btnH * 0.5)}px Jua`;
+    ctx.fillText(`지금!! (${remain}/${maxAttempts})`, btnX + btnW / 2, btnY + btnH / 2);
+ }
+
+    private renderRanking(entries: ScoreMessage[]) {
+        // ② 이전 랭킹과 비교해 변동량 계산
+        this.rankDiffs = entries.map((entry, newIdx) => {
+            const oldIdx = this.prevRanking.findIndex(e => e.userCode === entry.userCode);
+            return oldIdx >= 0 ? oldIdx - newIdx : 0;
         });
-        */
+        this.latestRanking = entries;
+        this.prevRanking = [...entries];
     }
 
     private onScore() {
         if (this.attempts.length >= 3 || this.remainingTime <= 0) return;
         const cur = this.currentPrice;
         this.attempts.push(cur);
-        this.series.createPriceLine({
-            price: cur,
-            color: 'red',
-            lineStyle: LineStyle.Dashed,
-            axisLabelVisible: true,
-            title: `시도 ${this.attempts.length}`
-        });
+        this.series.createPriceLine({ price: cur, color: 'red', lineStyle: LineStyle.Dashed, axisLabelVisible: true, title: `시도 ${this.attempts.length}` });
         const { userId, nickname } = userStore.getState();
-        const payload: ScoreMessage = {
-            userCode: userId,
-            userName: nickname,
-            earnedScore: cur,
-            totalScore: this.attempts.reduce((a, b) => a + b, 0)
-        };
-        this.ws?.send(JSON.stringify(payload));
+        this.ws?.send(JSON.stringify({ userCode: userId, userName: nickname, earnedScore: cur, totalScore: this.attempts.reduce((a, b) => a + b, 0) }));
         this.cameras.main.shake(250, 0.01);
-
-        if (this.attempts.length >= 3) {
-            const btn = document.getElementById('score-button') as HTMLButtonElement;
-            if (btn) {
-                btn.disabled = true;
-                btn.style.opacity = '0.5';
-                btn.style.cursor = 'default';
-            }
-        }
     }
 
     private getFinalScore(): number {
         if (!this.attempts.length) return 0;
         const best = Math.max(...this.attempts);
-        const globalBest = this.latestRanking.length
-            ? Math.max(...this.latestRanking.map(r => r.earnedScore))
-            : 1;
+        const globalBest = this.latestRanking.length ? Math.max(...this.latestRanking.map(r => r.earnedScore)) : 1;
         return Math.min(100, Math.floor(best / globalBest * 100));
     }
 
@@ -467,10 +360,11 @@ export class GraphHigh extends Scene {
         this.tweens.add({ targets: fill, width: w * percent / 100, duration: 1000, ease: 'Cubic.easeOut' });
         this.time.delayedCall(3000, () => { bg.destroy(); fill.destroy(); txt.destroy(); });
     }
+
     update() {
-    // redraw your HTML-CANVAS–based UI every frame
-    this.drawUI();
+        this.drawUI();
     }
+
     private result() {
         const score = this.getFinalScore();
         this.showScoreGauge(score);
@@ -479,7 +373,7 @@ export class GraphHigh extends Scene {
         this.time.delayedCall(1000, () => this.scene.start("GameOver", { score, gameType: "GraphHigh" }));
     }
 
-    shutdown() {
+    private shutdown() {
         const c = document.getElementById(this.containerId);
         if (c) c.remove();
     }
