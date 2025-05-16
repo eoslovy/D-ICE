@@ -44,7 +44,8 @@
         "tailwind-animate": "^0.2.10",
         "uuid": "^11.1.0",
         "vite-plugin-next-react-router": "^0.7.1",
-        "zustand": "^5.0.3"
+        "zustand": "^5.0.3",
+        "lightweight-charts": "^4.1.1"
     },
     "devDependencies": {
         "@eslint/js": "^9.22.0",
