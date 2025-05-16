@@ -72,6 +72,10 @@ public class RoundAggregationService {
 
 		sendUserMessages(roomCode, aggregation, roundRanks, overallRanks, roundTop3, overallTop3);
 		sendAdminMessages(roomCode, aggregation, roundRanks, overallRanks, roundTop3, overallTop3);
+		log.info(
+			"[AggregationService] roomCode: {} currentRound: {} totalRound: {} roundPlayerCount: {} totalPlayerCount: {}",
+			roomCode, aggregation.currentRound(), aggregation.totalRound(), aggregation.roundPlayerCount(),
+			aggregation.totalPlayerCount());
 	}
 
 	private void sendUserMessages(String roomCode, ScoreAggregationResult aggregation,
@@ -147,9 +151,11 @@ public class RoundAggregationService {
 		String lastPlaceId = getLastByRank(roundRanks);
 
 		PlaceInfo firstPlaceInfo = new PlaceInfo(firstPlaceId, nicknameMap.get(firstPlaceId),
-			minioClientUtil.newGetPresignedUrl(roomCode, currentRound, firstPlaceId));
+			minioClientUtil.newGetPresignedUrl(roomCode, currentRound, firstPlaceId),
+			aggregation.roundScoreMap().get(firstPlaceId));
 		PlaceInfo lastPlaceInfo = new PlaceInfo(lastPlaceId, nicknameMap.get(lastPlaceId),
-			minioClientUtil.newGetPresignedUrl(roomCode, currentRound, lastPlaceId));
+			minioClientUtil.newGetPresignedUrl(roomCode, currentRound, lastPlaceId),
+			aggregation.roundScoreMap().get(lastPlaceId));
 
 		AggregatedAdminMessage aggregatedAdminMessage = new AggregatedAdminMessage(
 			currentRound, totalRound,

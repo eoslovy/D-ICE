@@ -86,6 +86,8 @@ interface AggregatedUserMessage {
     rankRecord: string; // 구분자 | 라운드별 순위 기록
     roundRank: number;
     overallRank: number;
+    roundPlayerCount: number; // 이번 라운드 참여자(SUBMIT) 수
+    totalPlayerCount: number; // 총 참여자 수
     roundRanking: RankingInfo[];
     overallRanking: RankingInfo[];
     videoUploadUrl: string; // s3 presigned url POST|PUT용
