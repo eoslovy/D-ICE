@@ -469,6 +469,10 @@ export default function Result({
                                                                 .nickname
                                                         }
                                                     </div>
+                                                    <div className="rank-score">
+                                                        점수:{" "}
+                                                        {data.lastPlace.score}
+                                                    </div>
                                                 </div>
                                             </div>
                                         )}
@@ -859,6 +863,9 @@ export default function Result({
                                             <div className="rank-info">
                                                 <div className="rank-name">
                                                     {data.lastPlace.nickname}
+                                                </div>
+                                                <div className="rank-score">
+                                                    점수: {data.lastPlace.score}
                                                 </div>
                                             </div>
                                         </div>
