@@ -48,7 +48,17 @@ export default function BroadcastRoom() {
     };
 
     useEffect(() => {
+        const timeoutId = setTimeout(() => {
+            if (nextGame === null) {
+                console.warn(
+                    "NEXT_GAME 메시지를 받지 못해 기본값으로 설정합니다."
+                );
+                setNextGame("알 수 없음");
+            }
+        }, 5000); // 5초
+
         adminWebSocketManager.on("NEXT_GAME", (payload: NextGameMessage) => {
+            clearTimeout(timeoutId); // 타임아웃 취소
             setCurrentRound(payload.currentRound);
             setNextGame(payload.gameType);
             adminStore.getState().setGameType(payload.gameType);
@@ -74,11 +84,18 @@ export default function BroadcastRoom() {
             setFinalData(payload);
         });
 
+        adminWebSocketManager.on("ERROR", (payload: ErrorMessage) => {
+            if(payload.message.startsWith("[startGame]"))
+                setIsLoading(false);
+        })
+
         return () => {
+            clearTimeout(timeoutId);
             adminWebSocketManager.off("NEXT_GAME");
             adminWebSocketManager.off("AGGREGATED_ADMIN");
             adminWebSocketManager.off("END");
             adminWebSocketManager.off("BROADCAST");
+            adminWebSocketManager.off("ERROR");
             console.log("BroadcastRoom 이벤트 리스너 해제");
         };
     }, []);
