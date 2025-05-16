@@ -14,13 +14,13 @@ export default function PhaserGame() {
         
         // Use fixed dimensions that work well across devices
         // Instead of using full window height, use a reasonable base size
-        const baseWidth = 720;
-        const baseHeight = 1280;
         
         // Get container dimensions to calculate appropriate scaling
         // const containerWidth = gameContainerRef.current.clientWidth; 
         // const containerHeight = gameContainerRef.current.clientHeight;
-        
+        const baseWidth = 720; // Fixed base width
+        const baseHeight = window.innerHeight < window.innerWidth ? window.innerHeight : Math.floor(baseWidth * (window.innerHeight / window.innerWidth)); // Maintain aspect ratio
+
         // Create a new game instance with fixed base dimensions
         const game = new Phaser.Game({
           ...config,
@@ -30,14 +30,6 @@ export default function PhaserGame() {
             autoCenter: Phaser.Scale.CENTER_BOTH,
             width: baseWidth,
             height: baseHeight,
-            min: {
-              width: 320,
-              height: 480
-            },
-            max: {
-              width: 1080,  // Limit max width to avoid overly large game
-              height: 1920 // Limit max height
-            }
           }
         });
         

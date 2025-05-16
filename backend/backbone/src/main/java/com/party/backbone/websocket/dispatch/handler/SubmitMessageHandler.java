@@ -24,6 +24,10 @@ public class SubmitMessageHandler extends GameMessageHandler<SubmitMessage> impl
 
 	@Override
 	protected void doHandle(SubmitMessage message, String roomCode, WebSocketSession session) throws IOException {
+		if (!roomRepository.validateSubmit(roomCode, message.getGameType())) {
+			throw new IllegalStateException(
+				"[Submit] gameType: " + message.getGameType().name() + " is not matched with current round");
+		}
 		roomRepository.updateScore(roomCode, message.getUserId(), message.getScore());
 	}
 

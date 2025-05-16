@@ -19,7 +19,7 @@ build_front:
     - $GITLAB_USER_EMAIL
   script:
     - echo "🔨 Docker 이미지 빌드 및 테스트 중..."
-    - docker build --platform ${BUILD_ARCHITECTURE} -t ${DOCKERHUB_USERNAME:-default}/$REGISTRY_PATH-${SERVICE_NAME}:$CI_COMMIT_SHORT_SHA  ${BUILD_CONTEXT}
+    - docker build --platform ${BUILD_ARCHITECTURE} --build-arg DEPLOY_MODE="${DEPLOY_MODE}" -t ${DOCKERHUB_USERNAME:-default}/$REGISTRY_PATH-${SERVICE_NAME}:$CI_COMMIT_SHORT_SHA  ${BUILD_CONTEXT}
     - docker images
     #- echo "✅ 빌드 완료: $IMAGE_NAME:$CI_COMMIT_SHORT_SHA
 

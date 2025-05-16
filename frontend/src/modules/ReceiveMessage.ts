@@ -9,10 +9,16 @@ interface PotgInfo {
     userId: string;
     nickname: string;
     videoUrl: string;
+    score?: number;
 }
 
 interface AdminJoinedMessage {
     type: "ADMIN_JOINED";
+    requestId: string;
+}
+
+interface AdminReconnectedMessage {
+    type: "ADMIN_RECONNECTED";
     requestId: string;
 }
 
@@ -21,6 +27,11 @@ interface UserJoinedMessage {
     userId: string;
     nickname: string;
     requestId: string;
+}
+interface UserReconnectedMessage {
+    type: "USER_RECONNECTED";
+    requestId: string;
+    userId: string;
 }
 interface EnterGameMessage {
     type: "ENTER_GAME";
@@ -53,9 +64,11 @@ interface WaitMessage {
 interface AggregatedAdminMessage {
     type: "AGGREGATED_ADMIN";
     requestId: string; //UUIDv7
-    crruentRound: number; // 현재 round
+    currentRound: number; // 현재 round
     totalRound: number; // 전체 round
     gameType: string; //게임이름
+    roundPlayerCount: number; // 이번 라운드 참여자 수
+    totalPlayerCount: number; // 총 참여자 수
     roundRanking: RankingInfo[];
     overallRanking: RankingInfo[];
     firstPlace: PotgInfo;
@@ -65,7 +78,7 @@ interface AggregatedAdminMessage {
 interface AggregatedUserMessage {
     type: "AGGREGATED_USER";
     requestId: string; //UUIDv7
-    crruentRound: number; // 현재 round
+    currentRound: number; // 현재 round
     totalRound: number; // 전체 round
     gameType: string; //게임이름
     currentScore: number; // int 이번 round 점수
@@ -73,6 +86,10 @@ interface AggregatedUserMessage {
     rankRecord: string; // 구분자 | 라운드별 순위 기록
     roundRank: number;
     overallRank: number;
+    roundPlayerCount: number; // 이번 라운드 참여자(SUBMIT) 수
+    totalPlayerCount: number; // 총 참여자 수
+    roundRanking: RankingInfo[];
+    overallRanking: RankingInfo[];
     videoUploadUrl: string; // s3 presigned url POST|PUT용
 }
 
@@ -80,6 +97,19 @@ interface EndMessage {
     type: "END";
     overallRanking: RankingInfo[];
 }
+
+interface BroadcastMessage {
+    type: "BROADCAST";
+    requestId: string; //UUIDv7
+    userId: string;
+    payload: string;
+}
+
+interface ErrorMessage {
+    type: "ERROR";
+    message: string;
+}
+
 
 type ReceiveMessage =
     | {
@@ -97,16 +127,21 @@ type ReceiveMessageMap = AdminReceiveTypeMap | UserReceiveTypeMap;
 
 type AdminReceiveTypeMap = {
     ADMIN_JOINED: AdminJoinedMessage;
+    ADMIN_RECONNECTED: AdminReconnectedMessage;
     USER_JOINED_ADMIN: UserJoinedAdminMessage;
     NEXT_GAME: NextGameMessage;
     AGGREGATED_ADMIN: AggregatedAdminMessage;
     END: EndMessage;
+    BROADCAST: BroadcastMessage;
+    ERROR: ErrorMessage;
 };
 
 type UserReceiveTypeMap = {
-    USER_JOINED: UserJoinMessage;
+    USER_JOINED: UserJoinedMessage;
+    USER_RECONNECTED: UserReconnectedMessage;
     WAIT: WaitMessage;
     ENTER_GAME: EnterGameMessage;
     AGGREGATED_USER: AggregatedUserMessage;
+    BROADCAST: BroadcastMessage;
+    ERROR: ErrorMessage;
 };
-

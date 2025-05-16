@@ -1,21 +1,16 @@
-import BackgroundAnimation from "../../components/BackgroundAnimation";
 import GameCard from "../../components/GameCard";
-import DarkModeToggle from "../../components/DarkModeToggle";
 import { Users, Settings } from "lucide-react";
 
 
 export default function Select() {
     return (
         <div className="game-container">
-            <BackgroundAnimation />
-            <DarkModeToggle />
-
             <GameCard>
                 <div>
                     <img
                         src="/assets/logo.png"
                         alt="D-Ice Logo"
-                        className="mx-auto h-36 w-auto"
+                        className="mx-auto h-36 w-auto mb-4"
                     />
                 </div>
                 <h1 className="game-title">Welcome to D-Ice!</h1>
