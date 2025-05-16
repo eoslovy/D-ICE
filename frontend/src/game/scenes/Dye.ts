@@ -94,6 +94,13 @@ export class Dye extends Scene {
             .graphics()
             .fillStyle(0x42a5f5, 1)
             .fillRect(0, 0, this.cameras.main.width, this.cameras.main.height);
+
+        this.events.on("countdownFinished", () => this.startGame());
+        this.events.on("timerFinished", () => this.endGame());
+        this.countdown.startCountdown(3);
+    }
+
+    setupUI() {
         // --- Palette Setup ---
         const randomPalette = Phaser.Math.Between(1, 4);
         this.dyePalette = this.add.sprite(
@@ -106,20 +113,22 @@ export class Dye extends Scene {
 
         // --- UI for Target Color ---
         const targetDisplayX = this.cameras.main.centerX;
-        const targetDisplayY = 100; // Adjusted Y
+        const targetDisplayY = this.cameras.main.height / 6; // Adjusted Y
         this.add
-            .text(targetDisplayX, targetDisplayY + 300, "염색할 색을 맞추자!", {
+            .text(targetDisplayX, targetDisplayY, "염색할 색을 맞추자!", {
                 // Increased font, adjusted Y offset
-                fontSize: "40px",
+                fontSize: "48px",
                 color: "#ffffff",
                 fontFamily: "Jua",
                 fontStyle: "bold",
+                stroke: "#000000",
+                strokeThickness: 2,
             })
             .setOrigin(0.5);
         this.targetColorDisplay = this.add
             .rectangle(
                 targetDisplayX,
-                targetDisplayY + 25,
+                targetDisplayY + 80,
                 140,
                 70,
                 this.targetColor.color // Increased size, adjusted Y
@@ -128,7 +137,7 @@ export class Dye extends Scene {
             .setOrigin(0.5); // Increased stroke
 
         // --- Draggable Markers Container & Their Color Displays ---
-        const markerUIDisplayY = targetDisplayY + 120; // Adjusted Y for spacing
+        const markerUIDisplayY = targetDisplayY + 140; // Adjusted Y for spacing
         this.markerContainer = this.add.container(
             this.dyePalette.x,
             this.dyePalette.y - 70
@@ -218,10 +227,6 @@ export class Dye extends Scene {
                 idx
             );
         });
-
-        this.events.on("countdownFinished", () => this.startGame());
-        this.events.on("timerFinished", () => this.endGame());
-        this.countdown.startCountdown(3);
 
         // Pallete interaction
         let paletteDragStartPointer: Phaser.Input.Pointer | null = null;
@@ -478,6 +483,8 @@ export class Dye extends Scene {
         this.isPinching = false;
 
         this.dye_bgm?.play();
+
+        this.setupUI();
 
         for (let i = 0; i < this.numMarkers; i++) {
             this.markerColors[i]?.setTo(0, 0, 0);
