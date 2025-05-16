@@ -250,7 +250,7 @@ export class EndGame extends Phaser.Scene {
 
         // 임시로 '/select'로 이동하도록 설정
 
-        button.on("pointerup", () => {
+        button.on("pointerdown", () => {
             userStore.getState().reset(); // zustand 상태 초기화
             localStorage.removeItem("userStore"); // userStore 제거
 
