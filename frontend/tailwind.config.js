@@ -14,7 +14,7 @@ export default {
         tertiary: 'var(--tertiary-color)',
         quaternary: 'var(--quaternary-color)',
         quinary: 'var(--quinary-color)',
-      }
+      },
     },
   },
   plugins: [

@@ -26,42 +26,42 @@ spring:
             - StripPrefix=2
 
         - id: game-kjh-service
-          uri: http://gameKJH-service:8080
+          uri: http://gamekjh-service:8080
           predicates:
             - Path=/api/game/kjh/**
           filters:
             - StripPrefix=3
 
         - id: game-cjm-service
-          uri: http://gameCJM-service:8080
+          uri: http://gamecjm-service:8080
           predicates:
             - Path=/api/game/cjm/**
           filters:
             - StripPrefix=3
 
         - id: game-kyh-service
-          uri: http://gameKYH-service:8080
+          uri: http://gamekyh-service:8080
           predicates:
             - Path=/api/game/kyh/**
           filters:
             - StripPrefix=3
 
         - id: game-lsr-service
-          uri: http://gameLSR-service:8080
+          uri: http://gamelsr-service:8080
           predicates:
             - Path=/api/game/lsr/**
           filters:
             - StripPrefix=3
 
         - id: game-ojs-service
-          uri: http://gameOJS-service:8080
+          uri: http://gameojs-service:8080
           predicates:
             - Path=/api/game/ojs/**
           filters:
             - StripPrefix=3
 
         - id: game-ydg-service
-          uri: http://gameYDG-service:8080
+          uri: http://gameydg-service:8080
           predicates:
             - Path=/api/game/ydg/**
           filters:

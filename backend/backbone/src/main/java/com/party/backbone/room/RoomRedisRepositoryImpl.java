@@ -3,6 +3,7 @@ package com.party.backbone.room;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -15,7 +16,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.stereotype.Repository;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.party.backbone.room.dto.FinalResult;
 import com.party.backbone.room.dto.RoundInfo;
 import com.party.backbone.room.dto.ScoreAggregationResult;
 import com.party.backbone.room.model.RoomStateTTL;
@@ -29,11 +30,18 @@ import lombok.extern.slf4j.Slf4j;
 @Repository
 public class RoomRedisRepositoryImpl implements RoomRedisRepository {
 	private final Duration PLAYER_BASE_TTL = Duration.ofHours(2);
-	private final long DEFAULT_GAME_START_OFFSET = 10_000;
+	// 룰렛, 설명, 카운트 다운 포함 대략 30초로 설정
+	private final long DEFAULT_GAME_START_OFFSET = 30_000;
 	private static final String PENDING_AGGREGATION_KEY = "pendingAggregationRooms";
+	private static final double[] ROUND_MULTIPLIERS = new double[21];
+
+	static {
+		for (int i = 1; i < ROUND_MULTIPLIERS.length; i++) {
+			ROUND_MULTIPLIERS[i] = Math.pow(1.05, i - 1);
+		}
+	}
 
 	private final RedisTemplate<String, String> redisTemplate;
-	private final ObjectMapper objectMapper;
 
 	@Override
 	public void createRoom(String roomCode, String administratorId) {
@@ -112,6 +120,12 @@ public class RoomRedisRepositoryImpl implements RoomRedisRepository {
 			redisTemplate.opsForHash().get(roomKey, "currentRound"),
 			"Invalid Round"
 		);
+
+		Object stateObj = redisTemplate.opsForHash().get(roomKey, "state");
+		if (stateObj == null || !RoomStateTTL.WAITING.name().equals(stateObj.toString())) {
+			throw new IllegalStateException("[startGame] 현재 상태가 WAITING이 아닙니다: " + stateObj);
+		}
+
 		int currentRound = Integer.parseInt(roundObj.toString());
 		GameType gameType = getGame(roomCode, currentRound);
 		long currentMs = System.currentTimeMillis();
@@ -183,6 +197,16 @@ public class RoomRedisRepositoryImpl implements RoomRedisRepository {
 	}
 
 	@Override
+	public Boolean validateSubmit(String roomCode, GameType gameType) {
+		String roomKey = getRoomKey(roomCode);
+		int currentRound = Integer.parseInt(
+			Objects.requireNonNull(redisTemplate.opsForHash().get(roomKey, "currentRound")).toString()
+		);
+		String gameTypeName = redisTemplate.opsForList().index(getGamesKey(roomCode), currentRound - 1);
+		return Objects.requireNonNull(gameTypeName).equals(gameType.name());
+	}
+
+	@Override
 	public Set<String> getDueRooms(long currentTimeMillis, int limit) {
 		var rooms = redisTemplate.opsForZSet()
 			.rangeByScoreWithScores(PENDING_AGGREGATION_KEY, 0, currentTimeMillis, 0, limit);
@@ -226,11 +250,14 @@ public class RoomRedisRepositoryImpl implements RoomRedisRepository {
 		Map<String, Integer> roundScoreMap = new HashMap<>();
 		Map<String, Integer> totalScoreMap = new HashMap<>();
 		Map<String, String> nicknameMap = new HashMap<>();
-
+		Set<String> roundPlayers = new HashSet<>();
 		if (roundScores != null) {
 			for (ZSetOperations.TypedTuple<String> entry : roundScores) {
 				String userId = entry.getValue();
-				int roundScore = Objects.requireNonNull(entry.getScore()).intValue();
+				roundPlayers.add(userId);
+				int roundScore = (int)Math.round(
+					Objects.requireNonNull(entry.getScore()) * ROUND_MULTIPLIERS[currentRound]);
+
 				roundScoreMap.put(userId, roundScore);
 
 				String playerKey = getPlayerKey(roomCode, userId);
@@ -241,10 +268,26 @@ public class RoomRedisRepositoryImpl implements RoomRedisRepository {
 				nicknameMap.put(userId, nickname);
 			}
 		}
-		redisTemplate.opsForHash().increment(roomKey, "currentRound", 1);
+		List<String> userIds = getUserIds(roomCode);
+		Set<String> unsubmittedPlayers = getUserIds(roomCode).stream()
+			.filter(userId -> !roundPlayers.contains(userId))
+			.collect(Collectors.toSet());
 
-		return new ScoreAggregationResult(currentRound, totalRound, gameType, roundScoreMap, totalScoreMap,
-			nicknameMap);
+		for (String unsubmittedUserId : unsubmittedPlayers) {
+			updateRankRecord(roomCode, unsubmittedUserId, 0);
+		}
+
+		redisTemplate.opsForHash().increment(roomKey, "currentRound", 1);
+		return ScoreAggregationResult.builder()
+			.currentRound(currentRound)
+			.totalRound(totalRound)
+			.gameType(gameType)
+			.roundScoreMap(roundScoreMap)
+			.totalScoreMap(totalScoreMap)
+			.nicknameMap(nicknameMap)
+			.roundPlayerCount(roundPlayers.size())
+			.totalPlayerCount(userIds.size())
+			.build();
 	}
 
 	@Override
@@ -258,6 +301,31 @@ public class RoomRedisRepositoryImpl implements RoomRedisRepository {
 
 		redisTemplate.opsForHash().put(playerKey, "rankRecord", updated);
 		return updated;
+	}
+
+	@Override
+	public List<FinalResult> getFinalResults(String roomCode) {
+		List<String> userIds = getUserIds(roomCode);
+
+		List<FinalResult> results = new ArrayList<>();
+		for (String userId : userIds) {
+			String playerKey = getPlayerKey(roomCode, userId);
+
+			Object nicknameObj = redisTemplate.opsForHash().get(playerKey, "nickname");
+			Object scoreObj = redisTemplate.opsForHash().get(playerKey, "score");
+
+			if (nicknameObj == null || scoreObj == null) {
+				log.warn("[getFinalResults] Missing data for userId: {}", userId);
+				continue;
+			}
+
+			String nickname = nicknameObj.toString();
+			int score = Integer.parseInt(scoreObj.toString());
+
+			results.add(new FinalResult(userId, nickname, score));
+		}
+
+		return results;
 	}
 
 	@Override
@@ -322,5 +390,4 @@ public class RoomRedisRepositoryImpl implements RoomRedisRepository {
 	private String getRoundScoreKey(String roomCode, int currentRound) {
 		return getRoomKey(roomCode) + ":round:" + currentRound + ":scores";
 	}
-
 }

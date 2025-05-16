@@ -1,4 +1,4 @@
 package com.party.backbone.websocket.model;
 
-public record PlaceInfo(String userId, String nickname, String videoUrl) {
+public record PlaceInfo(String userId, String nickname, String videoUrl, int score) {
 }

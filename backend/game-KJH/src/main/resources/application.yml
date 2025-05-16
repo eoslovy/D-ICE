@@ -3,3 +3,7 @@ server:
 spring:
   application:
     name: game-KJH
+logging:
+  level:
+    root: INFO
+    org.springframework.web: DEBUG

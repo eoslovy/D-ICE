@@ -402,6 +402,149 @@ class POTGManager extends EventEmitter {
             return false;
         }
     }
+
+    // 오프스크린 canvas를 받아서 녹화 시작
+    async startOffscreenCanvasRecording(canvas: HTMLCanvasElement, frameRate: number = 30): Promise<boolean> {
+        if (this.isRecording) {
+            console.warn('[POTGManager] Recording already in progress.');
+            return false;
+        }
+        if (!canvas) {
+            console.error('[POTGManager] Offscreen canvas is required.');
+            this.emit('recording_error', new Error('Offscreen canvas is required'));
+            return false;
+        }
+        if (!canvas.captureStream) {
+            console.error('[POTGManager] canvas.captureStream() is not supported in this browser.');
+            this.emit('recording_error', new Error('Canvas recording not supported'));
+            return false;
+        }
+
+        try {
+            this.stream = canvas.captureStream(frameRate);
+
+            if (!this.stream || !this.stream.active || this.stream.getVideoTracks().length === 0) {
+                throw new Error('Failed to capture stream from offscreen canvas or stream is inactive.');
+            }
+            console.log('[POTGManager] Offscreen canvas stream captured successfully.');
+
+            const options = { mimeType: 'video/webm;codecs=vp9' };
+            if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+                options.mimeType = 'video/webm;codecs=vp8';
+                if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+                    options.mimeType = 'video/webm';
+                    if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+                        console.warn(`[POTGManager] video/webm not supported, using default recorder mimeType.`);
+                    }
+                }
+            }
+            this.mimeType = options.mimeType || 'video/webm';
+            console.log(`[POTGManager] Using mimeType: ${this.mimeType}`);
+
+            this.recorder = new MediaRecorder(this.stream, options);
+            this.recordedChunks = [];
+
+            this.recorder.ondataavailable = (event) => {
+                if (event.data.size > 0) {
+                    this.recordedChunks.push(event.data);
+                }
+            };
+
+            this.recorder.onstop = async () => {
+                console.log('[POTGManager] MediaRecorder stopped (offscreen).');
+                if (this.recordedChunks.length > 0) {
+                    const finalBlob = new Blob(this.recordedChunks, { type: this.mimeType });
+                    try {
+                        await this._saveBlobToDB(finalBlob);
+                        this.emit('recording_stopped_saved');
+                    } catch (error) {
+                        console.error('[POTGManager] Failed to save final blob:', error);
+                        this.emit('recording_error', new Error('Failed to save recording to DB'));
+                    }
+                } else {
+                    this.emit('recording_error', new Error('No video data recorded'));
+                }
+                this.recordedChunks = [];
+                this.cleanUpStream();
+                this.recorder = null;
+                this.isRecording = false;
+            };
+
+            this.recorder.onerror = (event) => {
+                this.emit('recording_error', event);
+                this.recordedChunks = [];
+                this.cleanUpStream();
+                this.recorder = null;
+                this.isRecording = false;
+            };
+
+            this.recorder.start(this.TIMESLICE_INTERVAL_MS);
+            this.isRecording = true;
+            console.log(`[POTGManager] Offscreen canvas recording started.`);
+            this.emit('recording_started');
+            return true;
+
+        } catch (error) {
+            this.emit('recording_error', error);
+            this.cleanUpStream();
+            this.recorder = null;
+            this.isRecording = false;
+            return false;
+        }
+    }
+
+  async startMergedRecording(
+  phaserCanvas: HTMLCanvasElement,
+  chartContainerId: string,
+  frameRate = 30
+    ): Promise<boolean> {
+    if (this.isRecording) {
+        console.warn('[POTGManager] Recording already in progress.');
+        return false;
+    }
+
+    // 1) offscreen 캔버스
+    const merged = document.createElement('canvas');
+    merged.width  = phaserCanvas.width;
+    merged.height = phaserCanvas.height;
+    const mCtx = merged.getContext('2d')!;
+
+    // 2) 화면 위치·크기
+    const gRect = phaserCanvas.getBoundingClientRect();
+    const chartContainer = document.getElementById(chartContainerId)!;
+
+    // 3) 스케일 계산 (CSS px → 내부 캔버스 px)
+    const scaleX = merged.width  / gRect.width;
+    const scaleY = merged.height / gRect.height;
+
+    // 4) 합성 루프
+    const draw = () => {
+        mCtx.clearRect(0, 0, merged.width, merged.height);
+
+        // 4-a) Phaser 캔버스 먼저
+        mCtx.drawImage(phaserCanvas, 0, 0, merged.width, merged.height);
+
+        // 4-b) lightweight-charts 캔버스들 차례로
+        const chartCanvases = chartContainer.querySelectorAll('canvas');
+        chartCanvases.forEach((cvs: HTMLCanvasElement) => {
+        const cRect = cvs.getBoundingClientRect();
+        const dx = (cRect.left - gRect.left) * scaleX;
+        const dy = (cRect.top  - gRect.top ) * scaleY;
+        const dw = cRect.width  * scaleX;
+        const dh = cRect.height * scaleY;
+
+        // src 전체를 dx/dy 위치에 dw×dh 크기로 그리기
+        mCtx.drawImage(cvs, 0, 0, cvs.width, cvs.height, dx, dy, dw, dh);
+        });
+
+        requestAnimationFrame(draw);
+    };
+    requestAnimationFrame(draw);
+
+    // 5) 녹화 시작
+    return this.startOffscreenCanvasRecording(merged, frameRate);
+    }
+
 }
 
 // Export a single instance (Singleton pattern)

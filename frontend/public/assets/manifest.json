@@ -92,5 +92,10 @@
         "key": "btn_green",
         "type": "image",
         "path": "assets/sprites/btn_green.png"
+    },
+    {
+        "key": "btn_red",
+        "type": "image",
+        "path": "assets/sprites/btn_red.png"
     }
 ]
