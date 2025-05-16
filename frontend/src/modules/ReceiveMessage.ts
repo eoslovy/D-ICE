@@ -28,7 +28,7 @@ interface UserJoinedMessage {
     requestId: string;
 }
 interface UserReconnectedMessage {
-    type: "USER_RECONNECTED",
+    type: "USER_RECONNECTED";
     requestId: string;
     userId: string;
 }
@@ -66,6 +66,8 @@ interface AggregatedAdminMessage {
     currentRound: number; // 현재 round
     totalRound: number; // 전체 round
     gameType: string; //게임이름
+    roundPlayerCount: number; // 이번 라운드 참여자 수
+    totalPlayerCount: number; // 총 참여자 수
     roundRanking: RankingInfo[];
     overallRanking: RankingInfo[];
     firstPlace: PotgInfo;
@@ -133,4 +135,3 @@ type UserReceiveTypeMap = {
     AGGREGATED_USER: AggregatedUserMessage;
     BROADCAST: BroadcastMessage;
 };
-

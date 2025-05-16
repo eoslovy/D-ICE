@@ -53,7 +53,6 @@ public class InitMessageHandler extends GameMessageHandler<InitMessage> implemen
 		} catch (Exception e) {
 			log.error("[InitMessageHandler] json parsing failed. payload={}", firstGameMessage, e);
 		}
-
 		var enterGameMessage = new EnterGameMessage();
 		try {
 			String payload = objectMapper.writeValueAsString(enterGameMessage);
@@ -63,6 +62,7 @@ public class InitMessageHandler extends GameMessageHandler<InitMessage> implemen
 		} catch (Exception e) {
 			log.error("[InitMessageHandler] json parsing failed. payload={}", enterGameMessage, e);
 		}
+		log.info("[Init] room {} is initiated", roomCode);
 	}
 
 	@Override
