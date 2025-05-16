@@ -419,6 +419,9 @@ export class Dice extends Phaser.Scene {
         });
 
         stopButton.on("pointerdown", () => {
+            // 돌리는 중이면 STOP 안됨!
+            if (this.isRolling) return;
+
             // 녹화 종료
             if (potgManager.getIsRecording()) {
                 potgManager.stopRecording();
