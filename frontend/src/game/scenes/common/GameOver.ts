@@ -517,6 +517,7 @@ export class GameOver extends Phaser.Scene {
             totalScore: this.backendResponse.totalScore,
             rankRecord: this.backendResponse.rankRecord,
             overallRank: this.backendResponse.overallRank,
+            totalPlayerCount: this.backendResponse.totalPlayerCount,
         });
     }
 
