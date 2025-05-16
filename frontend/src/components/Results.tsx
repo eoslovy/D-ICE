@@ -610,7 +610,6 @@ export default function Result({
                     {isFinalView && (
                         <div className="flex flex-col items-center justify-center w-full">
                             <div className="podium-container">
-                                <h3 className="podium-title">🏆 우승자 🏆</h3>
                                 <div className="relative flex justify-center items-end w-full h-64 px-8">
                                     {/* 2등 */}
                                     {topThreePlayers.length > 1 && (
@@ -626,10 +625,14 @@ export default function Result({
                                                     size={24}
                                                 />
                                                 <div className="podium-name text-center">
-                                                    {
-                                                        topThreePlayers[1]
-                                                            .nickname
-                                                    }
+                                                    {topThreePlayers[1].nickname
+                                                        .length > 5
+                                                        ? topThreePlayers[1].nickname.slice(
+                                                              0,
+                                                              5
+                                                          ) + "..."
+                                                        : topThreePlayers[1]
+                                                              .nickname}
                                                 </div>
                                                 <div className="podium-score text-center">
                                                     {topThreePlayers[1].score}점
@@ -653,10 +656,14 @@ export default function Result({
                                                     size={28}
                                                 />
                                                 <div className="podium-name podium-name-first text-center">
-                                                    {
-                                                        topThreePlayers[0]
-                                                            .nickname
-                                                    }
+                                                    {topThreePlayers[0].nickname
+                                                        .length > 5
+                                                        ? topThreePlayers[0].nickname.slice(
+                                                              0,
+                                                              5
+                                                          ) + "..."
+                                                        : topThreePlayers[0]
+                                                              .nickname}
                                                 </div>
                                                 <div className="text-lg text-center">
                                                     {topThreePlayers[0].score}점
@@ -680,10 +687,14 @@ export default function Result({
                                                     size={24}
                                                 />
                                                 <div className="podium-name text-center">
-                                                    {
-                                                        topThreePlayers[2]
-                                                            .nickname
-                                                    }
+                                                    {topThreePlayers[2].nickname
+                                                        .length > 5
+                                                        ? topThreePlayers[2].nickname.slice(
+                                                              0,
+                                                              5
+                                                          ) + "..."
+                                                        : topThreePlayers[2]
+                                                              .nickname}
                                                 </div>
                                                 <div className="podium-score text-center">
                                                     {topThreePlayers[2].score}점
