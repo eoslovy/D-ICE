@@ -17,5 +17,6 @@ export const GAME_TYPES: GameTypeInfo[] = [
     { name: "판옵티콘", key: "Panopticon" },
     { name: "다이스", key: "Dice" },
     { name: "컬러 헌터 G", key: "ColorHunterG" },
+    { name: "꼭대기에서 팔아라!", key: "GraphHigh"}
 ];
 

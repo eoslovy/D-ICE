@@ -380,7 +380,7 @@ export class GraphHigh extends Scene {
     this.tweens.add({
       targets: fill,
       width: w * percent / 100,
-      duration: 2000,
+      duration: 5000,
       ease: 'Cubic.easeOut'
     });
 
