@@ -3,7 +3,17 @@ interface SendMessage {
 }
 
 interface UserSendMessage extends SendMessage {
-    type: "USER_JOIN" | "SUBMIT" | "USER_RECONNECT" | "BROADCAST_REQUEST";
+    type:
+        | "USER_JOIN"
+        | "SUBMIT"
+        | "USER_RECONNECT"
+        | "BROADCAST_REQUEST"
+        | "CHECK_ENDED";
+}
+
+interface CheckEenedMessage extends UserSendMessage {
+    type: "CHECK_ENDED";
+    userId: string;
 }
 
 interface UserJoinMessage extends UserSendMessage {
