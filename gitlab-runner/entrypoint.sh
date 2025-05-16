@@ -63,11 +63,11 @@ echo "✅ config.toml 설정 완료"
 
 # Docker 이미지 미리 pull (Kubernetes 관련)
 echo "📦 Kubernetes 관련 이미지 미리 다운로드 중..."
-docker pull kindest/node:v1.29.0
-docker pull registry.k8s.io/pause:3.9
-docker pull quay.io/coreos/etcd:v3.5.0
-docker pull k8s.gcr.io/kube-apiserver:v1.29.0
-docker pull bitnami/kubectl:1.32.3
+#docker pull kindest/node:v1.29.0
+#docker pull registry.k8s.io/pause:3.9
+#docker pull quay.io/coreos/etcd:v3.5.0
+#docker pull k8s.gcr.io/kube-apiserver:v1.29.0
+#docker pull bitnami/kubectl:1.32.3
 if command -v apt-get >/dev/null 2>&1; then
   apt-get update && apt-get install -y gettext
 elif command -v apk >/dev/null 2>&1; then
@@ -79,13 +79,13 @@ fi
 
 # Docker 이미지 미리 pull (프로젝트 관련)
 echo "📦 프로젝트 관련 이미지 미리 다운로드 중..."
-docker pull mysql:8.0
+#docker pull mysql:8.0
 docker pull gradle:7.4-jdk17
 docker pull node:22
 docker pull nginx:1.25
 docker pull redis:7.2
-docker pull bitnami/kafka:3.6
-docker pull bitnami/zookeeper:3.8
+#docker pull bitnami/kafka:3.6
+#docker pull bitnami/zookeeper:3.8
 
 # GitLab Runner 실행
 echo "🚀 GitLab Runner 실행 중..."
