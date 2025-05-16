@@ -626,10 +626,10 @@ export default function Result({
                                                 />
                                                 <div className="podium-name text-center">
                                                     {topThreePlayers[1].nickname
-                                                        .length > 5
+                                                        .length > 4
                                                         ? topThreePlayers[1].nickname.slice(
                                                               0,
-                                                              5
+                                                              4
                                                           ) + "..."
                                                         : topThreePlayers[1]
                                                               .nickname}
@@ -657,10 +657,10 @@ export default function Result({
                                                 />
                                                 <div className="podium-name podium-name-first text-center">
                                                     {topThreePlayers[0].nickname
-                                                        .length > 5
+                                                        .length > 4
                                                         ? topThreePlayers[0].nickname.slice(
                                                               0,
-                                                              5
+                                                              4
                                                           ) + "..."
                                                         : topThreePlayers[0]
                                                               .nickname}
@@ -688,10 +688,10 @@ export default function Result({
                                                 />
                                                 <div className="podium-name text-center">
                                                     {topThreePlayers[2].nickname
-                                                        .length > 5
+                                                        .length > 4
                                                         ? topThreePlayers[2].nickname.slice(
                                                               0,
-                                                              5
+                                                              4
                                                           ) + "..."
                                                         : topThreePlayers[2]
                                                               .nickname}
