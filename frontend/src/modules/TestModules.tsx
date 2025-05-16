@@ -257,14 +257,16 @@ export default function TestModules(props: TestModulesProps) {
     const testAggregation = () => {
         const testData = {
             type: "AGGREGATED_USER",
-            currentRound: 5, // 현재 round
-            totalRound: 5, // 전체 round
+            currentRound: 10, // 현재 round
+            totalRound: 10, // 전체 round
             gameType: testGameTypeInput, //게임이름
             currentScore: 100, // int 이번 round 점수
             totalScore: 500,
-            rankRecord: "1|2|4|1|5", // 구분자 | 라운드별 순위 기록
+            rankRecord: "1|2|4|1|5|1|1|1|1|1", // 구분자 | 라운드별 순위 기록
             roundRank: 1,
             overallRank: 3,
+            roundPlayerCount: 30, // 이번 라운드 참여자(SUBMIT) 수
+            totalPlayerCount: 40,
             roundRanking: [
                 {
                     rank: 1, // 동차 면 같은 등수로
