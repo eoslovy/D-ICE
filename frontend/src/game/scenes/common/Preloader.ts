@@ -296,6 +296,19 @@ export class Preloader extends Phaser.Scene {
     }
 
     loadOnBackground() {
+        // Roulette
+        this.load.audio(
+            "RouletteSlowSound",
+            "assets/Roulette/SFX_SpinWheel_Slow_Loop_1.wav"
+        );
+        this.load.audio(
+            "RouletteFastSound",
+            "assets/Roulette/SFX_SpinWheel_Fast_Loop_1.wav"
+        );
+        this.load.audio(
+            "RouletteEndSound",
+            "assets/Roulette/SFX_SpinWheel_Start_1.wav"
+        );
         // Clicker
         this.load.audio("clicker_bgm", "assets/clicker/clicker_bgm.mp3");
         this.load.audio(
