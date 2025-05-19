@@ -11,7 +11,7 @@ public enum GameType {
 	Reaction(45000),
 	Clicker(30000),
 	PerfectCircle(15000),
-	Mugungwha(45000),
+	// Mugungwha(45000),
 	Wirewalk(30000),
 	Josephus(45000),
 	Dye(30000),
