@@ -139,7 +139,7 @@ export class EndGame extends Phaser.Scene {
             .setOrigin(0.5);
 
         // 라운드별 순위 테이블
-        this.createFinalRankTable(width / 2, height * 0.45, rankRecord);
+        this.createFinalRankTable(width / 2, height * 0.47, rankRecord);
 
         // Main Menu Button
         this.createMenuButton(width / 2, height * 0.9);
