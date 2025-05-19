@@ -5,6 +5,7 @@ import { LoadManifestFromJSON } from "../../../modules/gameutils/LoadSpritesMani
 import { userStore } from "../../../stores/userStore";
 import { addBackgroundImage } from "./addBackgroundImage";
 import { v7 as uuidv7 } from "uuid";
+import { GAME_TYPES } from "./GameType";
 
 export class Preloader extends Phaser.Scene {
     //private diceMiniGame?: DiceMiniGame;
@@ -309,6 +310,14 @@ export class Preloader extends Phaser.Scene {
             "RouletteEndSound",
             "assets/Roulette/SFX_SpinWheel_Start_1.wav"
         );
+        // Instruction
+        GAME_TYPES.forEach((gameType) => {
+            this.load.image(
+                "instruction-" + gameType.key.toLowerCase(),
+                `assets/instructions/${gameType.key.toLowerCase()}.png`
+            );
+        });
+
         // Clicker
         this.load.audio("clicker_bgm", "assets/clicker/clicker_bgm.mp3");
         this.load.audio(
