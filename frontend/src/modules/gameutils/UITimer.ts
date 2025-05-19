@@ -86,8 +86,11 @@ export class UITimer {
 
         this.timerLeft--;
         // display seconds
-        this.timerText?.setText(`${this.timerLeft}`);
-        this.timerText?.setVisible(true);
+        if (this.timerText && this.timerText.scene) {
+            this.timerText?.setText(`${this.timerLeft}`);
+            this.timerText?.setVisible(true);
+        }
+
 
         if (this.timerLeft <= 0) {
             this.timerFinishedSound?.play();
