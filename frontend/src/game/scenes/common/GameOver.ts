@@ -117,7 +117,7 @@ export class GameOver extends Phaser.Scene {
         this.events.on("shutdown", () => {
             userWebSocketManager.off("AGGREGATED_USER");
             console.log("AGGREGATED_USER 이벤트 리스너 해제");
-            userWebSocketManager.off("ERROR");
+            userWebSocketManager.off("SERVER_ERROR");
         });
     }
 
@@ -618,4 +618,3 @@ export class GameOver extends Phaser.Scene {
         );
     }
 }
-
