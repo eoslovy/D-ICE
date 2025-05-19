@@ -106,7 +106,7 @@ interface BroadcastMessage {
 }
 
 interface ErrorMessage {
-    type: "ERROR";
+    type: "SERVER_ERROR";
     message: string;
 }
 
@@ -141,7 +141,7 @@ type AdminReceiveTypeMap = {
     AGGREGATED_ADMIN: AggregatedAdminMessage;
     END: EndMessage;
     BROADCAST: BroadcastMessage;
-    ERROR: ErrorMessage;
+    SERVER_ERROR: ErrorMessage;
 };
 
 type UserReceiveTypeMap = {
@@ -152,5 +152,5 @@ type UserReceiveTypeMap = {
     ENTER_GAME: EnterGameMessage;
     AGGREGATED_USER: AggregatedUserMessage;
     BROADCAST: BroadcastMessage;
-    ERROR: ErrorMessage;
+    SERVER_ERROR: ErrorMessage;
 };

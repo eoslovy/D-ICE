@@ -54,7 +54,7 @@ import com.party.backbone.websocket.message.user.UserReconnectMessage;
 	@JsonSubTypes.Type(value = EndMessage.class, name = "END"),
 	@JsonSubTypes.Type(value = CheckEndedMessage.class, name = "CHECK_ENDED"),
 	@JsonSubTypes.Type(value = CheckEndedAckMessage.class, name = "CHECK_ENDED_ACK"),
-	@JsonSubTypes.Type(value = ErrorMessage.class, name = "ERROR"),
+	@JsonSubTypes.Type(value = ErrorMessage.class, name = "SERVER_ERROR"),
 })
 public interface GameMessage {
 }

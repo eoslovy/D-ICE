@@ -30,7 +30,7 @@ public enum ServerMessageType implements MessageType {
 	AGGREGATED_USER(AggregatedUserMessage.class),
 	AGGREGATED_ADMIN(AggregatedAdminMessage.class),
 	END(EndMessage.class),
-	ERROR(ErrorMessage.class),
+	SERVER_ERROR(ErrorMessage.class),
 	;
 
 	private final Class<? extends GameMessage> messageClass;
