@@ -547,19 +547,29 @@ export default function Result({
                         >
                             {hasAnyVideo && currentVideoUrl && (
                                 <>
-                                    <div className="video-wrapper max-h-[60vh] mb-4">
-                                        <video
-                                            ref={videoRef}
-                                            src={currentVideoUrl}
-                                            className="w-full h-full object-cover"
-                                            controls
-                                            onEnded={handleVideoEnded}
-                                        />
-                                        <div className="video-badge">
-                                            {/* // 수정 */}
-                                            {activeVideo === "first"
-                                                ? `🏆 ${data?.firstPlace.nickname} 플레이`
-                                                : `😅 ${data?.lastPlace.nickname} 플레이`}
+                                    <div
+                                        className="video-container mx-auto mb-4"
+                                        style={{
+                                            maxWidth: "40vh",
+                                            width: "100%",
+                                        }}
+                                    >
+                                        <div
+                                            className="relative"
+                                            style={{ paddingBottom: "177.78%" }}
+                                        >
+                                            <video
+                                                ref={videoRef}
+                                                src={currentVideoUrl}
+                                                className="absolute top-0 left-0 w-full h-full object-contain"
+                                                controls
+                                                onEnded={handleVideoEnded}
+                                            />
+                                            <div className="video-badge">
+                                                {activeVideo === "first"
+                                                    ? `🏆 ${data?.firstPlace.nickname} 플레이`
+                                                    : `😅 ${data?.lastPlace.nickname} 플레이`}
+                                            </div>
                                         </div>
                                     </div>
 
@@ -923,23 +933,26 @@ export default function Result({
                                     )}
                             </div>
                         </div>
+                        {/* 일반 라운드 결과에서의 버튼 */}
+                        {!isFinalView && onContinue && (
+                            <div className="flex justify-center items-center">
+                                <button
+                                    onClick={onContinue}
+                                    className="btn btn-primary inline-flex items-center"
+                                >
+                                    <Play size={20} className="mr-2" />
+                                    {isFinalRound
+                                        ? "최종 결과 확인하기"
+                                        : "다음 게임으로"}
+                                </button>
+                            </div>
+                        )}
                     </div>
                 </div>
             )}
 
             {/* 버튼 영역 */}
             <div className="continue-button">
-                {/* 일반 라운드 결과에서의 버튼 */}
-                {!isFinalView && onContinue && (
-                    <button
-                        onClick={onContinue}
-                        className="btn btn-primary inline-flex items-center"
-                    >
-                        <Play size={20} className="mr-2" />
-                        {isFinalRound ? "최종 결과 확인하기" : "다음 게임으로"}
-                    </button>
-                )}
-
                 {/* 최종 결과에서의 버튼 */}
                 {isFinalView && (
                     <div className="flex flex-col items-center space-y-4">
