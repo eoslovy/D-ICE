@@ -13,6 +13,7 @@ export class Preloader extends Phaser.Scene {
     private width: number;
     private height: number;
     private isEmojiCoolDown: boolean = false;
+    private checkEndedInterval: number | undefined;
 
     constructor() {
         super({ key: "Preloader" });
@@ -212,6 +213,27 @@ export class Preloader extends Phaser.Scene {
             }
             this.moveToRoulette();
         });
+        console.log("CHECK_ENDED_ACK 이벤트 리스너 등록");
+        userWebSocketManager.on(
+            "CHECK_ENDED_ACK",
+            (payload: CheckEenedAckMessage) => {
+                console.log("CHECK_ENDED_ACK 응답 성공:", payload);
+                if (!payload) console.log("CHECK_ENDED_ACK payload is null");
+                if (payload.isEnded == false || !payload.overallRank) {
+                    console.log(
+                        "아직 게임이 끝나지 않았습니다. 더 기다려주세요..."
+                    );
+                    return;
+                }
+                // Ended 응답 받았으므로 EndGame 씬으로 전환
+                this.scene.start("EndGame", {
+                    totalScore: payload.totalScore,
+                    rankRecord: payload.rankRecord,
+                    overallRank: payload.overallRank,
+                    totalPlayerCount: payload.totalPlayerCount,
+                });
+            }
+        );
 
         userWebSocketManager.on(
             "BROADCAST",
@@ -245,9 +267,32 @@ export class Preloader extends Phaser.Scene {
             console.log("WAIT 이벤트 리스너 해제");
             userWebSocketManager.off("BROADCAST");
             console.log("BROADCAST 이벤트 리스너 해제");
+            userWebSocketManager.off("CHECK_ENDED_ACK");
+            console.log("CHECK_ENDED_ACK 이벤트 리스너 해제");
+            clearInterval(this.checkEndedInterval);
+            console.log("CHECK_ENDED 요청 인터벌 클리어");
         });
 
         this.loadOnBackground();
+
+        // 최초 요청
+        this.sendCheckEndedRequest();
+
+        // 10초마다 반복 실행 (에러 발생해도 계속)
+        this.checkEndedInterval = setInterval(() => {
+            this.sendCheckEndedRequest();
+        }, 10_000);
+    }
+
+    private sendCheckEndedRequest() {
+        try {
+            userWebSocketManager.sendCheckEnded({
+                requestId: uuidv7(),
+                userId: userStore.getState().userId,
+            });
+        } catch (error) {
+            console.error("체크 요청 실패, 10초 후 재시도:", error);
+        }
     }
 
     loadOnBackground() {
