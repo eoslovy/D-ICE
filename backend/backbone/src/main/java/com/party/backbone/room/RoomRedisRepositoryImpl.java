@@ -59,6 +59,7 @@ public class RoomRedisRepositoryImpl implements RoomRedisRepository {
 
 		redisTemplate.opsForHash().putAll(key, roomData);
 		redisTemplate.opsForValue().set(key + ":administratorId", administratorId);
+		log.info("[createRoom] room {} created", roomCode);
 		redisTemplate.expire(key, RoomStateTTL.CREATED.getTtl());
 	}
 
@@ -111,7 +112,7 @@ public class RoomRedisRepositoryImpl implements RoomRedisRepository {
 		redisTemplate.opsForHash().put(roomKey, "totalRound", String.valueOf(totalRound));
 		redisTemplate.opsForHash().put(roomKey, "currentRound", String.valueOf(1));
 		redisTemplate.opsForHash().put(roomKey, "state", RoomStateTTL.WAITING.name());
-		redisTemplate.expire(getRoomKey(roomKey), RoomStateTTL.WAITING.getTtl());
+		redisTemplate.expire(roomKey, RoomStateTTL.WAITING.getTtl());
 		List<String> values = games.stream().map(Enum::name).toList();
 		redisTemplate.opsForList().rightPushAll(getGamesKey(roomCode), values);
 	}
@@ -147,7 +148,6 @@ public class RoomRedisRepositoryImpl implements RoomRedisRepository {
 	public void updateScore(String roomCode, String userId, int score) {
 		String playerKey = getPlayerKey(roomCode, userId);
 		String roomKey = getRoomKey(roomCode);
-		RoomStateTTL.valueOf((String)redisTemplate.opsForHash().get(roomKey, "state"));
 
 		Object stateObj = redisTemplate.opsForHash().get(roomKey, "state");
 		if (stateObj == null || !RoomStateTTL.PLAYING.name().equals(stateObj.toString())) {
@@ -262,7 +262,7 @@ public class RoomRedisRepositoryImpl implements RoomRedisRepository {
 		String roomKey = getRoomKey(roomCode);
 		// 집계 시작 시 다음 라운드 넘어가는 걸로 처리
 		redisTemplate.opsForHash().put(roomKey, "state", RoomStateTTL.WAITING.name());
-		redisTemplate.expire(getRoomKey(roomKey), RoomStateTTL.WAITING.getTtl());
+		// redisTemplate.expire(getRoomKey(roomKey), RoomStateTTL.WAITING.getTtl());
 
 		int currentRound = Integer.parseInt(
 			Objects.requireNonNull(redisTemplate.opsForHash().get(roomKey, "currentRound")).toString()
