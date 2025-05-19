@@ -108,8 +108,9 @@ export class GameOver extends Phaser.Scene {
             }
         );
 
-        userWebSocketManager.on("ERROR", (payload: ErrorMessage) => {
-            console.warn(`[GameOver] ${payload.message}`);
+        userWebSocketManager.on("SERVER_ERROR", (payload: ErrorMessage) => {
+            console.warn(`[Server Error] ${payload.message}`);
+            // submit이 집계보다 늦었을 때 상정
             this.scene.start("Preloader");
         });
 
