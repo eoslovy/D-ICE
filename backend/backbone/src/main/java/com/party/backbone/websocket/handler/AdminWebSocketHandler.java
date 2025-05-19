@@ -62,10 +62,11 @@ public class AdminWebSocketHandler extends TextWebSocketHandler {
 			AdminMessageType type = AdminMessageType.fromMessage(message);
 			registry.getHandler(type).handle(message, roomCode, session);
 		} catch (Exception e) {
-			log.error("[ADMIN_WEBSOCKET] 예외 발생", e);
+			var errorMessage = new ErrorMessage(e.getMessage());
+			log.error("[ADMIN_WEBSOCKET] 예외 발생 {}", errorMessage);
 			session.sendMessage(
 				new TextMessage(
-					objectMapper.writeValueAsString(new ErrorMessage(e.getMessage()))));
+					objectMapper.writeValueAsString(errorMessage)));
 		}
 	}
 

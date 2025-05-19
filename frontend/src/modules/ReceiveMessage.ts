@@ -106,10 +106,18 @@ interface BroadcastMessage {
 }
 
 interface ErrorMessage {
-    type: "ERROR";
+    type: "SERVER_ERROR";
     message: string;
 }
 
+interface CheckEenedAckMessage {
+    type: "CHECK_ENDED_ACK";
+    totalScore: number;
+    rankRecord: string;
+    overallRank: number;
+    totalPlayerCount: number;
+    isEnded: boolean;
+}
 
 type ReceiveMessage =
     | {
@@ -133,15 +141,16 @@ type AdminReceiveTypeMap = {
     AGGREGATED_ADMIN: AggregatedAdminMessage;
     END: EndMessage;
     BROADCAST: BroadcastMessage;
-    ERROR: ErrorMessage;
+    SERVER_ERROR: ErrorMessage;
 };
 
 type UserReceiveTypeMap = {
+    CHECK_ENDED_ACK: CheckEenedAckMessage;
     USER_JOINED: UserJoinedMessage;
     USER_RECONNECTED: UserReconnectedMessage;
     WAIT: WaitMessage;
     ENTER_GAME: EnterGameMessage;
     AGGREGATED_USER: AggregatedUserMessage;
     BROADCAST: BroadcastMessage;
-    ERROR: ErrorMessage;
+    SERVER_ERROR: ErrorMessage;
 };

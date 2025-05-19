@@ -5,10 +5,11 @@ import java.util.List;
 import java.util.Set;
 
 import com.party.backbone.room.RoomRedisRepository;
-import com.party.backbone.room.dto.FinalResult;
 import com.party.backbone.room.dto.RoundInfo;
 import com.party.backbone.room.dto.ScoreAggregationResult;
+import com.party.backbone.websocket.message.server.CheckEndedAckMessage;
 import com.party.backbone.websocket.model.GameType;
+import com.party.backbone.websocket.model.RankingInfo;
 
 public class MockRoomRedisRepository implements RoomRedisRepository {
 
@@ -68,12 +69,22 @@ public class MockRoomRedisRepository implements RoomRedisRepository {
 	}
 
 	@Override
+	public Boolean validateSubmit(String roomCode, GameType gameType) {
+		return null;
+	}
+
+	@Override
+	public CheckEndedAckMessage checkEnded(String roomCode, String userId) {
+		return null;
+	}
+
+	@Override
 	public void endGame(String roomCode) {
 
 	}
 
 	@Override
-	public List<FinalResult> getFinalResults(String roomCode) {
+	public List<RankingInfo> getFinalResults(String roomCode) {
 		return List.of();
 	}
 
