@@ -11,6 +11,21 @@ class UserWebSocketManager extends WebSocketManager<UserReceiveTypeMap> {
         super.disconnect();
     }
 
+    sendCheckEnded({
+        requestId,
+        userId,
+    }: {
+        requestId: string;
+        userId: string;
+    }): void {
+        const checkEenedMessage: CheckEenedMessage = {
+            type: "CHECK_ENDED",
+            userId: userId,
+            requestId: requestId,
+        };
+        this.sendRequest(checkEenedMessage);
+    }
+
     sendUserReconnect(requestId: string, userId: string): void {
         const userReconnectMessage: UserReconnectMessage = {
             type: "USER_RECONNECT",

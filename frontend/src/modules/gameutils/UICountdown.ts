@@ -93,8 +93,11 @@ export class UICountdown {
             return; // Health check failed
         }
         this.countdownLeft--;
-        this.countdownText?.setText(`${this.countdownLeft}`);
-        this.countdownText?.setVisible(true);
+        
+        if (this.countdownText && this.countdownText.scene) {
+            this.countdownText.setText(`${this.countdownLeft}`);
+            this.countdownText?.setVisible(true);
+        }
 
         if (this.countdownLeft <= 0) {
             this.countdownFinishedSound?.play();
