@@ -23,6 +23,8 @@ export class GameOver extends Phaser.Scene {
     private isLastRound: boolean = false;
     private needVideoUpload: boolean = false; // 업로드 필요 여부 상태 추가
     private gameTypeName: string = "";
+    private AggregatedTimeout: Phaser.Time.TimerEvent;
+    private goNextTimeout: Phaser.Time.TimerEvent;
 
     constructor() {
         super({ key: "GameOver" });
@@ -65,7 +67,7 @@ export class GameOver extends Phaser.Scene {
         const TIMEOUT_DURATION = 40000;
 
         console.log("[GameOver] 타임아웃 타이머 설정 시작");
-        const timeoutId = this.time.delayedCall(TIMEOUT_DURATION, () => {
+        this.AggregatedTimeout = this.time.delayedCall(TIMEOUT_DURATION, () => {
             console.warn("[GameOver] 타임아웃 트리거됨");
             if (!aggregatedResolved) {
                 console.warn(
@@ -88,7 +90,7 @@ export class GameOver extends Phaser.Scene {
                     return;
                 }
                 aggregatedResolved = true;
-                timeoutId.remove(false); // 타임아웃 제거
+                this.AggregatedTimeout.remove(false); // 집계 타임아웃 제거
                 console.log("[GameOver] 타임아웃 제거");
 
                 this.backendResponse = payload;
@@ -147,9 +149,12 @@ export class GameOver extends Phaser.Scene {
         const goNext_TIMEOUT_DURATION = 15000;
 
         console.log("[goNext] 타임아웃 타이머 설정 시작");
-        const timeoutId = this.time.delayedCall(goNext_TIMEOUT_DURATION, () => {
-            goNext();
-        });
+        this.goNextTimeout = this.time.delayedCall(
+            goNext_TIMEOUT_DURATION,
+            () => {
+                goNext();
+            }
+        );
         // "다음 게임" 버튼 표시
         let preloaderButton: Phaser.GameObjects.Container | undefined;
         const removeButton = () => {
@@ -164,7 +169,8 @@ export class GameOver extends Phaser.Scene {
         const goNext = () => {
             if (finished) return;
             finished = true;
-            timeoutId.remove();
+            this.goNextTimeout.remove(); // 다음게임 타임아웃 제거
+            this.AggregatedTimeout.remove(false); // 집계 타임아웃 제거
             removeButton();
             if (this.isLastRound) {
                 this.EndGame();
