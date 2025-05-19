@@ -74,12 +74,15 @@ export default function Lobby() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        const nicknameLength = [...nicknameInput].length;
 
-        if (!nicknameInput || !roomCodeInput || nicknameLength > 12) {
+        const trimmedNickname = nicknameInput ? nicknameInput.trim() : "";
+        const trimmedRoomCode = roomCodeInput ? roomCodeInput.trim() : "";
+        const nicknameLength = trimmedNickname.length;
+
+        if (!trimmedNickname || !trimmedRoomCode || nicknameLength > 12) {
             if (nicknameLength > 12) {
                 setErrorMessage("닉네임을 12자 이하로 입력하세요.");
-            } else if (!nicknameInput) {
+            } else if (!trimmedNickname) {
                 setErrorMessage("닉네임을 입력하세요.");
             } else {
                 setErrorMessage("방 번호를 입력하세요.");
@@ -134,23 +137,6 @@ export default function Lobby() {
                         disabled={urlRoomCode !== null || isJoining}
                     />
 
-                    {urlRoomCode !== null && (
-                        <button
-                            type="button"
-                            className={`btn btn-secondary flex items-center justify-center ${
-                                isJoining ? "opacity-70 cursor-not-allowed" : ""
-                            }`}
-                            onClick={() => {
-                                sessionStorage.removeItem("urlRoomCode");
-                                setroomCodeInput("");
-                                setErrorMessage("");
-                            }}
-                            disabled={isJoining}
-                        >
-                            방 번호 초기화
-                        </button>
-                    )}
-
                     <button
                         type="submit"
                         className={`btn btn-primary flex items-center justify-center ${
@@ -173,6 +159,23 @@ export default function Lobby() {
                             </>
                         )}
                     </button>
+
+                    {urlRoomCode !== null && (
+                        <button
+                            type="button"
+                            className={`btn btn-secondary flex items-center justify-center ${
+                                isJoining ? "opacity-70 cursor-not-allowed" : ""
+                            }`}
+                            onClick={() => {
+                                sessionStorage.removeItem("urlRoomCode");
+                                setroomCodeInput("");
+                                setErrorMessage("");
+                            }}
+                            disabled={isJoining}
+                        >
+                            방 번호 초기화
+                        </button>
+                    )}
                 </form>
 
                 {errorMessage && <p className="text-warning">{errorMessage}</p>}
