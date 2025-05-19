@@ -653,13 +653,10 @@ export class NumberSurvivor extends Scene {
                 });
             }
             
-            // 버튼 다시 비활성화 - 이미 탈락한 상태에서 버튼이 활성화된 경우 완전히 비활성화
+            // 버튼 다시 비활성화
             this.completelyDisableButtons(false);
             return;
         }
-        
-        // 실제 게임 참여자임을 표시 (숫자를 선택했으므로)
-        localStorage.setItem(`gameParticipant_${this.userId}_${this.roomCode}`, 'true');
         
         // 간단한 선택 피드백
         this.showSimpleSelectionFeedback(number);
@@ -747,78 +744,6 @@ export class NumberSurvivor extends Scene {
     // [서비스용] 라운드 시작 처리 함수
     private handleRoundStart(message: RoundStartMessage) {
         console.log('[NumberSurvivor] Round start message received:', message);
-        
-        const storageKey = `eliminatedPlayer_${this.userId}_${this.roomCode}`;
-        
-        // 서버가 "전원 부활" 또는 특정 플레이어 부활 신호를 보냈다면
-        const wasPreviouslyEliminated = !this.playerAlive; // 부활 전에 탈락 상태였는지 저장
-        
-        // 이 플레이어가 게임에 참여중인지 확인 (관전자가 아닌 실제 게임 참여자)
-        // 플레이어 상태 목록(playerStatuses)이 존재하고 이 플레이어가 목록에 있는 경우만 게임 참여자로 인정
-        const isActualPlayer = message.playerStatuses && 
-                              (this.userId in message.playerStatuses) && 
-                              message.playerStatuses[this.userId] === true;
-        
-        let shouldRevive = false;
-        
-        // 서버에서 부활 신호가 왔는지 확인
-        if (
-            // 전체 부활이면서 이 플레이어가 현재 라운드 참여자일 때
-            ((message.resetEliminationStatus || message.allPlayersRevived) && isActualPlayer) ||
-            // 또는 특정 플레이어 부활 정보가 있고 이 플레이어가 명시적으로 포함되어 있을 때
-            (message.playerStatuses && message.playerStatuses[this.userId] === true)
-        ) {
-            console.log(`[NumberSurvivor] 부활 신호 감지 — isActualPlayer: ${isActualPlayer}, userId: ${this.userId}`);
-            shouldRevive = true;
-            
-            // 탈락 상태 제거
-            localStorage.removeItem(storageKey);
-            this.playerAlive = true;
-            
-            if (wasPreviouslyEliminated) {
-                // 이전에 탈락했던 플레이어에게만 부활 효과 적용
-                console.log('[NumberSurvivor] 이전에 탈락한 플레이어 부활 처리 시작');
-                
-                // 화려한 부활 효과 추가
-                this.showRevivalEffect();
-                
-                // 1. 탈락 메시지 제거
-                if (this.eliminatedMessage) {
-                    this.eliminatedMessage.setAlpha(0);
-                }
-                
-                // 2. 관전 모드 오버레이 제거
-                const existingOverlay = this.children.getByName('spectatorOverlay') as Phaser.GameObjects.Container;
-                if (existingOverlay) {
-                    existingOverlay.destroy();
-                }
-                
-                // 3. 버튼 상태 완전 초기화 - 색상 복원 포함
-                this.restoreButtonStyles();
-                
-                // 4. 타이머 표시 복원
-                if (this.timerText) {
-                    this.timerText.setVisible(true);
-                }
-                
-                // 5. 부활 메시지 표시
-                if (this.messageText) {
-                    this.messageText.setText('부활했습니다! 게임에 다시 참여합니다');
-                    this.messageText.setColor('#88ff88');
-                    
-                    // 메시지 애니메이션
-                    this.tweens.add({
-                        targets: this.messageText,
-                        scale: { from: 1.3, to: 1 },
-                        duration: 700,
-                        ease: 'Elastic'
-                    });
-                }
-                
-                console.log('[NumberSurvivor] 부활 효과 적용 및 UI 초기화 완료');
-            }
-        }
-        
         this.gameState = 'playing';
         
         this.cleanupTimer();
@@ -830,9 +755,11 @@ export class NumberSurvivor extends Scene {
         this.updateRoundInfo(message.round);
         
         // 로컬 스토리지에서 탈락 상태 명시적 확인 - 매 라운드마다 확인
-        // 부활 처리 후에도 다시 확인하여 최종 상태 결정
+        const storageKey = `eliminatedPlayer_${this.userId}_${this.roomCode}`;
+        
+        // 강제로 로컬 스토리지 다시 확인
         const isEliminatedFromStorage = localStorage.getItem(storageKey);
-        console.log(`[NumberSurvivor] 탈락 플래그 확인: ${isEliminatedFromStorage}`);
+        console.log(`[NumberSurvivor] Checking localStorage for elimination status. Key: ${storageKey}, Value: ${isEliminatedFromStorage}`);
         
         // 로컬 스토리지에 탈락 상태가 있으면 강제로 playerAlive 업데이트
         if (isEliminatedFromStorage === 'true') {
@@ -1036,9 +963,6 @@ export class NumberSurvivor extends Scene {
         
         // 플레이어 생존 상태 저장
         this.playerAlive = myResult.isAlive;
-        
-        // 이 플레이어가 게임 참여자임을 표시 (첫 라운드 결과부터)
-        localStorage.setItem(`gameParticipant_${this.userId}_${this.roomCode}`, 'true');
         
         // 디버깅용 - 라운드 결과 및 생존 여부 표시
         console.log(`[NumberSurvivor] Round ${message.round} result - Before: ${wasAliveBeforeResult}, After: ${this.playerAlive}`);
@@ -1402,122 +1326,6 @@ export class NumberSurvivor extends Scene {
                 circle.destroy();
             }
         });
-    }
-    
-    // [서비스용] 부활 효과 표시 함수
-    private showRevivalEffect() {
-        const centerX = this.scale.width / 2;
-        const centerY = this.scale.height / 2;
-        
-        // 1. 전체 화면에 빛나는 효과
-        const flash = this.add.rectangle(
-            centerX,
-            centerY,
-            this.scale.width,
-            this.scale.height,
-            0xffdd00
-        ).setAlpha(0).setDepth(25);
-        
-        // 번쩍이는 효과
-        this.tweens.add({
-            targets: flash,
-            alpha: { from: 0, to: 0.7 },
-            yoyo: true,
-            duration: 500,
-            ease: 'Sine.easeOut',
-            onComplete: () => {
-                flash.destroy();
-            }
-        });
-        
-        // 2. 부활 아이콘 (백색 원) 표시
-        const reviveCircle = this.add.circle(
-            centerX,
-            centerY,
-            150,
-            0xffffff,
-            0.8
-        ).setDepth(26);
-        
-        // 3. 빛나는 별 효과
-        for (let i = 0; i < 8; i++) {
-            const angle = (i / 8) * Math.PI * 2;
-            const distance = 100;
-            
-            const starX = centerX + Math.cos(angle) * distance;
-            const starY = centerY + Math.sin(angle) * distance;
-            
-            const star = this.add.star(
-                starX, starY, 5, 15, 30, 0xffff00
-            ).setAlpha(0).setDepth(27);
-            
-            // 별이 나타났다 사라지는 애니메이션
-            this.tweens.add({
-                targets: star,
-                alpha: { from: 0, to: 1 },
-                scale: { from: 0.5, to: 1.5 },
-                angle: 180,
-                duration: 700,
-                delay: i * 100,
-                ease: 'Sine.easeOut',
-                onComplete: () => {
-                    this.tweens.add({
-                        targets: star,
-                        alpha: 0,
-                        scale: 0.5,
-                        duration: 300,
-                        ease: 'Sine.easeIn',
-                        onComplete: () => {
-                            star.destroy();
-                        }
-                    });
-                }
-            });
-        }
-        
-        // 4. "부활!" 텍스트 효과
-        const reviveText = this.add.text(
-            centerX,
-            centerY,
-            "부활!",
-            {
-                fontSize: '64px',
-                color: '#ffffff',
-                stroke: '#ffaa00',
-                strokeThickness: 6,
-                fontStyle: 'bold'
-            }
-        ).setOrigin(0.5).setAlpha(0).setDepth(28);
-        
-        // 텍스트 애니메이션
-        this.tweens.add({
-            targets: reviveText,
-            alpha: 1,
-            scale: { from: 0.5, to: 1.2 },
-            duration: 500,
-            ease: 'Back.easeOut',
-            onComplete: () => {
-                // 잠시 후 사라짐
-                this.tweens.add({
-                    targets: [reviveText, reviveCircle],
-                    alpha: 0,
-                    scale: 1.5,
-                    duration: 800,
-                    delay: 1000,
-                    ease: 'Power2',
-                    onComplete: () => {
-                        reviveText.destroy();
-                        reviveCircle.destroy();
-                    }
-                });
-            }
-        });
-        
-        // 5. 화면 흔들림 효과
-        this.cameras.main.shake(300, 0.01);
-        
-        // 6. 사운드 효과 (있다면)
-        // this.sound.play('revive_sound');
     }
 
     // [서비스용] 오류 표시 함수
@@ -2097,7 +1905,6 @@ export class NumberSurvivor extends Scene {
     private createDummyRoundResults(winners: PlayerInfo[]): RoundResult[] {
         // 우승자 라운드만 바로 생성
         const finalRound: RoundResult = {
-            type: "ROUND_RESULT",
             round: 1, // 한 개의 라운드만 진행한 것으로 처리
             survivors: [...winners], // 모든 플레이어가 우승자
             eliminated: [], // 탈락자 없음
@@ -2110,35 +1917,5 @@ export class NumberSurvivor extends Scene {
         });
         
         return [finalRound]; // 단 하나의 라운드만 반환
-    }
-
-    // 버튼 스타일 완전 복원 함수 추가
-    private restoreButtonStyles() {
-        this.numberButtons.forEach((button, index) => {
-            button.setAlpha(1);
-            
-            // 배경 색상 원래대로 복원
-            const bg = button.list[0] as Phaser.GameObjects.Rectangle;
-            if (bg) {
-                // 버튼 인덱스를 기준으로 색상 복원 (9번까진 숫자 버튼, 10: 0 버튼, 11: 지우기, 12: 제출)
-                if (index === this.numberButtons.length - 2) { // 지우기 버튼
-                    bg.setFillStyle(0x884444).setStrokeStyle(3, 0xff8888);
-                } else if (index === this.numberButtons.length - 1) { // 제출 버튼
-                    bg.setFillStyle(0x448844).setStrokeStyle(3, 0x88ff88);
-                } else { // 숫자 버튼 (0-9)
-                    bg.setFillStyle(0x4444aa).setStrokeStyle(3, 0x8888ff);
-                }
-                
-                bg.setInteractive({ useHandCursor: true });
-            }
-            
-            // 텍스트 색상 복원
-            const text = button.list[1] as Phaser.GameObjects.Text;
-            if (text) {
-                text.setColor('#ffffff');
-            }
-        });
-        
-        console.log('[NumberSurvivor] 버튼 스타일이 완전히 복원되었습니다');
     }
 }
