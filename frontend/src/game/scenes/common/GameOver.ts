@@ -108,15 +108,16 @@ export class GameOver extends Phaser.Scene {
             }
         );
 
-        userWebSocketManager.on("ERROR", (payload: ErrorMessage) => {
-            console.warn(`[GameOver] ${payload.message}`);
+        userWebSocketManager.on("SERVER_ERROR", (payload: ErrorMessage) => {
+            console.warn(`[Server Error] ${payload.message}`);
+            // submit이 집계보다 늦었을 때 상정
             this.scene.start("Preloader");
         });
 
         this.events.on("shutdown", () => {
             userWebSocketManager.off("AGGREGATED_USER");
             console.log("AGGREGATED_USER 이벤트 리스너 해제");
-            userWebSocketManager.off("ERROR");
+            userWebSocketManager.off("SERVER_ERROR");
         });
     }
 
@@ -617,4 +618,3 @@ export class GameOver extends Phaser.Scene {
         );
     }
 }
-
