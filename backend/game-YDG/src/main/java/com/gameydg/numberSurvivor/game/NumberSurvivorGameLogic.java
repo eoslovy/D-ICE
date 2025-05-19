@@ -7,7 +7,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
-import java.util.ArrayList;
 
 import org.springframework.stereotype.Component;
 
@@ -122,26 +121,13 @@ public class NumberSurvivorGameLogic {
 				roomCode, result.getRound(), result.getSurvivors().size(), result.getEliminated().size());
 
 			if (gameManager.isAllDead(roomCode)) {
-				log.info("[게임 로직] 전원 탈락 - 현재 라운드 참여자만 부활 [방ID: {}]", roomCode);
-				
-				// 현재 라운드 번호 가져오기
-				int currentRound = gameManager.getCurrentRounds().get(roomCode);
-				List<PlayerDto> currentRoundPlayers = new ArrayList<>();
-				
-				// 현재 활성화된 라운드의 참가자만 부활
+				log.info("[게임 로직] 전원 탈락 - 모든 플레이어 부활 [방ID: {}]", roomCode);
+
 				gameManager.getRooms().get(roomCode).forEach(p -> {
-					// 이번 라운드에 참여했던 플레이어만 부활 (살아있었다가 이번에 죽은 플레이어)
-					if (p.getSelectedNumber() != null && result.getEliminated().stream()
-							.anyMatch(eliminated -> eliminated.getUserId().equals(p.getUserId()))) {
-						currentRoundPlayers.add(p);
-						p.setAlive(true);
-						p.setSelectedNumber(null);
-						log.info("[게임 로직] 플레이어 부활 [ID: {}, 닉네임: {}]", p.getUserId(), p.getNickname());
-					}
+					p.setAlive(true);
+					p.setSelectedNumber(null);
 				});
-				
-				log.info("[게임 로직] 부활 처리 완료 [방ID: {}, 부활 인원: {}명]", roomCode, currentRoundPlayers.size());
-				
+
 				executorService.schedule(() -> {
 					try {
 						messageService.sendAllPlayersRevivedMessage(roomCode);
@@ -151,7 +137,7 @@ public class NumberSurvivorGameLogic {
 						log.error("[게임 로직] 새 라운드 시작 중 오류 [방ID: {}]", roomCode, e);
 					}
 				}, 3, TimeUnit.SECONDS);
-				
+
 				return;
 			}
 
