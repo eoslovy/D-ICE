@@ -20,7 +20,10 @@ import com.party.backbone.room.dto.FinalResult;
 import com.party.backbone.room.dto.RoundInfo;
 import com.party.backbone.room.dto.ScoreAggregationResult;
 import com.party.backbone.room.model.RoomStateTTL;
+import com.party.backbone.room.util.RankingUtils;
+import com.party.backbone.websocket.message.server.CheckEndedAckMessage;
 import com.party.backbone.websocket.model.GameType;
+import com.party.backbone.websocket.model.RankingInfo;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -158,8 +161,9 @@ public class RoomRedisRepositoryImpl implements RoomRedisRepository {
 			return;
 		}
 		int currentRound = Integer.parseInt(roundObj.toString());
-
-		redisTemplate.opsForHash().increment(playerKey, "score", score);
+		;
+		redisTemplate.opsForHash()
+			.increment(playerKey, "score", (int)Math.round(score * ROUND_MULTIPLIERS[currentRound]));
 
 		String roundScoreKey = getRoundScoreKey(roomCode, currentRound);
 		redisTemplate.opsForZSet().incrementScore(roundScoreKey, userId, score);
@@ -204,6 +208,32 @@ public class RoomRedisRepositoryImpl implements RoomRedisRepository {
 		);
 		String gameTypeName = redisTemplate.opsForList().index(getGamesKey(roomCode), currentRound - 1);
 		return Objects.requireNonNull(gameTypeName).equals(gameType.name());
+	}
+
+	@Override
+	public CheckEndedAckMessage checkEnded(String roomCode, String userId) {
+		String roomKey = getRoomKey(roomCode);
+		Boolean isEnded = RoomStateTTL.ENDED.name().equals(redisTemplate.opsForHash().get(roomKey, "state"));
+
+		String playerKey = getPlayerKey(roomCode, userId);
+		String rankRecord = Objects.requireNonNull(
+			redisTemplate.opsForHash().get(playerKey, "rankRecord")).toString();
+		Object scoreObj = Objects.requireNonNull(
+			redisTemplate.opsForHash().get(playerKey, "score")
+		);
+		int totalScore = Integer.parseInt(scoreObj.toString());
+
+		Integer finalRank = Optional.ofNullable(
+				redisTemplate.opsForHash().get(playerKey, "finalRank")
+			).map(Object::toString)
+			.map(Integer::valueOf)
+			.orElse(null);
+
+		;
+		int totalPlayerCount = Objects.requireNonNull(redisTemplate.opsForSet().size(getPlayerIdsKey(roomCode)))
+			.intValue();
+
+		return new CheckEndedAckMessage(isEnded, rankRecord, totalScore, finalRank, totalPlayerCount);
 	}
 
 	@Override
@@ -304,7 +334,7 @@ public class RoomRedisRepositoryImpl implements RoomRedisRepository {
 	}
 
 	@Override
-	public List<FinalResult> getFinalResults(String roomCode) {
+	public List<RankingInfo> getFinalResults(String roomCode) {
 		List<String> userIds = getUserIds(roomCode);
 
 		List<FinalResult> results = new ArrayList<>();
@@ -324,8 +354,12 @@ public class RoomRedisRepositoryImpl implements RoomRedisRepository {
 
 			results.add(new FinalResult(userId, nickname, score));
 		}
-
-		return results;
+		var finalRanks = RankingUtils.calculateFinalRanks(results);
+		for (var rankInfo : finalRanks) {
+			redisTemplate.opsForHash()
+				.put(getPlayerKey(roomCode, rankInfo.userId()), "finalRank", String.valueOf(rankInfo.rank()));
+		}
+		return finalRanks;
 	}
 
 	@Override
