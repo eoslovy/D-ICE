@@ -473,8 +473,8 @@ export class GameOver extends Phaser.Scene {
                     (_, reject) =>
                         setTimeout(
                             () => reject(new Error("Upload timeout")),
-                            10000
-                        ) // 10초 타임아웃
+                            20000
+                        ) // 20초 타임아웃
                 ),
             ]);
 
@@ -618,3 +618,4 @@ export class GameOver extends Phaser.Scene {
         );
     }
 }
+
