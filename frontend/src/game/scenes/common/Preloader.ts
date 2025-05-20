@@ -182,6 +182,8 @@ export class Preloader extends Phaser.Scene {
                 });
             });
         });
+        // 기본 생성 시 쿨타임 해제
+        this.isEmojiCoolDown = false;
     }
 
     private moveToRoulette() {
