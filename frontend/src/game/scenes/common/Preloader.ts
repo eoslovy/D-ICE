@@ -101,6 +101,9 @@ export class Preloader extends Phaser.Scene {
             },
             loop: true,
         });
+
+        // 시작하기 위해 대기 상태로 전환
+        this.readyToStart = false;
     }
 
     private showEmojiButtons() {
@@ -182,6 +185,8 @@ export class Preloader extends Phaser.Scene {
                 });
             });
         });
+        // 기본 생성 시 쿨타임 해제
+        this.isEmojiCoolDown = false;
     }
 
     private moveToRoulette() {

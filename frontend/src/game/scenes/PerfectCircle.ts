@@ -134,7 +134,32 @@ export class PerfectCircle extends Phaser.Scene {
     const width = this.cameras.main.width;
     const height = this.cameras.main.height;
 
-    if (this.points.length < 10) {
+    // 아무것도 그리지 않은 경우 0점 처리
+    if (!this.points || this.points.length <= 1) {
+      this.score = 0;
+      this.add.text(width/2, height*0.7, '선을 그려주세요! (0점)', {
+        fontSize: '32px',
+        color: '#ff0000',
+        fontFamily: 'Jua',
+        fontStyle: 'bold',
+        stroke: '#000000',
+        strokeThickness: 4
+      }).setOrigin(0.5);
+      this.time.delayedCall(2000, () => {
+        this.stopRecording();
+        this.scene.start('GameOver', {
+          score: this.score,
+          gameType: 'PerfectCircle'
+        });
+      });
+      this.points = [];
+      this.graphics.clear();
+      this.drawing = false;
+      return;
+    }
+
+    // 최소 포인트 개수
+    if (this.points.length < 30) {
       this.add.text(width/2, height*0.7, '조금 더 길게 그려주세요!', {
         fontSize: '32px',
         color: '#ff0000',
@@ -143,39 +168,116 @@ export class PerfectCircle extends Phaser.Scene {
         stroke: '#000000',
         strokeThickness: 4
       }).setOrigin(0.5);
+      // 초기화
+      this.points = [];
+      this.graphics.clear();
+      this.drawing = false;
       return;
     }
-  
-    const distances = this.points.map(p =>
-      Math.abs(Phaser.Math.Distance.Between(p.x, p.y, this.guideCenterX, this.guideCenterY) - this.guideRadius)
+
+    // 1) 그린 길이 계산
+    let strokeLength = 0;
+    for (let i = 1; i < this.points.length; i++) {
+      const p0 = this.points[i-1], p1 = this.points[i];
+      strokeLength += Phaser.Math.Distance.Between(p0.x, p0.y, p1.x, p1.y);
+    }
+    const guideCirc = 2 * Math.PI * this.guideRadius;
+    if (strokeLength < guideCirc * 0.6) {
+      this.add.text(width/2, height*0.7, '원 한 바퀴 이상 그려주세요!', {
+        fontSize: '32px',
+        color: '#ff0000',
+        fontFamily: 'Jua',
+        fontStyle: 'bold',
+        stroke: '#000000',
+        strokeThickness: 4
+      }).setOrigin(0.5);
+      // 초기화
+      this.points = [];
+      this.graphics.clear();
+      this.drawing = false;
+      return;
+    }
+
+    const center = { x: this.guideCenterX, y: this.guideCenterY };
+    // 2) 각도 커버리지 계산
+    const angles = this.points.map(p => Math.atan2(p.y - center.y, p.x - center.x));
+    let minA = Math.min(...angles), maxA = Math.max(...angles);
+    let span = maxA - minA;
+    if (span < 0) span += Math.PI * 2;
+    const angleRatio = span / (Math.PI * 2);
+    if (angleRatio < 0.5) {
+      this.add.text(width/2, height*0.7, '최소 절반 이상 그려주세요!', {
+        fontSize: '32px',
+        color: '#ff0000',
+        fontFamily: 'Jua',
+        fontStyle: 'bold',
+        stroke: '#000000',
+        strokeThickness: 4
+      }).setOrigin(0.5);
+      // 초기화
+      this.points = [];
+      this.graphics.clear();
+      this.drawing = false;
+      return;
+    }
+
+    // 3) 시작점-끝점 거리로 완성도
+    const start = this.points[0], end = this.points[this.points.length-1];
+    const completionDist = Phaser.Math.Distance.Between(start.x, start.y, end.x, end.y);
+    const completionScore = Math.max(0, 100 - completionDist * 2);
+
+    // 4) 반지름 정확도
+    const dists = this.points.map(p =>
+      Phaser.Math.Distance.Between(p.x, p.y, center.x, center.y)
     );
-    const avgDist = distances.reduce((sum, d) => sum + d, 0) / distances.length;
-    const variance = distances.reduce((sum, d) => sum + Math.pow(d - avgDist, 2), 0) / distances.length;
-    const stdDev = Math.sqrt(variance);
-    let score = Math.max(0, 100 - stdDev * 2);
-    score = Math.round(score * 100) / 100;
-    this.score = score;
-  
+    const avgR = dists.reduce((s, d) => s + d, 0) / dists.length;
+    const radiusScore = Math.max(0, 100 - Math.abs(avgR - this.guideRadius) * 3);
+
+    // 5) 형태 일관성
+    const devs = dists.map(d => Math.abs(d - avgR));
+    const stdDev = Math.sqrt(devs.reduce((s, d) => s + d*d, 0) / devs.length);
+    const shapeScore = Math.max(0, 100 - stdDev * 5);
+
+    // 6) 최종 점수
+    const rawScore = (completionScore * 0.3 + radiusScore * 0.4 + shapeScore * 0.3);
+    const finalScore = Math.round(rawScore * 100) / 100;
+    this.score = finalScore;
+
+    // 7) 분류
+    let resultLabel: string;
+    if (angleRatio >= 0.95 && finalScore >= 80) {
+      resultLabel = '🌟 완벽한 원!';
+    } else if (angleRatio >= 0.7) {
+      resultLabel = '👍 어설픈 원';
+    } else {
+      resultLabel = '❌ 원도 아닌 것';
+    }
+
+    // 결과 표시
     const resultBg = this.add.graphics();
     resultBg.fillStyle(0x000000, 0.5);
-    resultBg.fillRoundedRect(width/2-160, height*0.8-40, 320, 80, 20);
+    resultBg.fillRoundedRect(width/2-180, height*0.8-50, 360, 100, 20);
 
-    const resultText = this.add.text(width / 2, height * 0.8, `정확도: ${score}%`, {
+    this.add.text(width/2, height*0.8 - 20, resultLabel, {
       fontFamily: 'Jua',
-      fontSize: '48px',
+      fontSize: '40px',
       color: '#00ffd0',
-      fontStyle: 'bold',
       stroke: '#000000',
       strokeThickness: 6
     }).setOrigin(0.5);
-    this.tweens.add({ targets: resultText, alpha: { from: 0, to: 1 }, duration: 500 });
-  
-    // 3초 후 GameOver 씬으로
+
+    this.add.text(width/2, height*0.8 + 30, `정확도: ${finalScore}%`, {
+      fontFamily: 'Jua',
+      fontSize: '32px',
+      color: '#ffffff',
+      stroke: '#000000',
+      strokeThickness: 4
+    }).setOrigin(0.5);
+
+    // 3초 후 GameOver
     this.time.delayedCall(3000, () => {
-      // 녹화 중지 추가
       this.stopRecording();
-      
-      this.scene.start('GameOver', { 
+      this.scene.start('GameOver', {
         score: this.score,
         gameType: 'PerfectCircle'
       });
