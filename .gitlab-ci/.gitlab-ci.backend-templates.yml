@@ -21,7 +21,7 @@ workflow:
         HOST_SERVER: test.d-ice.co.kr
         SERVER_DOMAIN: test.d-ice.co.kr
         BUCKET_DOMAIN: bucket.test.d-ice.co.kr
-        CERT_DOMAIN: test.d-ice.co.kr
+        CERT_DOMAIN: d-ice.co.kr
         BUILD_ARCHITECTURE: linux/amd64
         DEPLOY_MODE: build-test
 
