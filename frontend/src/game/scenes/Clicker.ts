@@ -116,7 +116,14 @@ export class Clicker extends Scene {
         });
 
         this.time.addEvent({
-            delay: 1000,
+            delay: 1100,
+            callback: this.spawnTarget,
+            callbackScope: this,
+            loop: true,
+        });
+
+        this.time.addEvent({
+            delay: 1300,
             callback: this.spawnTarget,
             callbackScope: this,
             loop: true,

@@ -15,11 +15,13 @@ export class Mugungwha extends Scene {
     private gameDuration: number;
     private popupText: PopupText;
     private popupSprite: PopupSprite;
+    private gameStarted: boolean = false;
+    private gameEnded: boolean = false;
 
     // Game specific settings
     private distanceMoved: number;
     private lastDistance: number;
-    private maxDistance: number = 1000; // Maximum distance to achieve 100 points
+    private maxDistance: number = 800; // Maximum distance to achieve 100 points
     private background: Phaser.GameObjects.TileSprite;
     private player: Phaser.GameObjects.Sprite;
     private gameButton: Phaser.GameObjects.Sprite;
@@ -132,6 +134,8 @@ export class Mugungwha extends Scene {
 
     startGame() {
         this.gameStartedTime = Date.now();
+        this.gameStarted = true;
+        this.gameEnded = false;
         this.timer.startTimer(this.gameDuration);
 
         if (this.textures.exists("mugungwha_player")) {
@@ -259,9 +263,11 @@ export class Mugungwha extends Scene {
     }
 
     endGame() {
+        this.gameEnded = true;
+        this.gameStarted = false;
         this.mugungwha_bgm?.stop();
-        this.gameButton.destroy();
-        this.gameButtonText.destroy();
+        this.gameButton?.destroy();
+        this.gameButtonText?.destroy();
         this.timer.stopTimer(true);
         this.time.removeAllEvents();
 
@@ -321,6 +327,10 @@ export class Mugungwha extends Scene {
     }
 
     update(time: number, delta: number) {
+        if (!this.gameStarted || this.gameEnded) {
+            return;
+        }
+
         if (this.background) {
             const diffDistance = this.distanceMoved - this.lastDistance;
             this.background.tilePositionX += diffDistance * 20;
@@ -392,7 +402,7 @@ export class Mugungwha extends Scene {
                     }
                 );
 
-                this.gameButtonText.setText("STOP!");
+                this.gameButtonText?.setText("STOP!");
                 // Reset the button color after 2 seconds
                 this.time.addEvent({
                     delay: 2000,
@@ -401,7 +411,7 @@ export class Mugungwha extends Scene {
                         this.isWatching = false;
                         this.watchingCounter = 0;
                         this.alerLevel = 0;
-                        this.gameButtonText.setText("GO!");
+                        this.gameButtonText?.setText("GO!");
                     },
                 });
             }
