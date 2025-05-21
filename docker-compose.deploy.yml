@@ -67,7 +67,7 @@ services:
     env_file:
       - .env
     ports:
-      - "8080:8080"
+      - "12412:8080"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
 
@@ -92,14 +92,14 @@ services:
     image: ${DOCKERHUB_USERNAME:-recreatekang}/d-ice-redis:${IMAGE_TAG:-latest}
     restart: always
     ports:
-      - "6379:6379"
+      - "23526:6379"
   minio-bucket:
     container_name: minio-bucket
     env_file:
       - .env
     image: ${DOCKERHUB_USERNAME:-recreatekang}/d-ice-minio-bucket:${IMAGE_TAG:-latest}
     ports:
-      - "9000:9000"      # API 포트
+      - "28289:9000"      # API 포트
       - "9001:9001"      # 웹 콘솔 포트
     environment:
       MINIO_ROOT_USER: minioadmin         # 접속 ID (변경 권장)
