@@ -84,7 +84,7 @@ export default function BroadcastRoom() {
             setFinalData(payload);
         });
 
-        adminWebSocketManager.on("ERROR", (payload: ErrorMessage) => {
+        adminWebSocketManager.on("SERVER_ERROR", (payload: ErrorMessage) => {
             if(payload.message.startsWith("[startGame]"))
                 setIsLoading(false);
         })
@@ -95,7 +95,7 @@ export default function BroadcastRoom() {
             adminWebSocketManager.off("AGGREGATED_ADMIN");
             adminWebSocketManager.off("END");
             adminWebSocketManager.off("BROADCAST");
-            adminWebSocketManager.off("ERROR");
+            adminWebSocketManager.off("SERVER_ERROR");
             console.log("BroadcastRoom 이벤트 리스너 해제");
         };
     }, []);

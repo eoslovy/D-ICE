@@ -564,6 +564,8 @@ export class ColorHunterG extends Scene {
             }
         );
 
+        this.stopVideoStream();
+
         this.time.addEvent({
             delay: 1000,
             callback: () => {

@@ -51,7 +51,7 @@ export class Knight extends Scene {
 
     init() {
         this.gameStartedTime = 0;
-        this.gameDuration = 30; // Default to 60 seconds if not provided
+        this.gameDuration = 20; // Default to 60 seconds if not provided
         this.gameStarted = false;
         this.gameEnded = false;
         this.lastSlashTime = 0;
@@ -376,7 +376,7 @@ export class Knight extends Scene {
                 this.knight_slash?.play();
                 this.challengeContainer.remove(leftmostChallenge, true);
 
-                this.internalScore += 3;
+                this.internalScore += 5;
 
                 const knightSlash = this.add
                     .sprite(worldPoint.x, worldPoint.y, "knight_slash")
@@ -418,7 +418,7 @@ export class Knight extends Scene {
                 this.challengeContainer.remove(leftmostChallenge, true);
                 leftmostChallenge.destroy();
 
-                this.internalScore += 5;
+                this.internalScore += 8;
 
                 const knightParry = this.add
                     .sprite(worldPoint.x, worldPoint.y, "knight_parry")

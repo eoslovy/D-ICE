@@ -11,7 +11,9 @@ import { Users, Play } from "lucide-react";
 export default function AdminRoom() {
     const navigate = useNavigate();
     const [errorMessage, setErrorMessage] = useState("");
-    const [userNickname, setUserNickname] = useState<string[]>([]);
+    const [userNickname, setUserNickname] = useState<Map<string, string>>(
+        new Map<string, string>()
+    );
     const [latestNickname, setLatestNickname] = useState<string | null>(null);
     const [userCount, setUserCount] = useState<number | null>(null);
     let requestId = v7();
@@ -29,11 +31,11 @@ export default function AdminRoom() {
                 adminStore.getState().setUserCount(payload.userCount);
                 setLatestNickname(payload.nickname);
 
-                setUserNickname((prev) =>
-                    prev.includes(payload.userId)
-                        ? prev
-                        : [...prev, payload.nickname]
-                );
+                setUserNickname((prevUserNickname) => {
+                    const newUserNickname = new Map(prevUserNickname);
+                    newUserNickname.set(payload.userId, payload.nickname);
+                    return newUserNickname;
+                });
             }
         );
 
@@ -76,7 +78,6 @@ export default function AdminRoom() {
             console.error("게임 시작 중 오류:", error);
         }
     };
-
     return (
         <div className="game-container">
             <GameCard>
@@ -110,8 +111,8 @@ export default function AdminRoom() {
                     )}
 
                     <div className="flex flex-wrap justify-center">
-                        {userNickname.length > 0 ? (
-                            userNickname.map(
+                        {userNickname.size > 0 ? (
+                            Array.from(userNickname.values()).map(
                                 (nickname: string, index: number) => (
                                     <div key={index} className="user-badge">
                                         {nickname}

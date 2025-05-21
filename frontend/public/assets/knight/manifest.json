@@ -67,7 +67,7 @@
         "type": "spritesheet",
         "path": "assets/knight/Run_Attack.png",
         "frameConfig": { "frameWidth": 128, "frameHeight": 128 },
-        "animations": [ { "key": "knight_run_attack", "frames": { "start": 0, "end": 6 }, "frameRate": 20, "repeat": 0 } ]
+        "animations": [ { "key": "knight_run_attack", "frames": { "start": 0, "end": 5 }, "frameRate": 20, "repeat": 0 } ]
     },
     {
         "key": "knight_run",
