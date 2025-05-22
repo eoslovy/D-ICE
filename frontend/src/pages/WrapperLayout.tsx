@@ -17,6 +17,7 @@ export default function WrapperLayout() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [modalType, setModalType] = useState<"user" | "admin" | null>(null);
     const [modalRoomCode, setModalRoomCode] = useState<string | null>(null);
+    const [UserNickname, setUserNickname] = useState<string | null>(null);
     const [hasNavigated, setHasNavigated] = useState(false);
     const [navigateTo, setNavigateTo] = useState("/");
     const [isReady, setIsReady] = useState(false);
@@ -203,16 +204,19 @@ export default function WrapperLayout() {
             const roomCode = userStore.getState().roomCode;
             const userId = userStore.getState().userId;
             const status = userStore.getState().status;
+            const nickname = userStore.getState().nickname;
 
             if (!roomCode || !userId || status === null) {
                 RedirectNavigation();
             } else if (status === "INGAME") {
                 // "게임중" 이었던 경우
                 setNavigateTo(`/game`);
+                setUserNickname(nickname);
                 setModal("user", roomCode);
             } else if (status === "WAITING") {
                 // "방에서 대기중" 이었던 경우
                 setNavigateTo(`/userroom/${roomCode}`);
+                setUserNickname(nickname);
                 setModal("user", roomCode);
             } else {
                 console.log("UserStore status is invalid.");
@@ -278,9 +282,15 @@ export default function WrapperLayout() {
                                 : "관리자 접속 확인"}
                         </h2>
                         <p className="text-lg mb-6">
-                            {modalType === "user"
-                                ? `유저로 방(${modalRoomCode})에 접속하시겠습니까?`
-                                : `관리자로 방(${modalRoomCode})에 접속하시겠습니까?`}
+                            {modalType === "user" ? (
+                                <>
+                                    ({UserNickname})유저로
+                                    <br />({modalRoomCode})방에
+                                    접속하시겠습니까?
+                                </>
+                            ) : (
+                                `관리자로 (${modalRoomCode})방에 접속하시겠습니까?`
+                            )}
                         </p>
                         <div className="modal-actions flex justify-center gap-4 mt-4">
                             <button
