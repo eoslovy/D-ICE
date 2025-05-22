@@ -13,4 +13,5 @@ import lombok.NoArgsConstructor;
 public class NextGameMessage implements GameMessage {
 	private GameType gameType;
 	private int currentRound;
+	private long duration;
 }
