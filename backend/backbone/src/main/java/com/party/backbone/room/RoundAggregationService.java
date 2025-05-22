@@ -1,5 +1,6 @@
 package com.party.backbone.room;
 
+import static com.party.backbone.room.RoomRedisRepositoryImpl.*;
 import static com.party.backbone.room.util.RankingUtils.*;
 
 import java.io.IOException;
@@ -187,7 +188,8 @@ public class RoundAggregationService {
 
 		int nextRound = currentRound + 1;
 		GameType nextGame = roomRepository.getGame(roomCode, nextRound);
-		NextGameMessage nextGameMessage = new NextGameMessage(nextGame, nextRound);
+		NextGameMessage nextGameMessage = new NextGameMessage(nextGame, nextRound,
+			nextGame.getDuration() + DEFAULT_GAME_START_OFFSET);
 		adminSession.sendMessage(new TextMessage(objectMapper.writeValueAsString(nextGameMessage)));
 		log.info("[NextGameMessage] Sent NextGameMessage to admin {} of room {} — nextRound={}, gameType={}",
 			administratorId, roomCode, nextRound, nextGame);

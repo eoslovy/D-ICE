@@ -78,6 +78,7 @@ public class UserWebSocketHandler extends TextWebSocketHandler {
 
 	@Override
 	public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
-		log.info("[USER_WEBSOCKET] connected closed: {}, status: {}", session.getId(), status);
+		log.info("[USER_WEBSOCKET] connection closed: {} status: {} room: {}", session.getId(), status,
+			session.getAttributes().get("roomCode"));
 	}
 }

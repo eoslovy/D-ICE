@@ -1,5 +1,7 @@
 package com.party.backbone.websocket.dispatch.handler;
 
+import static com.party.backbone.room.RoomRedisRepositoryImpl.*;
+
 import java.io.IOException;
 import java.util.List;
 
@@ -46,7 +48,8 @@ public class InitMessageHandler extends GameMessageHandler<InitMessage> implemen
 	public void doHandle(InitMessage message, String roomCode, WebSocketSession session) throws IOException {
 		List<GameType> pickedGames = GameType.pickRandomList(message.getTotalRound());
 		roomRepository.initializeRoom(roomCode, pickedGames, message.getTotalRound());
-		var firstGameMessage = new NextGameMessage(pickedGames.get(0), 1);
+		GameType firstGame = pickedGames.get(0);
+		var firstGameMessage = new NextGameMessage(firstGame, 1, firstGame.getDuration() + DEFAULT_GAME_START_OFFSET);
 		try {
 			String payload = objectMapper.writeValueAsString(firstGameMessage);
 			sessionRegistry.get(message.getAdministratorId()).sendMessage(new TextMessage(payload));
