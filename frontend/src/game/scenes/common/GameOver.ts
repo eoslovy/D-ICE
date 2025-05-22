@@ -64,7 +64,7 @@ export class GameOver extends Phaser.Scene {
         // Send score to backend
         this.sendScoreToBackend(userId, roomCode);
         let aggregatedResolved = false;
-        const TIMEOUT_DURATION = 40000;
+        const TIMEOUT_DURATION = 60000;
 
         console.log("[GameOver] 타임아웃 타이머 설정 시작");
         this.AggregatedTimeout = this.time.delayedCall(TIMEOUT_DURATION, () => {
