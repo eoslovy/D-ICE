@@ -16,7 +16,7 @@ ENV CERT_DOMAIN=${CERT_DOMAIN}
 RUN rm -rf /usr/share/nginx/html/*
 
 # React 정적 파일 복사
-COPY --from=frontend /dist /usr/share/nginx/html
+COPY --from=frontend /dist /usr/share/nginx/${CERT_DOMAIN}
 
 # 커스텀 Nginx 설정 적용
 COPY ${NGINX_CONF} /etc/nginx/nginx.conf.template
