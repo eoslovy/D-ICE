@@ -422,7 +422,7 @@ export default function Result({
                                                             !expandedRankings
                                                         )
                                                     }
-                                                    className="w-full p-2 text-center text-sm text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center justify-center"
+                                                    className="w-full p-2 text-center text-sm text-gray-500 hover:bg-gray-100 flex items-center justify-center"
                                                 >
                                                     {expandedRankings ? (
                                                         <>
@@ -648,7 +648,7 @@ export default function Result({
                                                     {topThreePlayers[1].score}점
                                                 </div>
                                             </div>
-                                            <div className="w-full h-32 bg-gray-200 dark:bg-gray-700 rounded-t-lg mt-2"></div>
+                                            <div className="w-full h-32 bg-gray-200 rounded-t-lg mt-2"></div>
                                         </div>
                                     )}
 
@@ -679,7 +679,7 @@ export default function Result({
                                                     {topThreePlayers[0].score}점
                                                 </div>
                                             </div>
-                                            <div className="w-full h-48 bg-yellow-200 dark:bg-yellow-800 rounded-t-lg mt-2"></div>
+                                            <div className="w-full h-48 bg-yellow-200 rounded-t-lg mt-2"></div>
                                         </div>
                                     )}
 
@@ -710,7 +710,7 @@ export default function Result({
                                                     {topThreePlayers[2].score}점
                                                 </div>
                                             </div>
-                                            <div className="w-full h-20 bg-amber-100 dark:bg-amber-900 rounded-t-lg mt-2"></div>
+                                            <div className="w-full h-20 bg-amber-100 rounded-t-lg mt-2"></div>
                                         </div>
                                     )}
                                 </div>
@@ -842,7 +842,7 @@ export default function Result({
                                                         !expandedRankings
                                                     )
                                                 }
-                                                className="w-full p-2 text-center text-sm text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center justify-center"
+                                                className="w-full p-2 text-center text-sm text-gray-500 hover:bg-gray-100 flex items-center justify-center"
                                             >
                                                 {expandedRankings ? (
                                                     <>
