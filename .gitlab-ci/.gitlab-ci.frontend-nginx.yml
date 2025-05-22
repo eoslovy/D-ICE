@@ -82,6 +82,7 @@ deploy_front:
     BUILD_CONTEXT: ./infra/nginx
     K8S_PATH: infra/k8s/infras/nginx-frontend.yml
     NGINX_CONF: nginx.conf
+    SSL_DIR: d-ice.co.kr
   extends: .backend-default-deploy
   needs: [push_front]
   rules:
