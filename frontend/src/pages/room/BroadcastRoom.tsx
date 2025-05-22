@@ -6,7 +6,7 @@ import RoomCode from "../../components/RoomCode";
 // import Result from "../../components/Result";
 // import FinalResult from "../../components/FinalResult";
 import Result from "../../components/Results";
-import { Users, Play, Clock } from "lucide-react";
+import { Users, Play, Clock, Gamepad2 } from "lucide-react";
 import { adminStore } from "../../stores/adminStore";
 import { useNavigate } from "react-router-dom";
 import OverlayScreen, {
@@ -21,10 +21,14 @@ export default function BroadcastRoom() {
     const [currentRound, setCurrentRound] = useState(1);
     const [nextGame, setNextGame] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
+    const [isAggregated, setIsAggregated] = useState(false);
     const [data, setData] = useState<AggregatedAdminMessage | null>(null);
     const [finalData, setFinalData] = useState<EndMessage | null>(null);
     const [showResults, setShowResults] = useState(false);
     const [showFinalResult, setShowFinalResult] = useState(false);
+    const [gameTimer, setGameTimer] = useState(0);
+    const [status, setStatus] = useState("대기 중...");
+    const timerRef = useRef(0);
 
     const navigate = useNavigate();
     let requestId = uuidv7();
@@ -48,6 +52,23 @@ export default function BroadcastRoom() {
     };
 
     useEffect(() => {
+        if (isLoading && !isAggregated) {
+            setStatus("게임 중...");
+            timerRef.current = setInterval(() => {
+                setGameTimer((prev) => {
+                    if (prev <= 1) {
+                        clearInterval(timerRef.current);
+                        setStatus("집계 중...");
+                        return 0;
+                    }
+                    return prev - 1;
+                });
+            }, 1000);
+        }
+        return () => clearInterval(timerRef.current);
+    }, [isLoading, isAggregated]);
+
+    useEffect(() => {
         const timeoutId = setTimeout(() => {
             if (nextGame === null) {
                 console.warn(
@@ -61,6 +82,8 @@ export default function BroadcastRoom() {
             clearTimeout(timeoutId); // 타임아웃 취소
             setCurrentRound(payload.currentRound);
             setNextGame(payload.gameType);
+            setGameTimer(100);
+            setIsAggregated(false);
             adminStore.getState().setGameType(payload.gameType);
             setIsLoading(false);
         });
@@ -70,6 +93,8 @@ export default function BroadcastRoom() {
             (payload: AggregatedAdminMessage) => {
                 setData(payload);
                 setShowResults(true);
+                setIsAggregated(true);
+                setStatus("대기 중...");
             }
         );
 
@@ -85,9 +110,8 @@ export default function BroadcastRoom() {
         });
 
         adminWebSocketManager.on("SERVER_ERROR", (payload: ErrorMessage) => {
-            if(payload.message.startsWith("[startGame]"))
-                setIsLoading(false);
-        })
+            if (payload.message.startsWith("[startGame]")) setIsLoading(false);
+        });
 
         return () => {
             clearTimeout(timeoutId);
@@ -157,15 +181,27 @@ export default function BroadcastRoom() {
                     <RoomCode code={roomCode} />
 
                     <div className="game-info mb-6">
-                        <div className="flex items-center">
-                            <Users className="mr-2" size={20} />
-                            <span>플레이어: {userCount}</span>
-                        </div>
-                        <div className="flex items-center">
-                            <Clock className="mr-2" size={20} />
-                            <span>
-                                라운드: {currentRound}/{totalRound}
-                            </span>
+                        <div className="flex justify-between items-center w-full">
+                            <div className="flex items-center flex-1">
+                                <Users className="mr-2" size={20} />
+                                <span>플레이어: {userCount}</span>
+                            </div>
+
+                            <div className="flex items-center justify-center flex-1">
+                                <Gamepad2 className="mr-2" size={20} />
+                                <span>
+                                    라운드: {currentRound}/{totalRound}
+                                </span>
+                            </div>
+
+                            <div className="flex items-center justify-end flex-1">
+                                <Clock className="mr-2" size={20} />
+                                <span className="fixed-timer-width">
+                                    {status === "게임 중..."
+                                        ? `${gameTimer}초`
+                                        : status}
+                                </span>
+                            </div>
                         </div>
                     </div>
 
@@ -195,9 +231,7 @@ export default function BroadcastRoom() {
                             }`}
                         >
                             {isLoading ? (
-                                <span className="animate-pulse">
-                                    게임 중...
-                                </span>
+                                <span className="animate-pulse">{status}</span>
                             ) : (
                                 <>
                                     <Play size={20} className="mr-2" />

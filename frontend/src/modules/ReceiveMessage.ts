@@ -50,6 +50,7 @@ interface NextGameMessage {
     // TODO: Game Type 별 enum으로 변경 필요
     gameType: string;
     currentRound: number;
+    duration: number;
 }
 
 interface WaitMessage {

@@ -53,6 +53,11 @@
 
 @layer components {
   /* 기본 레이아웃 컴포넌트 */
+  .fixed-timer-width {
+    display: inline-block;
+    min-width: 48px;
+    text-align: left;
+  }
   .game-container {
     @apply relative flex flex-col items-center justify-center w-full min-h-screen p-4 overflow-hidden;
     color: #ebebd3;
