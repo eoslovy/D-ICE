@@ -34,7 +34,7 @@ import lombok.extern.slf4j.Slf4j;
 public class RoomRedisRepositoryImpl implements RoomRedisRepository {
 	private final Duration PLAYER_BASE_TTL = Duration.ofHours(2);
 	// 룰렛, 설명, 카운트 다운 포함 대략 30초로 설정
-	private final long DEFAULT_GAME_START_OFFSET = 30_000;
+	public static final long DEFAULT_GAME_START_OFFSET = 30_000;
 	private static final String PENDING_AGGREGATION_KEY = "pendingAggregationRooms";
 	private static final double[] ROUND_MULTIPLIERS = new double[21];
 
