@@ -262,7 +262,7 @@ public class RoomRedisRepositoryImpl implements RoomRedisRepository {
 		String roomKey = getRoomKey(roomCode);
 		// 집계 시작 시 다음 라운드 넘어가는 걸로 처리
 		redisTemplate.opsForHash().put(roomKey, "state", RoomStateTTL.WAITING.name());
-		// redisTemplate.expire(getRoomKey(roomKey), RoomStateTTL.WAITING.getTtl());
+		redisTemplate.expire(getRoomKey(roomKey), RoomStateTTL.WAITING.getTtl());
 
 		int currentRound = Integer.parseInt(
 			Objects.requireNonNull(redisTemplate.opsForHash().get(roomKey, "currentRound")).toString()
