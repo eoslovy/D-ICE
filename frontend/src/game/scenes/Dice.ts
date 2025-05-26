@@ -342,7 +342,9 @@ export class Dice extends Phaser.Scene {
                                     this.time.delayedCall(4000, () => {
                                         this.diceBgm?.stop();
                                         this.scene.start("GameOver", {
-                                            score: this.currentRollSum,
+                                            score: Math.floor(
+                                                (this.currentRollSum * 100) / 36
+                                            ),
                                             gameType: "Dice",
                                         });
                                     });
@@ -428,7 +430,7 @@ export class Dice extends Phaser.Scene {
             this.time.delayedCall(500, () => {
                 this.diceBgm?.stop();
                 this.scene.start("GameOver", {
-                    score: this.currentRollSum,
+                    score: Math.floor((this.currentRollSum * 100) / 36),
                     gameType: "Dice",
                 });
             });
