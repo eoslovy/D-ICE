@@ -9,8 +9,13 @@ interface ScoreMessage {
     earnedScore: number;
     totalScore: number;
 }
-
+const { startAt, currentMs } = userStore.getState();
+const nowLocal = Date.now();
+const offset = currentMs - nowLocal;
+const delayUntilStart = startAt - (nowLocal + offset);
 export class GraphHigh extends Scene {
+    
+
     private ws?: WebSocket;
     private uiCtx!: CanvasRenderingContext2D;
     private latestRanking: ScoreMessage[] = [];
@@ -60,14 +65,85 @@ export class GraphHigh extends Scene {
     }
 
     async create() {
-        // Hide existing HTML UI
-        ['chart-hud','time-display'].forEach(id => {
-            const el = document.getElementById(id);
-            if (el) el.style.display = 'none';
+        this.createChartContainer();
+        this.setupChart();
+
+        const { currentMs } = userStore.getState();
+        const localNow = Date.now();
+        const offset = currentMs - localNow;
+        const forcedStartAt = currentMs + 7000;
+        const delayUntilStart = forcedStartAt - (localNow + offset);
+
+        // ✅ 타이머 오버레이 생성 (Phaser 캔버스 기준)
+        const canvas = this.game.canvas;
+        const canvasRect = canvas.getBoundingClientRect();
+
+        const blocker = document.createElement('div');
+        blocker.id = 'graphhigh-wait-blocker';
+        Object.assign(blocker.style, {
+            position: 'absolute',
+            top: `${canvasRect.top}px`,
+            left: `${canvasRect.left}px`,
+            width: `${canvasRect.width}px`,
+            height: `${canvasRect.height}px`,
+            backgroundColor: 'rgba(0,0,0,0.6)',
+            zIndex: '10000',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            pointerEvents: 'auto', // ← 이걸로 캔버스 인터랙션 차단
         });
+
+        const timerText = document.createElement('div');
+        timerText.id = 'graphhigh-wait-timer';
+        Object.assign(timerText.style, {
+            color: 'white',
+            fontSize: '32px',
+            fontFamily: 'Jua, sans-serif',
+            textAlign: 'center',
+        });
+
+        blocker.appendChild(timerText);
+        document.body.appendChild(blocker);
+
+        // ⏱️ 실시간 타이머 갱신
+        const startMs = Date.now();
+        const updateTimer = () => {
+            const elapsed = Date.now() - startMs;
+            const remain = Math.ceil((delayUntilStart - elapsed) / 1000);
+            timerText.textContent = `게임 시작까지 ${remain}초`;
+        };
+        updateTimer();
+        const interval = setInterval(updateTimer, 500);
+
+        // ✅ 캔버스 위치 변경 대응 (리사이즈 이벤트)
+        const onResize = () => {
+            const r = canvas.getBoundingClientRect();
+            blocker.style.top = `${r.top}px`;
+            blocker.style.left = `${r.left}px`;
+            blocker.style.width = `${r.width}px`;
+            blocker.style.height = `${r.height}px`;
+        };
+        window.addEventListener('resize', onResize);
+
+        // ✅ 게임 시작 시 오버레이 제거
+        this.time.delayedCall(delayUntilStart, () => {
+            clearInterval(interval);
+            window.removeEventListener('resize', onResize);
+            blocker.remove();
+            this.startGame();
+        }, [], this);
+    }
+
+
+
+
+
+
+    private async startGame() {
         const { roomCode, nickname, userId } = userStore.getState();
 
-        // WebSocket connection
+        // WebSocket 연결
         const params = new URLSearchParams({ roomCode, roundCode: "0", userCode: userId }).toString();
         this.ws = new WebSocket(`${import.meta.env.VITE_WEBSOCKET_URL}/game/kjh/ws/graphhigh?${params}`);
         this.ws.onopen = () => {
@@ -85,32 +161,33 @@ export class GraphHigh extends Scene {
         this.ws.onerror = console.error;
         this.ws.onclose = e => console.log(`WebSocket closed: ${e.code}`);
 
-        // Chart setup
-        this.createChartContainer();
-        this.setupChart();
-
-        // Candle timer
-        this.time.addEvent({ delay: 1000, loop: true, callback: () => {
-            if (this.tickBuffer.length) {
-                const candle = this.makeCandle(this.tickBuffer, this.logicalTime++);
-                this.candles.push(candle);
-                this.series.update(candle);
-                this.tickBuffer = [this.currentPrice];
-            }
-        }});
-        // Countdown timer
-        this.time.addEvent({ delay: 1000, loop: true, callback: () => {
-            this.remainingTime--;
-            const t = document.getElementById('time-display');
-            if (t) t.textContent = `Time: ${this.remainingTime}`;
-            if (this.remainingTime <= 0) this.result();
-        }});
+        // 캔들 생성 시작
         this.scheduleNextTick();
 
-        // Recording
+        // 1초 타이머 감소 시작
+        this.time.addEvent({ delay: 1000, loop: true, callback: () => {
+                this.remainingTime--;
+                const t = document.getElementById('time-display');
+                if (t) t.textContent = `Time: ${this.remainingTime}`;
+                if (this.remainingTime <= 0) this.result();
+            }});
+
+        // 1초마다 캔들 렌더링
+        this.time.addEvent({ delay: 1000, loop: true, callback: () => {
+                if (this.tickBuffer.length) {
+                    const candle = this.makeCandle(this.tickBuffer, this.logicalTime++);
+                    this.candles.push(candle);
+                    this.series.update(candle);
+                    this.tickBuffer = [this.currentPrice];
+                }
+            }});
+
+        // 녹화
         if (potgManager.getIsRecording()) await potgManager.stopRecording();
         potgManager.startMergedRecording(this.game.canvas, this.containerId, 60);
     }
+
+
 
     private scheduleNextTick() {
         const delay = Phaser.Math.Between(70, 120);
@@ -322,23 +399,33 @@ export class GraphHigh extends Scene {
 
 
     // 3) 동글동글 “지금!!” 버튼 + 남은 시도횟수
+     // 텍스트 준비
      const maxAttempts = 3;
-     const remain      = maxAttempts - this.attempts.length;
+     const remain = maxAttempts - this.attempts.length;
+     const btnText = `지금!! (${remain}/${maxAttempts})`;
 
-     const btnW = W * 0.3, btnH = H * 0.09;  // 버튼 좀 더 크게
-     const btnX = (W - btnW) / 2, btnY = H - btnH - H * 0.03;
-     const r    = btnH / 2;
+     ctx.font = `${Math.floor(H * 0.04)}px Jua`;
+     const textWidth = ctx.measureText(btnText).width;
 
-     ctx.fillStyle = '##ffa69e';
+// 🔧 변수명 변경
+     const btnPadding = W * 0.02;
+     const btnW = textWidth + btnPadding * 2.5;
+     const btnH = H * 0.09;
+     const btnX = (W - btnW) / 2;
+     const btnY = H - btnH - H * 0.03;
+     const r = btnH / 2;
+
+     ctx.fillStyle = '#ffa69e';
      ctx.beginPath();
-    if (ctx.roundRect) ctx.roundRect(btnX, btnY, btnW, btnH, r);
+     if (ctx.roundRect) ctx.roundRect(btnX, btnY, btnW, btnH, r);
      ctx.fill();
 
-     ctx.fillStyle    = '#1e1e1e';
-     ctx.textAlign    = 'center';
+     ctx.fillStyle = '#1e1e1e';
+     ctx.textAlign = 'center';
      ctx.textBaseline = 'middle';
-     ctx.font         = `${Math.floor(btnH * 0.5)}px Jua`;
-    ctx.fillText(`지금!! (${remain}/${maxAttempts})`, btnX + btnW / 2, btnY + btnH / 2);
+     ctx.font = `${Math.floor(btnH * 0.4)}px Jua`;
+     ctx.fillText(btnText, btnX + btnW / 2, btnY + btnH / 2);
+
  }
 
     private renderRanking(entries: ScoreMessage[]) {
@@ -420,8 +507,10 @@ export class GraphHigh extends Scene {
 }
 
     update() {
+        if (!this.uiCtx) return; // 아직 차트 초기화 안 됨
         this.drawUI();
     }
+
 
     private result() {
         const score = this.getFinalScore();
