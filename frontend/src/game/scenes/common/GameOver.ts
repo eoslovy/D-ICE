@@ -275,7 +275,7 @@ export class GameOver extends Phaser.Scene {
 
         const text = `라운드가 지날 수록 배점이 올라가요!!`;
         this.add
-            .text(width / 2, height * 0.33 - 40, text, {
+            .text(width / 2, height * 0.3, text, {
                 fontFamily: "Jua",
                 fontSize: "32px",
                 color: "#FFFFFF",

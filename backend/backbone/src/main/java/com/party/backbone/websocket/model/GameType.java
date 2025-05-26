@@ -8,7 +8,7 @@ import lombok.Getter;
 
 @Getter
 public enum GameType {
-	Reaction(45000),
+	Reaction(50000),
 	Clicker(30000),
 	PerfectCircle(15000),
 	Mugungwha(45000),
