@@ -1,14 +1,12 @@
 import Phaser from "phaser";
 import userWebSocketManager from "../../../modules/UserWebSocketManager";
 import { LoadManifestFromJSON } from "../../../modules/gameutils/LoadSpritesManifest";
-//import { DiceMiniGame } from "../DiceMiniGame";
 import { userStore } from "../../../stores/userStore";
 import { addBackgroundImage } from "./addBackgroundImage";
 import { v7 as uuidv7 } from "uuid";
 import { GAME_TYPES } from "./GameType";
 
 export class Preloader extends Phaser.Scene {
-    //private diceMiniGame?: DiceMiniGame;
     private waitingText?: Phaser.GameObjects.Text;
     private readyToStart: boolean = false;
     private width: number;
@@ -76,11 +74,8 @@ export class Preloader extends Phaser.Scene {
         //배경
         addBackgroundImage(this);
 
-        //this.diceMiniGame = new DiceMiniGame(this);
-        //this.diceMiniGame.create(width / 2, height / 2);
-
         this.waitingText = this.add
-            .text(this.width / 2, this.height / 2 - 350, "Waiting...", {
+            .text(this.width / 2, this.height * 0.1, "Waiting...", {
                 fontFamily: "Fredoka",
                 fontSize: "64px",
                 color: "#ebebd3",
@@ -192,9 +187,6 @@ export class Preloader extends Phaser.Scene {
     private moveToRoulette() {
         // 텍스트 제거
         this.waitingText?.destroy();
-        // 다이스 제거
-        //this.diceMiniGame?.destroy();
-        //this.scene.start(userStore.getState().gameType);
 
         this.scene.start("Roulette", {
             nextGame: userStore.getState().gameType,
