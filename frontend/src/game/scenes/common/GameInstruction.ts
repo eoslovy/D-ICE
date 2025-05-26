@@ -34,14 +34,14 @@ export class GameInstruction extends Scene {
 
     create() {
         const { width, height } = this.cameras.main;
-        this.countdown = new UICountdown(this, width / 2, height - 100);
+        this.countdown = new UICountdown(this, width / 2, height * 0.9, 64);
 
         // 배경
         addBackgroundImage(this);
 
         // 게임 제목
         this.add
-            .text(width / 2, 150, this.gameName, {
+            .text(width / 2, height * 0.1, this.gameName, {
                 fontFamily: "Jua",
                 fontSize: "48px",
                 color: "#ffffff",
