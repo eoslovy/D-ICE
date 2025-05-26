@@ -13,11 +13,14 @@ export class Preloader extends Phaser.Scene {
     private height: number;
     private isEmojiCoolDown: boolean = false;
     private checkEndedInterval: number | undefined;
+    private Nickname: string;
 
     constructor() {
         super({ key: "Preloader" });
     }
     preload() {
+        this.Nickname = userStore.getState().nickname;
+
         this.load.font("Jua", "assets/fonts/Jua-Regular.ttf");
         this.load.font("FredokaOne", "assets/fonts/Fredoka-Regular.ttf");
         this.load.image("dice-albedo", "assets/dice/dice-albedo.png");
@@ -74,8 +77,11 @@ export class Preloader extends Phaser.Scene {
         //배경
         addBackgroundImage(this);
 
+        // 닉네임 카드 UI
+        this.showNicknameCard();
+
         this.waitingText = this.add
-            .text(this.width / 2, this.height * 0.1, "Waiting...", {
+            .text(this.width / 2, this.height * 0.2, "Waiting...", {
                 fontFamily: "Fredoka",
                 fontSize: "64px",
                 color: "#ebebd3",
@@ -99,6 +105,49 @@ export class Preloader extends Phaser.Scene {
 
         // 시작하기 위해 대기 상태로 전환
         this.readyToStart = false;
+    }
+    // 닉네임 카드 UI 함수
+    private showNicknameCard() {
+        const nicknameText = `닉네임 : ${this.Nickname}`;
+        const fontSize = 30;
+        const padding = 40;
+        const baseCardWidth = 300;
+        const cardHeight = 60;
+
+        // 닉네임 길이에 따라 텍스트 너비 계산
+        const textWidth = nicknameText.length * 22;
+        const cardWidth = Math.max(baseCardWidth, textWidth + padding);
+
+        const x = this.width * 0.5;
+        const y = this.height * 0.1;
+
+        // 카드 배경 (라운드 사각형)
+        const cardBg = this.add.graphics();
+        cardBg.fillStyle(0x393e46, 0.85);
+        cardBg.fillRoundedRect(
+            x - cardWidth / 2,
+            y - cardHeight / 2,
+            cardWidth,
+            cardHeight,
+            22
+        );
+
+        // 닉네임 텍스트
+        const nicknamePhaserText = this.add.text(x, y, nicknameText, {
+            fontFamily: "Jua",
+            fontSize: `${fontSize}px`,
+            color: "#f9f9f9",
+            fontStyle: "bold",
+            align: "center",
+            shadow: {
+                offsetX: 2,
+                offsetY: 2,
+                color: "#222",
+                blur: 6,
+                fill: true,
+            },
+        });
+        nicknamePhaserText.setOrigin(0.5);
     }
 
     private showEmojiButtons() {
