@@ -46,48 +46,51 @@ export class EndGame extends Phaser.Scene {
         const width = this.cameras.main.width;
         const height = this.cameras.main.height;
 
-        // Title
-        this.add
-            .text(width / 2, height * 0.12, "🏆 최종 결과 🏆", {
-                fontSize: "48px",
+        // 각 요소의 높이와 간격 정의
+        const titleFontSize = 48;
+        const subTitleFontSize = 32;
+        const boxHeight = 70;
+        const rankBoxHeight = 100;
+        const sectionGap = 24; // 요소 간 기본 간격(px)
+
+        // 1. 타이틀
+        let currentY = height * 0.1; // 시작 Y좌표 (상단에서 10% 아래)
+        const title = this.add
+            .text(width / 2, currentY, "🏆 최종 결과 🏆", {
+                fontSize: `${titleFontSize}px`,
                 color: "#ffffff",
                 align: "center",
                 fontFamily: "Jua",
             })
             .setOrigin(0.5);
 
-        //
-        this.add
-            .text(
-                width / 2,
-                height * 0.12 + 60,
-                "모든 게임이 종료되었습니다!",
-                {
-                    fontSize: "32px",
-                    color: "#ffffff",
-                    align: "center",
-                    fontFamily: "Jua",
-                }
-            )
+        // 2. 서브 타이틀
+        currentY += titleFontSize + sectionGap;
+        const subTitle = this.add
+            .text(width / 2, currentY, "모든 게임이 종료되었습니다!", {
+                fontSize: `${subTitleFontSize}px`,
+                color: "#ffffff",
+                align: "center",
+                fontFamily: "Jua",
+            })
             .setOrigin(0.5);
 
-        // 점수 정보 박스
+        // 3. 점수 정보 박스
+        currentY += subTitleFontSize + sectionGap;
         const scoreBoxWidth = 420;
-        const scoreBoxHeight = 70;
         const scoreBox = this.add.graphics();
         scoreBox.fillStyle(0x1a223a, 0.85);
         scoreBox.fillRoundedRect(
             width / 2 - scoreBoxWidth / 2,
-            height * 0.22,
+            currentY,
             scoreBoxWidth,
-            scoreBoxHeight,
+            boxHeight,
             18
         );
-
-        this.add
+        const scoreText = this.add
             .text(
                 width / 2,
-                height * 0.22 + scoreBoxHeight / 2,
+                currentY + boxHeight / 2,
                 `총 점수: ${totalScore}`,
                 {
                     fontFamily: "Jua",
@@ -98,23 +101,22 @@ export class EndGame extends Phaser.Scene {
             )
             .setOrigin(0.5);
 
-        // 순위 정보 박스
+        // 4. 순위 정보 박스
+        currentY += boxHeight + sectionGap;
         const rankBoxWidth = 420;
-        const rankBoxHeight = 100;
         const rankBox = this.add.graphics();
         rankBox.fillStyle(0x1a223a, 0.85);
         rankBox.fillRoundedRect(
             width / 2 - rankBoxWidth / 2,
-            height * 0.32,
+            currentY,
             rankBoxWidth,
             rankBoxHeight,
             18
         );
-
-        this.add
+        const rankText = this.add
             .text(
                 width / 2,
-                height * 0.32 + rankBoxHeight / 2,
+                currentY + rankBoxHeight / 2,
                 `전체 ${totalPlayerCount}명\n최종 순위: ${overallRank}위`,
                 {
                     fontFamily: "Jua",
@@ -124,22 +126,21 @@ export class EndGame extends Phaser.Scene {
                 }
             )
             .setOrigin(0.5);
-        this.add
-            .text(
-                width / 2,
-                height * 0.4 + rankBoxHeight / 2,
-                `라운드 별 순위`,
-                {
-                    fontFamily: "Jua",
-                    fontSize: "32px",
-                    color: "#ffe066",
-                    align: "center",
-                }
-            )
+
+        // 5. 라운드별 순위 타이틀
+        currentY += rankBoxHeight + sectionGap;
+        const roundTitle = this.add
+            .text(width / 2, currentY, `라운드 별 순위`, {
+                fontFamily: "Jua",
+                fontSize: "32px",
+                color: "#ffe066",
+                align: "center",
+            })
             .setOrigin(0.5);
 
-        // 라운드별 순위 테이블
-        this.createFinalRankTable(width / 2, height * 0.47, rankRecord);
+        // 6. 라운드별 순위 테이블
+        currentY += sectionGap;
+        this.createFinalRankTable(width / 2, currentY, rankRecord);
 
         // Main Menu Button
         this.createMenuButton(width / 2, height * 0.9);

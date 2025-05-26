@@ -1,6 +1,7 @@
 import { Scene } from "phaser";
 import { UICountdown } from "../../../modules/gameutils/UICountdown";
 import { addBackgroundImage } from "./addBackgroundImage";
+import { userStore } from "../../../stores/userStore";
 interface InstructionConfig {
     nextGame: string;
     gameName: string;
@@ -10,6 +11,7 @@ interface InstructionConfig {
 export class GameInstruction extends Scene {
     private nextGame: string;
     private gameName: string;
+    private serverStartAt: number;
     private onComplete: () => void;
     private countTime: number = 10;
     private countdown: UICountdown;
@@ -21,6 +23,7 @@ export class GameInstruction extends Scene {
     init(data: InstructionConfig) {
         this.nextGame = data.nextGame;
         this.gameName = data.gameName;
+        this.serverStartAt = userStore.getState().startAt;
         this.onComplete = data.onComplete;
     }
 
@@ -34,14 +37,14 @@ export class GameInstruction extends Scene {
 
     create() {
         const { width, height } = this.cameras.main;
-        this.countdown = new UICountdown(this, width / 2, height - 100);
+        this.countdown = new UICountdown(this, width / 2, height * 0.9, 64);
 
         // 배경
         addBackgroundImage(this);
 
         // 게임 제목
         this.add
-            .text(width / 2, 150, this.gameName, {
+            .text(width / 2, height * 0.1, this.gameName, {
                 fontFamily: "Jua",
                 fontSize: "48px",
                 color: "#ffffff",
@@ -65,6 +68,17 @@ export class GameInstruction extends Scene {
         );
         instruction.setScale(scale);
 
+        // 1. 현재 클라이언트 시간
+        const ClientNow = Date.now();
+        // 2. 남은 대기 시간(ms) 계산 (시각 차이 계산)
+        const msUntilStart =
+            this.serverStartAt - ClientNow + userStore.getState().timeOffset;
+
+        console.log("남은 대기 시간(ms):", msUntilStart);
+
+        const secUntilStart = Math.floor(msUntilStart / 1000);
+        //최소 3초는 게임 설명을 보도록 설정
+        this.countTime = Math.max(3, secUntilStart);
         // 카운트다운 시작
         this.countdown.startCountdown(this.countTime);
 
