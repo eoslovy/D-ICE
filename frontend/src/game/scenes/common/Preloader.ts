@@ -208,6 +208,9 @@ export class Preloader extends Phaser.Scene {
                 userStore.getState().setStartAt(payload.startAt);
                 userStore.getState().setDuration(payload.duration);
                 userStore.getState().setCurrentMs(payload.currentMs);
+                userStore
+                    .getState()
+                    .setTimeOffset(Date.now() - payload.currentMs);
             }
             this.moveToRoulette();
         });
