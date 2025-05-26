@@ -228,7 +228,7 @@
 
   /* 순위표 관련 스타일 */
   .rankings-container {
-    @apply transition-opacity duration-500 opacity-100;
+    @apply transition-opacity duration-500 opacity-100 dark:text-[#ebebd3]
   }
 
   .rankings-table {
@@ -238,7 +238,7 @@
 
   .rankings-header {
     @apply p-4 font-bold;
-    background-color: var(--primary-color);
+    background-color: var(--quinary-color);
     color: white;
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
   }
@@ -259,17 +259,23 @@
     background-color: rgba(0, 0, 0, 0.03);
   }
 
-  .rank-item-first {
-    @apply bg-yellow-100 dark:bg-yellow-900/50 border-l-4 border-yellow-400;
-  }
+.rank-item-first {
+  @apply border-l-4;
+  background-color: #ffe1dc;   /* 가장 진한 코랄 */
+  border-color: #ff8c7a;
+}
 
-  .rank-item-second {
-    @apply bg-gray-100 dark:bg-gray-800 border-l-4 border-gray-400;
-  }
+.rank-item-second {
+  @apply border-l-4;
+  background-color: #fff0ec;   /* 연한 피치 */
+  border-color: #ff8c7a;
+}
 
-  .rank-item-third {
-    @apply bg-amber-100 dark:bg-amber-900/50 border-l-4 border-amber-600;
-  }
+.rank-item-third {
+  @apply border-l-4;
+  background-color: #fff7f5;   /* 거의 흰색에 가까운 연살구 */
+  border-color: #ff8c7a;
+}
 
   .rank-number {
     @apply mr-3 w-8 text-center font-bold;
@@ -347,7 +353,7 @@
   }
 
   .podium-avatar-first {
-    @apply bg-yellow-100 dark:bg-yellow-900 border-yellow-400;
+    @apply bg-yellow-100 border-yellow-400;
   }
 
   .podium-avatar-first-mobile {
@@ -359,11 +365,11 @@
   }
 
   .podium-avatar-second {
-    @apply w-16 h-16 bg-gray-200 dark:bg-gray-700 border-gray-300;
+    @apply w-16 h-16 bg-gray-200 border-gray-300;
   }
 
   .podium-avatar-third {
-    @apply w-16 h-16 bg-amber-100 dark:bg-amber-900 border-amber-300;
+    @apply w-16 h-16 bg-amber-100 border-amber-300;
   }
 
   .podium-avatar-text {
@@ -414,7 +420,7 @@
   }
 
   .podium-base-first {
-    @apply bg-yellow-200 dark:bg-yellow-800;
+    @apply bg-yellow-200;
   }
 
   .podium-base-first-mobile {
@@ -426,7 +432,7 @@
   }
 
   .podium-base-second {
-    @apply bg-gray-200 dark:bg-gray-700;
+    @apply bg-gray-200;
   }
 
   .podium-base-second-mobile {
@@ -438,7 +444,7 @@
   }
 
   .podium-base-third {
-    @apply bg-amber-100 dark:bg-amber-900;
+    @apply bg-amber-100;
   }
 
   .podium-base-third-mobile {
@@ -635,15 +641,15 @@
 }
 
 .dark .rank-number {
-  color: #1e1e1e;
+  color: var(--tertiary-color);
 }
 
 .dark .rank-name {
-  color: #1e1e1e;
+  color: var(--tertiary-color);
 }
 
 .dark .rank-score {
-  color: #1e1e1e;
+  color: var(--tertiary-color);
 }
 
 .dark .podium-title {
@@ -662,4 +668,19 @@
 .dark .video-toggle-inactive {
   background-color: #3a3f5d;
   color: #1e1e1e;
+}
+
+.dark .rank-item-first {
+  border-color: #2a9d8f;
+  background-color: rgba(42, 157, 143, 0.6);
+}
+
+.dark .rank-item-second {
+  border-color: #2a9d8f;
+  background-color: rgba(42, 157, 143, 0.4);
+}
+
+.dark .rank-item-third {
+  border-color: #2a9d8f;
+  background-color: rgba(42, 157, 143, 0.2);
 }
