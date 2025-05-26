@@ -82,7 +82,7 @@ export default function BroadcastRoom() {
             clearTimeout(timeoutId); // 타임아웃 취소
             setCurrentRound(payload.currentRound);
             setNextGame(payload.gameType);
-            setGameTimer(payload.duration);
+            setGameTimer(payload.duration / 1000);
             setIsAggregated(false);
             adminStore.getState().setGameType(payload.gameType);
             setIsLoading(false);
