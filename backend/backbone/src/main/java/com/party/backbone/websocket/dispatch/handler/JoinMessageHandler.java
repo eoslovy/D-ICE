@@ -52,8 +52,12 @@ public class JoinMessageHandler extends GameMessageHandler<UserJoinMessage>
 		}
 		int userCount = roomRepository.getUserCount(roomCode);
 		log.info("[UserJoined] user joined for roomCode: {} id: {}", roomCode, userId);
-		administratorSession.sendMessage(new TextMessage(objectMapper.writeValueAsString(new JoinedAdminMessage(
-			message.getRequestId(), roomCode, userId, message.getNickname(), userCount))));
+		synchronized (administratorSession) {
+			administratorSession.sendMessage(
+				new TextMessage(objectMapper.writeValueAsString(new JoinedAdminMessage(
+					message.getRequestId(), roomCode, userId, message.getNickname(), userCount)))
+			);
+		}
 		session.sendMessage(new TextMessage(objectMapper.writeValueAsString(
 			new JoinedUserMessage(message.getRequestId(), roomCode, userId, message.getNickname()))));
 	}

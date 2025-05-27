@@ -48,7 +48,9 @@ public class BroadcastRequestMessageHandler extends GameMessageHandler<Broadcast
 		var administratorId = roomRepository.getAdministratorIdOfRoom(roomCode);
 		var adminSession = sessionRegistry.get(administratorId);
 		if (adminSession != null && adminSession.isOpen()) {
-			adminSession.sendMessage(new TextMessage(payload));
+			synchronized (adminSession) {
+				adminSession.sendMessage(new TextMessage(payload));
+			}
 		}
 	}
 
