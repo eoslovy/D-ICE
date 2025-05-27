@@ -28,7 +28,9 @@ public class AsyncMessageSender {
 			long start = System.currentTimeMillis();
 			try {
 				if (session.isOpen()) {
-					session.sendMessage(new TextMessage(payloadText));
+					synchronized (session) {
+						session.sendMessage(new TextMessage(payloadText));
+					}
 				}
 			} catch (IOException e) {
 				log.error("[SendAsync] send failed. sessionId={}, error={}", session.getId(), e.getMessage());
