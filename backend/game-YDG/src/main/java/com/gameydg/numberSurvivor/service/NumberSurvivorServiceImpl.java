@@ -1,6 +1,9 @@
 package com.gameydg.numberSurvivor.service;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -49,9 +52,11 @@ public class NumberSurvivorServiceImpl implements NumberSurvivorService, GameTim
 		executorService.shutdown();
 		try {
 			if (!executorService.awaitTermination(5, java.util.concurrent.TimeUnit.SECONDS)) {
+				log.warn("[게임 서비스] ExecutorService가 정상적으로 종료되지 않아 강제 종료합니다.");
 				executorService.shutdownNow();
 			}
 		} catch (InterruptedException e) {
+			log.error("[게임 서비스] ExecutorService 종료 중 인터럽트 발생", e);
 			executorService.shutdownNow();
 			Thread.currentThread().interrupt();
 		}
@@ -85,7 +90,7 @@ public class NumberSurvivorServiceImpl implements NumberSurvivorService, GameTim
 		if (beforeJoinCount == 0 || !timerManager.getGameStates().containsKey(roomCode)) {
 			// 타이머 초기화
 			timerManager.initRoomTimer(roomCode, GameState.WAITING, GameTimerManager.WAITING_TIME);
-			log.info("[게임 서비스] 첫 플레이어 입장으로 타이머 초기화 [방ID: {}, 대기시간: {}초]", roomCode, GameTimerManager.WAITING_TIME);
+			// log.info("[게임 서비스] 첫 플레이어 입장으로 타이머 초기화 [방ID: {}, 대기시간: {}초]", roomCode, GameTimerManager.WAITING_TIME);
 		}
 
 		// 게임 상태 불일치 확인 및 수정 - PLAYING 상태인데 gameStarted가 false인 경우 수정
@@ -93,18 +98,18 @@ public class NumberSurvivorServiceImpl implements NumberSurvivorService, GameTim
 		boolean isStarted = timerManager.getGameStarted().getOrDefault(roomCode, false);
 
 		if (currentState == GameState.PLAYING && !isStarted) {
-			log.info("[게임 서비스] 게임 상태 불일치 수정 [방ID: {}, 상태: PLAYING, 시작여부: false → true]", roomCode);
+			// log.info("[게임 서비스] 게임 상태 불일치 수정 [방ID: {}, 상태: PLAYING, 시작여부: false → true]", roomCode);
 			timerManager.setGameStarted(roomCode, true);
 		}
 
-		log.info("[게임 서비스] 플레이어 입장 [방ID: {}, 게임상태: {}, 게임시작여부: {}]",
-			roomCode, timerManager.getGameStates().get(roomCode), timerManager.getGameStarted().get(roomCode));
+		// log.info("[게임 서비스] 플레이어 입장 [방ID: {}, 게임상태: {}, 게임시작여부: {}]",
+		//	roomCode, timerManager.getGameStates().get(roomCode), timerManager.getGameStarted().get(roomCode));
 
 		// 게임 상태에 따라 메시지 전송 (비동기)
 		sendJoinResponseMessage(session, roomCode);
 
 		// 방 정보와 참여 유저 로깅
-		sessionRegistry.logRoomStatus(roomCode);
+		// sessionRegistry.logRoomStatus(roomCode);
 	}
 
 	// 입장 응답 메시지 전송
@@ -148,12 +153,12 @@ public class NumberSurvivorServiceImpl implements NumberSurvivorService, GameTim
 	// 플레이어 연결 종료 처리
 	@Override
 	public void handleDisconnect(String sessionId) {
-		log.info("[게임 서비스] 연결 종료 처리 [세션ID: {}]", sessionId);
+		// log.info("[게임 서비스] 연결 종료 처리 [세션ID: {}]", sessionId);
 
 		// 세션 ID로 사용자 ID 찾기
 		String userId = sessionRegistry.getUserIdBySessionId(sessionId);
 		if (userId == null) {
-			log.warn("[게임 서비스] 연결 종료된 세션에 대한 사용자 ID를 찾을 수 없음 [세션ID: {}]", sessionId);
+			// log.warn("[게임 서비스] 연결 종료된 세션에 대한 사용자 ID를 찾을 수 없음 [세션ID: {}]", sessionId);
 			return;
 		}
 
@@ -166,17 +171,17 @@ public class NumberSurvivorServiceImpl implements NumberSurvivorService, GameTim
 			// 연결 종료된 플레이어 자동 탈락 처리
 			PlayerDto player = gameManager.findPlayer(roomCode, userId);
 			if (player != null && player.isAlive()) {
-				log.info("[게임 서비스] 연결 종료된 플레이어 자동 탈락 [방ID: {}, 사용자ID: {}, 닉네임: {}]",
-					roomCode, userId, player.getNickname());
+				// log.info("[게임 서비스] 연결 종료된 플레이어 자동 탈락 [방ID: {}, 사용자ID: {}, 닉네임: {}]",
+				//	roomCode, userId, player.getNickname());
 				player.setAlive(false);
 
 				// 방에서 플레이어 제거
 				boolean removed = gameManager.leaveRoom(roomCode, userId);
-				log.info("[게임 서비스] 플레이어 방 퇴장 [방ID: {}, 사용자ID: {}, 제거 성공: {}]",
-					roomCode, userId, removed);
+				// log.info("[게임 서비스] 플레이어 방 퇴장 [방ID: {}, 사용자ID: {}, 제거 성공: {}]",
+				//	roomCode, userId, removed);
 
 				// 방의 로그 상태 기록
-				sessionRegistry.logRoomStatus(roomCode);
+				// sessionRegistry.logRoomStatus(roomCode);
 
 				// 게임이 진행 중이고 선택 대기 중이었다면, 현재 선택 상태 확인
 				if (timerManager.getGameStates().get(roomCode) == GameState.PLAYING &&
@@ -187,8 +192,8 @@ public class NumberSurvivorServiceImpl implements NumberSurvivorService, GameTim
 						.filter(PlayerDto::isAlive)
 						.allMatch(p -> p.getSelectedNumber() != null);
 
-					log.info("[게임 서비스] 연결 종료 후 선택 상태 확인 [방ID: {}, 모두 선택 완료: {}]",
-						roomCode, allSelected);
+					// log.info("[게임 서비스] 연결 종료 후 선택 상태 확인 [방ID: {}, 모두 선택 완료: {}]",
+					//	roomCode, allSelected);
 
 					// 모든 생존 플레이어가 선택을 완료했다면 라운드 결과 처리 시작
 					if (allSelected) {
@@ -207,15 +212,6 @@ public class NumberSurvivorServiceImpl implements NumberSurvivorService, GameTim
 			}
 		}
 	}
-	// // 사용자 ID로 방 ID 찾기
-	// private String findroomCodeByUserId(String userId) {
-	//     return gameManager.getRooms().entrySet().stream()
-	//             .filter(entry -> entry.getValue().stream()
-	//                     .anyMatch(player -> player.getUserId().equals(userId)))
-	//             .map(java.util.Map.Entry::getKey)
-	//             .findFirst()
-	//             .orElse(null);
-	// }
 
 	// GameTimerListener 구현 메서드들
 	@Override
@@ -223,7 +219,7 @@ public class NumberSurvivorServiceImpl implements NumberSurvivorService, GameTim
 		try {
 			messageService.sendWaitingCountdownMessage(roomCode, timeLeft);
 			if (timeLeft == 0) {
-				log.info("[게임 서비스] 대기 시간 종료 [방ID: {}]", roomCode);
+				// log.info("[게임 서비스] 대기 시간 종료 [방ID: {}]", roomCode);
 			}
 		} catch (IOException e) {
 			log.error("[게임 서비스] 대기 카운트다운 메시지 전송 실패 [방ID: {}]", roomCode, e);
@@ -318,9 +314,18 @@ public class NumberSurvivorServiceImpl implements NumberSurvivorService, GameTim
 		} else {
 			// 방이 비어있지 않은 경우 남은 플레이어 수 확인
 			int remainingPlayers = gameManager.getCurrentPlayerCount(roomCode);
-			long alivePlayers = gameManager.getRooms().get(roomCode).stream()
-				.filter(PlayerDto::isAlive)
-				.count();
+			
+			// 안전한 방식으로 생존자 수 계산
+			long alivePlayers = 0;
+			if (gameManager.getRooms().containsKey(roomCode)) {
+				Set<PlayerDto> players = gameManager.getRooms().get(roomCode);
+				if (players != null) {
+					// 동시성 문제를 피하기 위해 복사본 생성 후 처리
+					alivePlayers = new ArrayList<>(players).stream()
+						.filter(PlayerDto::isAlive)
+						.count();
+				}
+			}
 
 			log.info("[게임 서비스] 방 상태 [방ID: {}, 총인원: {}명, 생존자: {}명]",
 				roomCode, remainingPlayers, alivePlayers);

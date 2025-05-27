@@ -3,7 +3,7 @@ logging:
     root: INFO
     com.gameydg: DEBUG
     org.springframework.web: INFO
-    org.springframework.web.socket: DEBUG
+    org.springframework.web.socket: INFO
 
 spring:
   application:

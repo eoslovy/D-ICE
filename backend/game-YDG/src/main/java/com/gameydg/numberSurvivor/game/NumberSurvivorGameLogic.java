@@ -92,7 +92,7 @@ public class NumberSurvivorGameLogic {
 		gameManager.selectNumber(roomCode, userId, selectDto.getSelectedNumber());
 
 		if (isAllPlayersSelected(roomCode)) {
-			log.info("[게임 로직] 라운드 결과 계산 시작 [방ID: {}]", roomCode);
+			// log.info("[게임 로직] 라운드 결과 계산 시작 [방ID: {}]", roomCode);
 			processRoundAsync(roomCode);
 		}
 	}
@@ -136,7 +136,7 @@ public class NumberSurvivorGameLogic {
 						currentRoundPlayers.add(p);
 						p.setAlive(true);
 						p.setSelectedNumber(null);
-						log.info("[게임 로직] 플레이어 부활 [ID: {}, 닉네임: {}]", p.getUserId(), p.getNickname());
+						// log.info("[게임 로직] 플레이어 부활 [ID: {}, 닉네임: {}]", p.getUserId(), p.getNickname());
 					}
 				});
 				
@@ -144,9 +144,16 @@ public class NumberSurvivorGameLogic {
 				
 				executorService.schedule(() -> {
 					try {
-						messageService.sendAllPlayersRevivedMessage(roomCode);
-						gameManager.setRoundStartTime(roomCode);
-						scheduleRoundTimeoutCheck(roomCode);
+						// 방이 아직 존재하는지 확인
+						if (gameManager.getRooms().containsKey(roomCode) && 
+							gameManager.getRooms().get(roomCode) != null &&
+							!gameManager.getRooms().get(roomCode).isEmpty()) {
+							messageService.sendAllPlayersRevivedMessage(roomCode);
+							gameManager.setRoundStartTime(roomCode);
+							scheduleRoundTimeoutCheck(roomCode);
+						} else {
+							log.info("[게임 로직] 방이 정리되어 부활 메시지 전송 취소 [방ID: {}]", roomCode);
+						}
 					} catch (Exception e) {
 						log.error("[게임 로직] 새 라운드 시작 중 오류 [방ID: {}]", roomCode, e);
 					}
@@ -186,7 +193,7 @@ public class NumberSurvivorGameLogic {
 
 	// 시간 제한으로 인한 게임 종료 처리
 	private void finishGameWithTimeLimit(String roomCode) throws IOException {
-		log.info("시간 제한으로 게임 종료 [방ID: {}]", roomCode);
+		log.info("[게임 로직] 시간 제한으로 게임 종료 [방ID: {}]", roomCode);
 		finishGame(roomCode, true);
 	}
 
@@ -263,7 +270,7 @@ public class NumberSurvivorGameLogic {
 		long roundStartTime = gameManager.getRoundStartTimes().getOrDefault(roomCode, 0L);
 
 		if (roundStartTime > 0 && elapsedTime > ROUND_TIME_LIMIT) {
-			log.info("[게임 로직] 시간 초과 자동 탈락 [방ID: {}, 경과시간: {}ms]", roomCode, elapsedTime);
+			// log.info("[게임 로직] 시간 초과 자동 탈락 [방ID: {}, 경과시간: {}ms]", roomCode, elapsedTime);
 
 			int eliminatedCount = 0;
 			for (PlayerDto player : gameManager.getRooms().get(roomCode)) {
