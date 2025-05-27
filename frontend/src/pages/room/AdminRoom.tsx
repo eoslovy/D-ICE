@@ -15,7 +15,7 @@ export default function AdminRoom() {
         new Map<string, string>()
     );
     const [latestNickname, setLatestNickname] = useState<string | null>(null);
-    const [userCount, setUserCount] = useState<number | null>(null);
+    const [userCount, setUserCount] = useState<number>(0);
     let requestId = v7();
     const roomCode = adminStore.getState().roomCode;
 
@@ -27,8 +27,11 @@ export default function AdminRoom() {
             (payload: UserJoinedAdminMessage) => {
                 console.log("새로운 유저 입장:", payload);
 
-                setUserCount(payload.userCount);
-                adminStore.getState().setUserCount(payload.userCount);
+                if (userCount < payload.userCount) {
+                    console.log("유저 수 증가:", payload.userCount);
+                    setUserCount(payload.userCount);
+                    adminStore.getState().setUserCount(payload.userCount);
+                }
                 setLatestNickname(payload.nickname);
 
                 setUserNickname((prevUserNickname) => {
