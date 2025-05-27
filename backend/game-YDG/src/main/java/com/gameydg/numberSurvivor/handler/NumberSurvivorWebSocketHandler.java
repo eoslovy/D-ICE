@@ -26,7 +26,7 @@ public class NumberSurvivorWebSocketHandler extends TextWebSocketHandler {
 	@Override
 	protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
 		String payload = message.getPayload();
-		log.info("메시지 수신: {}", payload);
+		// log.info("메시지 수신: {}", payload);
 
 		JsonNode jsonNode = objectMapper.readTree(payload);
 		String type = jsonNode.get("type").asText();
@@ -54,12 +54,12 @@ public class NumberSurvivorWebSocketHandler extends TextWebSocketHandler {
 		String sessionId = session.getId();
 		// 웹소켓 세션 ID는 실제 사용자 ID와 매핑될 때까지 임시로 보관
 		// 실제 사용자 ID 등록은 JOIN 메시지를 받은 후 서비스 레이어에서 처리
-		log.info("새 웹소켓 연결 수립: {}", sessionId);
+		// log.info("새 웹소켓 연결 수립: {}", sessionId);
 	}
 
 	@Override
 	public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
-		log.info("웹소켓 연결 종료: {}, 상태: {}", session.getId(), status);
+		// log.info("웹소켓 연결 종료: {}, 상태: {}", session.getId(), status);
 
 		// 서비스 레이어에서 연결 종료 처리
 		numberSurvivorService.handleDisconnect(session.getId());
