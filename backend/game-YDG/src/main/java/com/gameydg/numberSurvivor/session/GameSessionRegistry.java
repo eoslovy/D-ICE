@@ -14,6 +14,7 @@ import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.gameydg.numberSurvivor.broadcast.AsyncMessageSender;
 import com.gameydg.numberSurvivor.dto.PlayerDto;
 import com.gameydg.numberSurvivor.manager.NumberSurvivorManager;
 
@@ -27,6 +28,7 @@ import lombok.extern.slf4j.Slf4j;
 public class GameSessionRegistry {
 	private final ObjectMapper objectMapper;
 	private final NumberSurvivorManager gameManager;
+	private final AsyncMessageSender asyncMessageSender;
 
 	// 사용자 ID를 키로 WebSocketSession을 저장하는 맵
 	private final Map<String, WebSocketSession> sessions = new ConcurrentHashMap<>();
@@ -45,7 +47,7 @@ public class GameSessionRegistry {
 		}
 	}
 
-	// 방에 메시지 브로드캐스팅
+	// 방에 메시지 브로드캐스팅 (비동기)
 	public void broadcastMessage(String roomCode, Object message) throws IOException {
 		String messageStr = objectMapper.writeValueAsString(message);
 		List<String> invalidUserIds = new ArrayList<>();
@@ -63,26 +65,24 @@ public class GameSessionRegistry {
 		}
 		Set<PlayerDto> playersCopy = new HashSet<>(players);
 
+		// 각 세션마다 독립적인 비동기 작업 생성
 		for (PlayerDto player : playersCopy) {
-			try {
-				WebSocketSession session = sessions.get(player.getUserId());
-				if (session != null && session.isOpen()) {
-					synchronized (session) {
-						session.sendMessage(new TextMessage(messageStr));
-					}
-				} else {
-					invalidUserIds.add(player.getUserId());
-				}
-			} catch (IOException e) {
-				log.error("[세션 레지스트리] 메시지 전송 실패 [방ID: {}, 사용자ID: {}]", roomCode, player.getUserId(), e);
+			WebSocketSession session = sessions.get(player.getUserId());
+			if (session != null && session.isOpen()) {
+				// 비동기: 각 세션마다 별도 스레드에서 처리
+				asyncMessageSender.send(session, messageStr);
+			} else {
 				invalidUserIds.add(player.getUserId());
 			}
 		}
 
+		// 유효하지 않은 세션 정리
 		if (!invalidUserIds.isEmpty()) {
 			// log.warn("[세션 레지스트리] 유효하지 않은 세션 제거 [방ID: {}, 사용자: {}]", roomCode, invalidUserIds);
 			invalidUserIds.forEach(this::unregisterSession);
 		}
+
+		// log.info("[세션 레지스트리] 비동기 브로드캐스트 시작 [방ID: {}, 대상: {}명]", roomCode, playersCopy.size());
 	}
 
 	// 단일 세션에 메시지 전송

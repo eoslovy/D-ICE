@@ -4,8 +4,6 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 
@@ -15,10 +13,9 @@ import org.springframework.web.socket.WebSocketSession;
 import com.gameydg.numberSurvivor.dto.PlayerDto;
 import com.gameydg.numberSurvivor.dto.RoundResultDto;
 import com.gameydg.numberSurvivor.manager.NumberSurvivorManager;
-import com.gameydg.numberSurvivor.repository.RoomRedisRepository;
 import com.gameydg.numberSurvivor.session.GameSessionRegistry;
+import com.gameydg.numberSurvivor.repository.RoomRedisRepository;
 
-import jakarta.annotation.PreDestroy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -31,33 +28,13 @@ public class GameMessageService {
 	private final NumberSurvivorManager gameManager;
 	private final RoomRedisRepository roomRedisRepository;
 
-	// 비동기 작업을 위한 실행기 - I/O 작업 처리용
-	private final ExecutorService executorService = Executors.newFixedThreadPool(10);
-
-	// 리소스 정리
-	@PreDestroy
-	public void shutdown() {
-		executorService.shutdown();
-		try {
-			if (!executorService.awaitTermination(5, java.util.concurrent.TimeUnit.SECONDS)) {
-				executorService.shutdownNow();
-			}
-		} catch (InterruptedException e) {
-			executorService.shutdownNow();
-			Thread.currentThread().interrupt();
-		}
-		log.info("[메시지 서비스] 종료 완료");
-	}
-
-	// 비동기로 메시지 브로드캐스트
+	// 메시지 브로드캐스트 (이제 비동기)
 	public void broadcastMessageAsync(String roomCode, Object message) {
-		executorService.submit(() -> {
-			try {
-				sessionRegistry.broadcastMessage(roomCode, message);
-			} catch (IOException e) {
-				log.error("[메시지 서비스] 메시지 전송 중 오류 [방ID: {}]", roomCode, e);
-			}
-		});
+		try {
+			sessionRegistry.broadcastMessage(roomCode, message);
+		} catch (IOException e) {
+			log.error("[메시지 서비스] 메시지 전송 중 오류 [방ID: {}]", roomCode, e);
+		}
 	}
 
 	// 대기 중 메시지 전송
@@ -181,7 +158,7 @@ public class GameMessageService {
 				log.error("[메시지 서비스] 게임 종료 처리 중 오류 [방ID: {}]", roomCode, e);
 				throw new CompletionException(e);
 			}
-		}, executorService);
+		});
 	}
 
 	// 모든 플레이어가 죽었을 때 새 게임 메시지 전송
