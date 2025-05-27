@@ -22,6 +22,6 @@ public class RoomRedisRepositoryImpl implements RoomRedisRepository {
 		redisTemplate.opsForZSet().remove(PENDING_AGGREGATION_KEY, roomCode);
 		redisTemplate.opsForZSet().add(PENDING_AGGREGATION_KEY, roomCode, aggregationTime);
 
-		log.info("[RoomRedis] 집계 시간 설정 [방ID: {}, 집계시간: {}]", roomCode, aggregationTime);
+		// log.info("[RoomRedis] 집계 시간 설정 [방ID: {}, 집계시간: {}]", roomCode, aggregationTime);
 	}
 } 

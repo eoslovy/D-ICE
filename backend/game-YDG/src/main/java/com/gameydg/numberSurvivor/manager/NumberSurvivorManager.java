@@ -2,7 +2,6 @@ package com.gameydg.numberSurvivor.manager;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -45,18 +44,18 @@ public class NumberSurvivorManager {
 	}
 
 	public void joinRoom(String roomCode, PlayerDto player) {
-		rooms.computeIfAbsent(roomCode, k -> new HashSet<>()).add(player);
+		rooms.computeIfAbsent(roomCode, k -> ConcurrentHashMap.newKeySet()).add(player);
 		currentRounds.putIfAbsent(roomCode, 1);
 		roundSelections.putIfAbsent(roomCode, new ConcurrentHashMap<>());
 		gameDurationLimits.putIfAbsent(roomCode, DEFAULT_GAME_DURATION_LIMIT);
 
-		log.info("[게임 매니저] 플레이어 입장 [방ID: {}, 사용자ID: {}, 닉네임: {}]",
-			roomCode, player.getUserId(), player.getNickname());
+		// log.info("[게임 매니저] 플레이어 입장 [방ID: {}, 사용자ID: {}, 닉네임: {}]",
+		//	roomCode, player.getUserId(), player.getNickname());
 	}
 
 	public void startGame(String roomCode) {
 		if (!rooms.containsKey(roomCode)) {
-			rooms.putIfAbsent(roomCode, new HashSet<>());
+			rooms.putIfAbsent(roomCode, ConcurrentHashMap.newKeySet());
 		}
 
 		if (!currentRounds.containsKey(roomCode)) {
@@ -77,10 +76,14 @@ public class NumberSurvivorManager {
 			gameDurationLimits.getOrDefault(roomCode, DEFAULT_GAME_DURATION_LIMIT));
 
 		if (rooms.containsKey(roomCode)) {
-			rooms.get(roomCode).forEach(player -> {
-				player.setAlive(true);
-				player.setSelectedNumber(null);
-			});
+			Set<PlayerDto> players = rooms.get(roomCode);
+			if (players != null) {
+				// 동시성 문제를 피하기 위해 복사본 생성 후 처리
+				new ArrayList<>(players).forEach(player -> {
+					player.setAlive(true);
+					player.setSelectedNumber(null);
+				});
+			}
 		}
 	}
 
@@ -113,13 +116,13 @@ public class NumberSurvivorManager {
 	// 방에서 플레이어 나가기
 	public boolean leaveRoom(String roomCode, String userId) {
 		if (!rooms.containsKey(roomCode)) {
-			log.warn("[게임 매니저] 방 퇴장 실패 - 존재하지 않는 방 [방ID: {}, 사용자ID: {}]", roomCode, userId);
+			// log.warn("[게임 매니저] 방 퇴장 실패 - 존재하지 않는 방 [방ID: {}, 사용자ID: {}]", roomCode, userId);
 			return false;
 		}
 
 		PlayerDto playerToRemove = findPlayer(roomCode, userId);
 		if (playerToRemove == null) {
-			log.warn("[게임 매니저] 방 퇴장 실패 - 존재하지 않는 플레이어 [방ID: {}, 사용자ID: {}]", roomCode, userId);
+			// log.warn("[게임 매니저] 방 퇴장 실패 - 존재하지 않는 플레이어 [방ID: {}, 사용자ID: {}]", roomCode, userId);
 			return false;
 		}
 
@@ -131,8 +134,8 @@ public class NumberSurvivorManager {
 			);
 		}
 
-		log.info("[게임 매니저] 플레이어 퇴장 [방ID: {}, 사용자ID: {}, 닉네임: {}]",
-			roomCode, userId, playerToRemove.getNickname());
+		// log.info("[게임 매니저] 플레이어 퇴장 [방ID: {}, 사용자ID: {}, 닉네임: {}]",
+		//	roomCode, userId, playerToRemove.getNickname());
 		return removed;
 	}
 
@@ -179,7 +182,17 @@ public class NumberSurvivorManager {
 	}
 
 	public boolean isGameOver(String roomCode) {
-		long aliveCount = rooms.get(roomCode).stream()
+		if (!rooms.containsKey(roomCode)) {
+			return false;
+		}
+		
+		Set<PlayerDto> players = rooms.get(roomCode);
+		if (players == null) {
+			return false;
+		}
+		
+		// 동시성 문제를 피하기 위해 복사본 생성 후 처리
+		long aliveCount = new ArrayList<>(players).stream()
 			.filter(PlayerDto::isAlive)
 			.count();
 
@@ -191,7 +204,17 @@ public class NumberSurvivorManager {
 	}
 
 	public boolean isAllDead(String roomCode) {
-		boolean allDead = rooms.get(roomCode).stream().noneMatch(PlayerDto::isAlive);
+		if (!rooms.containsKey(roomCode)) {
+			return true;
+		}
+		
+		Set<PlayerDto> players = rooms.get(roomCode);
+		if (players == null || players.isEmpty()) {
+			return true;
+		}
+		
+		// 동시성 문제를 피하기 위해 복사본 생성 후 처리
+		boolean allDead = new ArrayList<>(players).stream().noneMatch(PlayerDto::isAlive);
 		if (allDead) {
 			log.info("[게임 매니저] 전원 탈락 [방ID: {}]", roomCode);
 		}
@@ -199,7 +222,17 @@ public class NumberSurvivorManager {
 	}
 
 	public List<PlayerDto> getWinners(String roomCode) {
-		List<PlayerDto> winners = rooms.get(roomCode).stream()
+		if (!rooms.containsKey(roomCode)) {
+			return new ArrayList<>();
+		}
+		
+		Set<PlayerDto> players = rooms.get(roomCode);
+		if (players == null) {
+			return new ArrayList<>();
+		}
+		
+		// 동시성 문제를 피하기 위해 복사본 생성 후 처리
+		List<PlayerDto> winners = new ArrayList<>(players).stream()
 			.filter(PlayerDto::isAlive)
 			.toList();
 
@@ -211,7 +244,17 @@ public class NumberSurvivorManager {
 
 	// 사용자 ID로 플레이어 찾기
 	public PlayerDto findPlayer(String roomCode, String userId) {
-		return rooms.get(roomCode).stream()
+		if (!rooms.containsKey(roomCode)) {
+			return null;
+		}
+		
+		Set<PlayerDto> players = rooms.get(roomCode);
+		if (players == null) {
+			return null;
+		}
+		
+		// 동시성 문제를 피하기 위해 복사본 생성 후 처리
+		return new ArrayList<>(players).stream()
 			.filter(p -> p.getUserId().equals(userId))
 			.findFirst()
 			.orElse(null);
